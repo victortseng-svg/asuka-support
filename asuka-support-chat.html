@@ -286,23 +286,6 @@ const fuse = new Fuse(KB, {
 /* ===== API ===== */
 const FEEDBACK_API = 'https://script.google.com/macros/s/AKfycby7DtvaCSibzRmPYoGjBeVyVS5lXIJE1btBEX3hui_duuk9A9hPvXFMEgId0mIOK5Vm/exec';
 
-/* ===== 自動學習：開啟時從 Google Sheets 載入訓練資料 ===== */
-function loadTrainingData() {
-  fetch(FEEDBACK_API, { method: 'GET' })
-    .then(r => r.json())
-    .then(data => {
-      if (data.status === 'ok' && data.entries && data.entries.length > 0) {
-        const newEntries = data.entries.map(e => ({
-          title: '📚 ' + e.question,
-          url: '__training__',
-          desc: e.answer,
-          keywords: e.question + ' ' + e.answer
-        }));
-        fuse.setCollection([...KB, ...newEntries]);
-      }
-    })
-    .catch(() => {/* 靜默失敗 */});
-}
 
 /* ===== UI ===== */
 const chatMessages = document.getElementById("chatMessages");
@@ -312,7 +295,6 @@ window.onload = () => {
   appendBotMessage(`你好！我是飛鳥技術客服助手 👋\n\n請用口語描述你遇到的問題，我會幫你在客服平台找到最相關的說明頁面（最多3個結果）。`, [
     "導航王沒有語音播報", "WiFi 連線但無法上網", "CarPlay 一直連不上", "行車記錄器不錄影"
   ]);
-  loadTrainingData();
 };
 
 function handleKey(e) {
@@ -439,7 +421,6 @@ function submitFeedback() {
     suc.classList.add('show');
     setTimeout(() => suc.classList.remove('show'), 4000);
     submitBtn.textContent = '提交訓練資料'; submitBtn.disabled = false;
-    setTimeout(loadTrainingData, 2000);
   })
   .catch(() => {
     alert('提交失敗，請確認網路連線後再試');
