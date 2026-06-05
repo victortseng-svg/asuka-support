@@ -221,9 +221,15 @@
           placeholder="例如：Ford Kuga 2016年可以安裝嗎？"></textarea>
       </div>
       <div class="fb-row">
-        <div class="fb-label">🔗 答案在哪裡？（頁面或說明）</div>
+        <div class="fb-label">🔗 答案在哪裡？（頁面連結）</div>
         <textarea class="fb-input" id="fbAnswer" rows="2"
-          placeholder="例如：車款升級資訊查詢庫 → FORD → KUGA，2013~2018 可更換"></textarea>
+          placeholder="請貼上頁面連結，例如：https://sites.google.com/.../車款升級資訊查詢庫#h.thiecunpv68"></textarea>
+        <div style="font-size:11px;color:#64748b;margin-top:5px;line-height:1.5;background:#f8fafc;border-radius:6px;padding:7px 10px;">
+          💡 <b>如何取得精確連結？</b><br>
+          1. 打開 Google Site，找到對應段落<br>
+          2. 點段落標題旁的 <b>🔗 複製連結</b> 圖示<br>
+          3. 貼上（帶有 <code style="background:#e2e8f0;padding:1px 4px;border-radius:3px;">#h.xxxxx</code> 的連結可直接跳到該段）
+        </div>
       </div>
       <button class="fb-submit-btn" onclick="submitFeedback()">提交訓練資料</button>
       <div class="fb-success" id="fbSuccess">✅ 已提交！下次開啟對話框就能搜尋到這筆資料 🎉</div>
