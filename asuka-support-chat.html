@@ -14,13 +14,17 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
+      height: 100dvh;
+      height: 100vh; /* fallback */
       padding: 16px;
+      overflow: hidden;
     }
 
     .chat-container {
       width: 100%;
       max-width: 680px;
+      height: 100%;
+      max-height: 760px;
       background: #fff;
       border-radius: 16px;
       box-shadow: 0 4px 24px rgba(0,0,0,0.10);
@@ -33,32 +37,52 @@
     .chat-header {
       background: linear-gradient(135deg, #1a56db, #1e429f);
       color: #fff;
-      padding: 18px 24px;
+      padding: 14px 18px;
       display: flex;
       align-items: center;
       gap: 12px;
+      flex-shrink: 0;
     }
     .chat-header .icon {
-      width: 40px; height: 40px;
+      width: 38px; height: 38px;
       background: rgba(255,255,255,0.2);
       border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      font-size: 20px;
+      font-size: 18px;
       flex-shrink: 0;
     }
-    .chat-header h1 { font-size: 16px; font-weight: 700; }
-    .chat-header p  { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+    .chat-header .header-text { flex: 1; min-width: 0; }
+    .chat-header h1 { font-size: 15px; font-weight: 700; }
+    .chat-header p  { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+
+    /* Clear button */
+    .clear-btn {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      padding: 6px 10px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .clear-btn:hover { background: rgba(255,255,255,0.25); }
+    .clear-btn svg { width: 13px; height: 13px; fill: #fff; }
 
     /* Messages */
     .chat-messages {
       flex: 1;
       overflow-y: auto;
-      padding: 20px;
-      min-height: 300px;
-      max-height: 480px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
       gap: 14px;
+      -webkit-overflow-scrolling: touch;
     }
 
     .msg {
@@ -202,7 +226,7 @@
     .hint-text {
       font-size: 11px;
       color: #aab4cc;
-      margin-top: 8px;
+      margin-top: 6px;
       text-align: center;
     }
 
@@ -229,10 +253,12 @@
       40% { transform: translateY(-6px); }
     }
 
-    @media (max-width: 480px) {
+    @media (max-width: 600px) {
       body { padding: 0; align-items: flex-start; }
-      .chat-container { border-radius: 0; min-height: 100vh; }
-      .chat-messages { max-height: calc(100vh - 220px); }
+      .chat-container { border-radius: 0; max-height: none; height: 100dvh; height: 100vh; }
+      .chat-messages { padding: 12px; }
+      .chat-header { padding: 12px 14px; }
+      .hint-text { display: none; }
     }
   </style>
 </head>
@@ -241,10 +267,14 @@
 <div class="chat-container">
   <div class="chat-header">
     <div class="icon">🔧</div>
-    <div>
+    <div class="header-text">
       <h1>Asuka 技術客服助手</h1>
       <p>輸入問題，我幫你找到最相關的說明頁面</p>
     </div>
+    <button class="clear-btn" onclick="clearChat()" title="清除對話">
+      <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+      清除
+    </button>
   </div>
 
   <div class="chat-messages" id="chatMessages">
@@ -1013,6 +1043,18 @@ function quickSend(btn) {
 
 function scrollToBottom() {
   chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function clearChat() {
+  chatMessages.innerHTML = '';
+  userInput.value = '';
+  userInput.style.height = 'auto';
+  appendBotMessage(`對話已清除 🗑️\n\n請繼續輸入你的問題。`, [
+    "導航王沒有語音播報",
+    "WiFi 連線但無法上網",
+    "CarPlay 一直連不上",
+    "行車記錄器不錄影"
+  ]);
 }
 
 function escHtml(str) {
