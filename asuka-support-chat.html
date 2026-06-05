@@ -305,6 +305,34 @@ function autoResize(el) {
   el.style.height = "auto";
   el.style.height = Math.min(el.scrollHeight, 100) + "px";
 }
+function smartSearch(query) {
+  const q = query.toLowerCase();
+  // 1. 直接關鍵字比對（把查詢裡出現的關鍵字找出來）
+  const directMatches = [];
+  const seen = new Set();
+  KB.forEach(entry => {
+    const kws = entry.keywords.toLowerCase().split(/\s+/);
+    const matchCount = kws.filter(kw => kw.length > 1 && q.includes(kw)).length;
+    if (matchCount > 0 && !seen.has(entry.url)) {
+      directMatches.push({ item: entry, score: 1 - (matchCount * 0.2), _direct: true });
+      seen.add(entry.url);
+    }
+  });
+  // 按命中數排序（命中越多排越前）
+  directMatches.sort((a, b) => a.score - b.score);
+
+  // 2. Fuse 模糊搜尋補充
+  const fuseResults = fuse.search(query, { limit: 5 });
+  fuseResults.forEach(r => {
+    if (!seen.has(r.item.url)) {
+      directMatches.push(r);
+      seen.add(r.item.url);
+    }
+  });
+
+  return directMatches.slice(0, 3);
+}
+
 function sendMessage() {
   const text = userInput.value.trim();
   if (!text) return;
@@ -313,7 +341,7 @@ function sendMessage() {
   const typingEl = appendTyping();
   setTimeout(() => {
     typingEl.remove();
-    renderResults(fuse.search(text, { limit: 3 }), text);
+    renderResults(smartSearch(text), text);
     scrollToBottom();
   }, 600);
 }
