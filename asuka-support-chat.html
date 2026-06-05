@@ -464,12 +464,8 @@
     <button class="fb-submit-btn" onclick="submitFeedback()">提交訓練資料</button>
     <div class="fb-success" id="fbSuccess">✅ 已記錄！感謝你的貢獻，管理員會定期更新知識庫。</div>
 
-    <div class="fb-history">
-      <div class="fb-history-header">
-        <span class="fb-history-title">📋 已提交的訓練資料</span>
-        <button class="fb-copy-btn" onclick="copyFeedback()">複製全部</button>
-      </div>
-      <div id="fbHistoryList"></div>
+    <div style="font-size:11px;color:#94a3b8;margin-top:10px;text-align:center;">
+      提交後會自動記錄到管理員的 Google 試算表 📊
     </div>
   </div><!-- end feedback-body -->
   </div><!-- end feedback-panel -->
@@ -1292,15 +1288,8 @@ function escHtml(str) {
   return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 
-/* ── 訓練回饋功能 ── */
-const FB_KEY = 'asuka_feedback_v1';
-
-function getFeedbackList() {
-  try { return JSON.parse(localStorage.getItem(FB_KEY) || '[]'); } catch(e) { return []; }
-}
-function saveFeedbackList(list) {
-  localStorage.setItem(FB_KEY, JSON.stringify(list));
-}
+/* ── 訓練回饋功能（送到 Google Sheets） ── */
+const FEEDBACK_API = 'https://script.google.com/macros/s/AKfycby7DtvaCSibzRmPYoGjBeVyVS5lXIJE1btBEX3hui_duuk9A9hPvXFMEgId0mIOK5Vm/exec';
 
 function toggleFeedback() {
   const body = document.getElementById('feedbackBody');
@@ -1308,7 +1297,6 @@ function toggleFeedback() {
   const isOpen = body.classList.contains('open');
   body.classList.toggle('open', !isOpen);
   toggle.classList.toggle('open', !isOpen);
-  if (!isOpen) renderFeedbackHistory();
 }
 
 function submitFeedback() {
@@ -1316,67 +1304,31 @@ function submitFeedback() {
   const a = document.getElementById('fbAnswer').value.trim();
   if (!q || !a) { alert('請填寫問題與答案位置'); return; }
 
-  const list = getFeedbackList();
-  list.unshift({
-    q, a,
-    time: new Date().toLocaleString('zh-TW', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' })
-  });
-  saveFeedbackList(list);
+  const submitBtn = document.querySelector('.fb-submit-btn');
+  submitBtn.textContent = '提交中...';
+  submitBtn.disabled = true;
 
-  document.getElementById('fbQuestion').value = '';
-  document.getElementById('fbAnswer').value = '';
-  const suc = document.getElementById('fbSuccess');
-  suc.classList.add('show');
-  setTimeout(() => suc.classList.remove('show'), 3000);
-
-  renderFeedbackHistory();
-  updateFeedbackBadge();
-}
-
-function renderFeedbackHistory() {
-  const list = getFeedbackList();
-  const el = document.getElementById('fbHistoryList');
-  if (!list.length) {
-    el.innerHTML = '<div class="fb-empty">還沒有訓練資料，成為第一個貢獻者吧！</div>';
-    return;
-  }
-  el.innerHTML = list.map(item => `
-    <div class="fb-entry">
-      <div class="fb-q">❓ ${escHtml(item.q)}</div>
-      <div class="fb-a">📍 ${escHtml(item.a)}</div>
-      <div class="fb-time">${escHtml(item.time)}</div>
-    </div>
-  `).join('');
-}
-
-function updateFeedbackBadge() {
-  const list = getFeedbackList();
-  const badge = document.getElementById('feedbackBadge');
-  if (list.length > 0) {
-    badge.textContent = list.length + ' 筆';
-    badge.classList.add('visible');
-  } else {
-    badge.classList.remove('visible');
-  }
-}
-
-function copyFeedback() {
-  const list = getFeedbackList();
-  if (!list.length) { alert('還沒有訓練資料'); return; }
-  const text = '=== Asuka 客服助手訓練資料 ===\n' + new Date().toLocaleDateString('zh-TW') + '\n\n' +
-    list.map((item, i) => `[${i+1}] ${item.time}\n問題：${item.q}\n答案位置：${item.a}`).join('\n\n');
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = document.querySelector('.fb-copy-btn');
-    const orig = btn.textContent;
-    btn.textContent = '✅ 已複製！';
-    setTimeout(() => btn.textContent = orig, 2000);
-  }).catch(() => {
-    prompt('請手動複製以下內容：', text);
+  fetch(FEEDBACK_API, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question: q, answer: a })
+  })
+  .then(() => {
+    document.getElementById('fbQuestion').value = '';
+    document.getElementById('fbAnswer').value = '';
+    const suc = document.getElementById('fbSuccess');
+    suc.classList.add('show');
+    setTimeout(() => suc.classList.remove('show'), 4000);
+    submitBtn.textContent = '提交訓練資料';
+    submitBtn.disabled = false;
+  })
+  .catch(() => {
+    alert('提交失敗，請確認網路連線後再試');
+    submitBtn.textContent = '提交訓練資料';
+    submitBtn.disabled = false;
   });
 }
-
-// 初始化 badge
-updateFeedbackBadge();
 </script>
 </body>
 </html>
