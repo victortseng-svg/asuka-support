@@ -280,7 +280,7 @@ const KB=[{title:"飛鳥客戶服務中心 首頁",url:"https://sites.google.com
 /* ===== Fuse.js ===== */
 const fuse = new Fuse(KB, {
   keys: [{name:"title",weight:0.4},{name:"keywords",weight:0.4},{name:"desc",weight:0.2}],
-  threshold: 0.55, minMatchCharLength: 2, includeScore: true,
+  threshold: 0.7, minMatchCharLength: 2, includeScore: true,
   ignoreLocation: true, distance: 200
 });
 
