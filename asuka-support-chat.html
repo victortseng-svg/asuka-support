@@ -333,12 +333,34 @@ function renderResults(results, query) {
       const item = r.item;
       const isTraining = item.url === '__training__';
       if (isTraining) {
-        return `<div class="result-card training">
-          <div class="rank">${rankLabels[i]||"#"+(i+1)}</div>
-          <div class="title">${escHtml(item.title)}</div>
-          <div class="desc">${escHtml(item.desc)}</div>
-          <div class="link-hint">📍 業務提交的訓練資料</div>
-        </div>`;
+        // 從 desc 中抽取 URL（如果有的話）
+        const urlMatch = item.desc.match(/https?:\/\/[^\s]+/);
+        const extractedUrl = urlMatch ? urlMatch[0] : null;
+        // 去掉 desc 裡的 URL，只留說明文字
+        const cleanDesc = item.desc.replace(/https?:\/\/[^\s]+/g, '').trim();
+        const titleText = item.title.replace('📚 ', '');
+
+        if (extractedUrl) {
+          // 有 URL → 做成可點擊連結卡片
+          return `<a class="result-card training" href="${escHtml(extractedUrl)}" target="_blank" rel="noopener">
+            <div class="rank">${rankLabels[i]||"#"+(i+1)}</div>
+            <div class="title">${escHtml(titleText)}</div>
+            ${cleanDesc ? `<div class="desc">${escHtml(cleanDesc)}</div>` : ''}
+            <div class="link-hint">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+              </svg>點擊開啟頁面（業務提供）
+            </div>
+          </a>`;
+        } else {
+          // 只有文字說明 → 顯示純文字卡片
+          return `<div class="result-card training">
+            <div class="rank">${rankLabels[i]||"#"+(i+1)}</div>
+            <div class="title">${escHtml(titleText)}</div>
+            <div class="desc">${escHtml(item.desc)}</div>
+            <div class="link-hint">📍 業務提交的說明</div>
+          </div>`;
+        }
       }
       return `<a class="result-card" href="${escHtml(item.url)}" target="_blank" rel="noopener">
         <div class="rank">${rankLabels[i]||"#"+(i+1)}</div>
