@@ -345,21 +345,31 @@ function autoResize(el) {
 }
 function smartSearch(query) {
   const q = query.toLowerCase();
-  // 1. 直接關鍵字比對（把查詢裡出現的關鍵字找出來）
   const directMatches = [];
   const seen = new Set();
+
   KB.forEach(entry => {
     const kws = entry.keywords.toLowerCase().split(/\s+/);
-    const matchCount = kws.filter(kw => kw.length > 1 && q.includes(kw)).length;
-    if (matchCount > 0 && !seen.has(entry.url)) {
-      directMatches.push({ item: entry, score: 1 - (matchCount * 0.2), _direct: true });
+    let totalScore = 0;
+    kws.forEach(kw => {
+      if (kw.length > 1 && q.includes(kw)) {
+        // 關鍵字越長（越具體）權重越高
+        if (kw.length >= 5) totalScore += 0.5;
+        else if (kw.length >= 4) totalScore += 0.4;
+        else if (kw.length >= 3) totalScore += 0.3;
+        else totalScore += 0.15;
+      }
+    });
+    if (totalScore > 0 && !seen.has(entry.url)) {
+      directMatches.push({ item: entry, score: Math.max(0, 1 - totalScore), _direct: true });
       seen.add(entry.url);
     }
   });
-  // 按命中數排序（命中越多排越前）
+
+  // 分數越低排越前（totalScore 越高 → score 越低 → 排越前）
   directMatches.sort((a, b) => a.score - b.score);
 
-  // 2. Fuse 模糊搜尋補充
+  // Fuse 模糊搜尋補充
   const fuseResults = fuse.search(query, { limit: 5 });
   fuseResults.forEach(r => {
     if (!seen.has(r.item.url)) {
