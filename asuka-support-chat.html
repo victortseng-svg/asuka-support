@@ -313,11 +313,28 @@ const FEEDBACK_API = 'https://script.google.com/macros/s/AKfycby7DtvaCSibzRmPYoG
 const chatMessages = document.getElementById("chatMessages");
 const userInput    = document.getElementById("userInput");
 
+const DEFAULT_SUGGESTIONS = ["導航王沒有語音播報", "WiFi 連線但無法上網", "CarPlay 一直連不上", "行車記錄器不錄影"];
+
 window.onload = () => {
-  appendBotMessage(`你好！我是飛鳥技術客服助手 👋\n\n請用口語描述你遇到的問題，我會幫你在客服平台找到最相關的說明頁面（最多3個結果）。`, [
-    "導航王沒有語音播報", "WiFi 連線但無法上網", "CarPlay 一直連不上", "行車記錄器不錄影"
-  ]);
+  appendBotMessage(`你好！我是飛鳥技術客服助手 👋\n\n請用口語描述你遇到的問題，我會幫你在客服平台找到最相關的說明頁面（最多3個結果）。`, DEFAULT_SUGGESTIONS);
+  loadTopQueries();
 };
+
+// 從 Sheets 載入熱門查詢，更新建議按鈕（前4名）
+function loadTopQueries() {
+  fetch('https://script.google.com/macros/s/AKfycby7DtvaCSibzRmPYoGjBeVyVS5lXIJE1btBEX3hui_duuk9A9hPvXFMEgId0mIOK5Vm/exec', { method: 'GET' })
+    .then(r => r.json())
+    .then(data => {
+      if (data.topQueries && data.topQueries.length >= 2) {
+        const top = data.topQueries.slice(0, 4);
+        const suggestions = document.querySelectorAll('.suggestion-btn');
+        suggestions.forEach((btn, i) => {
+          if (top[i]) btn.textContent = top[i];
+        });
+      }
+    })
+    .catch(() => {/* 靜默失敗，保留預設 */});
+}
 
 function handleKey(e) {
   if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
@@ -359,6 +376,12 @@ function sendMessage() {
   if (!text) return;
   appendUserMessage(text);
   userInput.value = ""; userInput.style.height = "auto";
+  // 記錄查詢（背景，不影響UX）
+  fetch('https://script.google.com/macros/s/AKfycby7DtvaCSibzRmPYoGjBeVyVS5lXIJE1btBEX3hui_duuk9A9hPvXFMEgId0mIOK5Vm/exec', {
+    method: 'POST', mode: 'no-cors',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({query: text})
+  }).catch(() => {});
   const typingEl = appendTyping();
   setTimeout(() => {
     typingEl.remove();
