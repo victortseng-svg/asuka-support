@@ -472,9 +472,8 @@ function scrollToBottom() { chatMessages.scrollTop = chatMessages.scrollHeight; 
 function clearChat() {
   chatMessages.innerHTML = '';
   userInput.value = ''; userInput.style.height = 'auto';
-  appendBotMessage(`對話已清除 🗑️\n\n請繼續輸入你的問題。`, [
-    "導航王沒有語音播報", "WiFi 連線但無法上網", "CarPlay 一直連不上", "行車記錄器不錄影"
-  ]);
+  appendBotMessage(`對話已清除 🗑️\n\n請繼續輸入你的問題。`, DEFAULT_SUGGESTIONS);
+  loadTopQueries();
 }
 function escHtml(str) {
   return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
