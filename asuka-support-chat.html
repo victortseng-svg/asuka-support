@@ -608,11 +608,19 @@ ${contextText}
 - 回答簡潔，100～200字為宜
 - 若知識庫資訊不足，誠實說明並建議聯繫飛鳥FAE工程師`;
 
-  const resp = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+  // Support both API key (?key=) and Bearer token auth
+  const isApiKey = GEMINI_API_KEY.startsWith('AIza');
+  const url = isApiKey
+    ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`
+    : `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`;
+  const authHeaders = isApiKey
+    ? { 'Content-Type': 'application/json' }
+    : { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GEMINI_API_KEY}` };
+
+  const resp = await fetch(url,
     {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders,
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: { temperature: 0.2, maxOutputTokens: 600 }
