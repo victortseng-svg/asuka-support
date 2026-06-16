@@ -7,7 +7,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/7.0.0/fuse.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif; background: #f0f2f5; display: flex; align-items: flex-start; justify-content: center; min-height: 100vh; padding: 16px; overflow-y: auto; }
+    body { font-family: -apple-system, BlinkMacSystemFont,h "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif; background: #f0f2f5; display: flex; align-items: flex-start; justify-content: center; min-height: 100vh; padding: 16px; overflow-y: auto; }
     .chat-container { width: 100%; max-width: 680px; background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.10); display: flex; flex-direction: column; overflow: hidden; }
     .chat-header { background: linear-gradient(135deg, #1a56db, #1e429f); color: #fff; padding: 14px 18px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
     .chat-header .icon { width: 38px; height: 38px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
@@ -190,7 +190,7 @@ async function callAI(question) {
   messages.push({role: 'user', content: question});
   var resp = await fetch(GAS_PROXY_URL, {
     method: 'POST',
-    headers: {'Content-Type': 'application/json'},
+    headers: {'Content-Type': 'text/plain'},
     body: JSON.stringify({messages: messages})
   });
   var data = await resp.json();
