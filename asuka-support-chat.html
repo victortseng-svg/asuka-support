@@ -7,439 +7,102 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/7.0.0/fuse.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
-      background: #f0f2f5;
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      min-height: 100dvh;
-      min-height: 100vh;
-      padding: 16px;
-      overflow-y: auto;
-    }
-
-    .chat-container {
-      width: 100%;
-      max-width: 680px;
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      margin-bottom: 0;
-    }
-
-    /* Header */
-    .chat-header {
-      background: linear-gradient(135deg, #1a56db, #1e429f);
-      color: #fff;
-      padding: 14px 18px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-shrink: 0;
-    }
-    .chat-header .icon {
-      width: 38px; height: 38px;
-      background: rgba(255,255,255,0.2);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px;
-      flex-shrink: 0;
-    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif; background: #f0f2f5; display: flex; align-items: flex-start; justify-content: center; min-height: 100vh; padding: 16px; overflow-y: auto; }
+    .chat-container { width: 100%; max-width: 680px; background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.10); display: flex; flex-direction: column; overflow: hidden; }
+    .chat-header { background: linear-gradient(135deg, #1a56db, #1e429f); color: #fff; padding: 14px 18px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+    .chat-header .icon { width: 38px; height: 38px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
     .chat-header .header-text { flex: 1; min-width: 0; }
     .chat-header h1 { font-size: 15px; font-weight: 700; }
-    .chat-header p  { font-size: 11px; opacity: 0.8; margin-top: 2px; }
-
-    /* AI Badge in header */
-    .ai-header-badge {
-      background: linear-gradient(135deg, #7c3aed, #4f46e5);
-      border: 1px solid rgba(255,255,255,0.3);
-      border-radius: 8px;
-      color: #fff;
-      padding: 4px 10px;
-      font-size: 11px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      flex-shrink: 0;
-      white-space: nowrap;
-    }
-
-    /* Clear button */
-    .clear-btn {
-      background: rgba(255,255,255,0.15);
-      border: 1px solid rgba(255,255,255,0.3);
-      border-radius: 8px;
-      color: #fff;
-      cursor: pointer;
-      padding: 6px 10px;
-      font-size: 12px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      flex-shrink: 0;
-      transition: background 0.15s;
-      white-space: nowrap;
-    }
+    .chat-header p { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+    .clear-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; color: #fff; cursor: pointer; padding: 6px 10px; font-size: 12px; display: flex; align-items: center; gap: 4px; flex-shrink: 0; transition: background 0.15s; white-space: nowrap; }
     .clear-btn:hover { background: rgba(255,255,255,0.25); }
     .clear-btn svg { width: 13px; height: 13px; fill: #fff; }
-
-    /* Messages */
-    .chat-messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      -webkit-overflow-scrolling: touch;
-      min-height: 260px;
-      max-height: 460px;
-    }
-
-    .msg {
-      display: flex;
-      flex-direction: column;
-      max-width: 92%;
-    }
-    .msg.bot  { align-self: flex-start; }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; -webkit-overflow-scrolling: touch; min-height: 260px; max-height: 420px; }
+    .msg { display: flex; flex-direction: column; max-width: 92%; }
+    .msg.bot { align-self: flex-start; }
     .msg.user { align-self: flex-end; }
-
-    .msg .bubble {
-      padding: 12px 16px;
-      border-radius: 12px;
-      font-size: 14px;
-      line-height: 1.6;
-    }
-    .msg.bot  .bubble { background: #f1f5ff; color: #1e293b; border-bottom-left-radius: 4px; }
+    .msg .bubble { padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.6; }
+    .msg.bot .bubble { background: #f1f5ff; color: #1e293b; border-bottom-left-radius: 4px; }
     .msg.user .bubble { background: #1a56db; color: #fff; border-bottom-right-radius: 4px; }
-
-    /* AI answer bubble */
-    .ai-answer-wrap {
-      background: #fff;
-      border: 1px solid #e0d4ff;
-      border-left: 3px solid #7c3aed;
-      border-radius: 12px;
-      border-bottom-left-radius: 4px;
-      overflow: hidden;
-    }
-    .ai-answer-label {
-      background: linear-gradient(135deg, #f5f3ff, #ede9fe);
-      padding: 6px 14px;
-      font-size: 11px;
-      font-weight: 700;
-      color: #7c3aed;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      border-bottom: 1px solid #e0d4ff;
-    }
-    .ai-answer-body {
-      padding: 12px 16px;
-      font-size: 14px;
-      line-height: 1.7;
-      color: #1e293b;
-    }
-    .ai-answer-body p { margin-bottom: 8px; }
-    .ai-answer-body p:last-child { margin-bottom: 0; }
-
-    /* Source links label */
-    .source-label {
-      font-size: 12px;
-      color: #64748b;
-      margin-top: 10px;
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    /* Result cards */
     .results-list { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
-
-    .result-card {
-      background: #fff;
-      border: 1px solid #dde4f5;
-      border-radius: 10px;
-      padding: 12px 14px;
-      text-decoration: none;
-      display: block;
-      transition: box-shadow 0.2s, border-color 0.2s;
-      color: inherit;
-    }
-    .result-card:hover {
-      box-shadow: 0 2px 12px rgba(26,86,219,0.12);
-      border-color: #1a56db;
-    }
-    .result-card .rank {
-      display: inline-block;
-      background: #1a56db;
-      color: #fff;
-      font-size: 10px;
-      font-weight: 700;
-      border-radius: 4px;
-      padding: 1px 6px;
-      margin-bottom: 6px;
-    }
-    .result-card .title {
-      font-size: 14px;
-      font-weight: 600;
-      color: #1a56db;
-      margin-bottom: 4px;
-    }
-    .result-card .desc {
-      font-size: 12px;
-      color: #64748b;
-      line-height: 1.5;
-      overflow: hidden;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-    }
-    .result-card .link-hint {
-      font-size: 11px;
-      color: #94a3b8;
-      margin-top: 6px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    /* No result */
-    .no-result {
-      background: #fff8f0;
-      border: 1px solid #ffd6a0;
-      border-radius: 10px;
-      padding: 12px 14px;
-      font-size: 13px;
-      color: #92400e;
-    }
-
-    /* Suggestions */
-    .suggestions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
-    }
-    .suggestion-btn {
-      background: #f1f5ff;
-      border: 1px solid #c7d7f8;
-      border-radius: 20px;
-      padding: 6px 14px;
-      font-size: 12px;
-      color: #1a56db;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
+    .result-card { background: #fff; border: 1px solid #dde4f5; border-radius: 10px; padding: 12px 14px; text-decoration: none; display: block; transition: box-shadow 0.2s, border-color 0.2s; color: inherit; }
+    .result-card:hover { box-shadow: 0 2px 12px rgba(26,86,219,0.12); border-color: #1a56db; }
+    .result-card .rank { display: inline-block; background: #1a56db; color: #fff; font-size: 10px; font-weight: 700; border-radius: 4px; padding: 1px 6px; margin-bottom: 6px; }
+    .result-card .title { font-size: 14px; font-weight: 600; color: #1a56db; margin-bottom: 4px; }
+    .result-card .desc { font-size: 12px; color: #64748b; line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .result-card .link-hint { font-size: 11px; color: #94a3b8; margin-top: 6px; display: flex; align-items: center; gap: 4px; }
+    .no-result { background: #fff8f0; border: 1px solid #ffd6a0; border-radius: 10px; padding: 12px 14px; font-size: 13px; color: #92400e; }
+    .suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .suggestion-btn { background: #f1f5ff; border: 1px solid #c7d7f8; border-radius: 20px; padding: 6px 14px; font-size: 12px; color: #1a56db; cursor: pointer; transition: background 0.15s; }
     .suggestion-btn:hover { background: #dbeafe; }
-
-    /* Input */
-    .chat-input-area {
-      border-top: 1px solid #e9edf5;
-      padding: 14px 16px;
-      background: #fff;
-    }
-    .input-row {
-      display: flex;
-      gap: 10px;
-      align-items: flex-end;
-    }
-    .input-row textarea {
-      flex: 1;
-      border: 1px solid #d1d9f0;
-      border-radius: 10px;
-      padding: 10px 14px;
-      font-size: 14px;
-      font-family: inherit;
-      resize: none;
-      outline: none;
-      line-height: 1.5;
-      max-height: 100px;
-      transition: border-color 0.2s;
-    }
+    .chat-input-area { border-top: 1px solid #e9edf5; padding: 14px 16px; background: #fff; }
+    .input-row { display: flex; gap: 10px; align-items: flex-end; }
+    .input-row textarea { flex: 1; border: 1px solid #d1d9f0; border-radius: 10px; padding: 10px 14px; font-size: 14px; font-family: inherit; resize: none; outline: none; line-height: 1.5; max-height: 100px; transition: border-color 0.2s; }
     .input-row textarea:focus { border-color: #1a56db; }
     .input-row textarea::placeholder { color: #aab4cc; }
-
-    .send-btn {
-      width: 42px; height: 42px;
-      background: #1a56db;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      transition: background 0.15s, transform 0.1s;
-    }
-    .send-btn:hover  { background: #1e429f; }
+    .send-btn { width: 42px; height: 42px; background: #1a56db; border: none; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.15s, transform 0.1s; }
+    .send-btn:hover { background: #1e429f; }
     .send-btn:active { transform: scale(0.95); }
     .send-btn svg { width: 18px; height: 18px; fill: #fff; }
-
-    .hint-text {
-      font-size: 11px;
-      color: #aab4cc;
-      margin-top: 6px;
-      text-align: center;
-    }
-
-    /* Typing indicator */
-    .typing-dot {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 10px 14px;
-      background: #f1f5ff;
-      border-radius: 12px;
-      border-bottom-left-radius: 4px;
-    }
-    .typing-dot span {
-      width: 7px; height: 7px;
-      background: #93acd8;
-      border-radius: 50%;
-      animation: bounce 1.2s infinite;
-    }
+    .hint-text { font-size: 11px; color: #aab4cc; margin-top: 6px; text-align: center; }
+    .typing-dot { display: inline-flex; align-items: center; gap: 4px; padding: 10px 14px; background: #f1f5ff; border-radius: 12px; border-bottom-left-radius: 4px; }
+    .typing-dot span { width: 7px; height: 7px; background: #93acd8; border-radius: 50%; animation: bounce 1.2s infinite; }
     .typing-dot span:nth-child(2) { animation-delay: 0.2s; }
     .typing-dot span:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes bounce {
-      0%, 80%, 100% { transform: translateY(0); }
-      40% { transform: translateY(-6px); }
-    }
-
-    @media (max-width: 600px) {
-      body { padding: 0; }
-      .chat-container { border-radius: 0; }
-      .chat-messages { padding: 12px; min-height: 220px; max-height: 360px; }
-      .chat-header { padding: 12px 14px; }
-      .hint-text { display: none; }
-    }
-
-    /* ── 訓練回饋區塊 ── */
-    .feedback-panel {
-      border-top: 2px solid #f0f2f5;
-      background: #fff;
-      flex-shrink: 0;
-    }
-    .feedback-header {
-      background: #f8fafc;
-      border-bottom: 1px solid #e2e8f0;
-      padding: 14px 18px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
-      user-select: none;
-    }
+    @keyframes bounce { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-6px); } }
+    @media (max-width: 600px) { body { padding: 0; } .chat-container { border-radius: 0; } .chat-messages { padding: 12px; min-height: 220px; max-height: 340px; } .chat-header { padding: 12px 14px; } .hint-text { display: none; } }
+    .feedback-panel { border-top: 2px solid #f0f2f5; background: #fff; flex-shrink: 0; }
+    .feedback-header { background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
     .feedback-header:hover { background: #f1f5f9; }
     .feedback-header-left { display: flex; align-items: center; gap: 10px; }
-    .feedback-header-icon {
-      width: 34px; height: 34px;
-      background: linear-gradient(135deg, #f59e0b, #d97706);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 16px; flex-shrink: 0;
-    }
+    .feedback-header-icon { width: 34px; height: 34px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
     .feedback-header h2 { font-size: 14px; font-weight: 700; color: #1e293b; }
-    .feedback-header p  { font-size: 11px; color: #64748b; margin-top: 2px; }
-    .feedback-toggle {
-      width: 28px; height: 28px;
-      background: #e2e8f0;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      transition: transform 0.2s;
-      flex-shrink: 0;
-    }
+    .feedback-header p { font-size: 11px; color: #64748b; margin-top: 2px; }
+    .feedback-toggle { width: 28px; height: 28px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; flex-shrink: 0; }
     .feedback-toggle svg { width: 14px; height: 14px; fill: #64748b; }
     .feedback-toggle.open { transform: rotate(180deg); }
     .feedback-body { padding: 16px 18px; display: none; }
     .feedback-body.open { display: block; }
     .fb-label { font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 5px; }
-    .fb-input {
-      width: 100%;
-      border: 1px solid #d1d9f0;
-      border-radius: 8px;
-      padding: 9px 12px;
-      font-size: 13px;
-      font-family: inherit;
-      outline: none;
-      resize: vertical;
-      transition: border-color 0.2s;
-      min-height: 40px;
-    }
+    .fb-input { width: 100%; border: 1px solid #d1d9f0; border-radius: 8px; padding: 9px 12px; font-size: 13px; font-family: inherit; outline: none; resize: vertical; transition: border-color 0.2s; min-height: 40px; }
     .fb-input:focus { border-color: #f59e0b; }
     .fb-row { margin-bottom: 12px; }
-    .fb-submit-btn {
-      background: linear-gradient(135deg, #f59e0b, #d97706);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 9px 20px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity 0.15s;
-      font-family: inherit;
-    }
+    .fb-submit-btn { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border: none; border-radius: 8px; padding: 9px 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; font-family: inherit; }
     .fb-submit-btn:hover { opacity: 0.9; }
-    .fb-success {
-      display: none;
-      background: #f0fdf4;
-      border: 1px solid #86efac;
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 13px;
-      color: #166534;
-      margin-top: 10px;
-    }
+    .fb-success { display: none; background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #166534; margin-top: 10px; }
     .fb-success.show { display: block; }
   </style>
 </head>
 <body>
-
 <div class="chat-container">
   <div class="chat-header">
-    <div class="icon">🔧</div>
+    <div class="icon">&#x1F527;</div>
     <div class="header-text">
-      <h1>Asuka 技術客服助手</h1>
-      <p>AI 智能語意理解，精準找到你需要的說明</p>
+      <h1>Asuka &#x6280;&#x8853;&#x5BA2;&#x670D;&#x52A9;&#x624B;</h1>
+      <p>AI &#x667A;&#x80FD;&#x56DE;&#x7B54; + &#x77E5;&#x8B58;&#x5EAB;&#x641C;&#x5C0B;</p>
     </div>
-    <div class="ai-header-badge">✨ AI</div>
-    <button class="clear-btn" onclick="clearChat()" title="清除對話">
+    <button class="clear-btn" onclick="clearChat()" title="&#x6E05;&#x9664;&#x5C0D;&#x8A71;">
       <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-      清除
+      &#x6E05;&#x9664;
     </button>
   </div>
-
   <div class="chat-messages" id="chatMessages"></div>
-
   <div class="chat-input-area">
     <div class="input-row">
-      <textarea
-        id="userInput"
-        rows="1"
-        placeholder="請輸入你的問題，例如：CAN bus 訊號沒有反應怎麼辦？"
-        onkeydown="handleKey(event)"
-        oninput="autoResize(this)"
-      ></textarea>
-      <button class="send-btn" onclick="sendMessage()" title="送出">
+      <textarea id="userInput" rows="1" placeholder="&#x8ACB;&#x8F38;&#x5165;&#x4F60;&#x7684;&#x554F;&#x984C;&#xFF0C;&#x4F8B;&#x5982;&#xFF1A;CAN bus &#x8A0A;&#x865F;&#x6C92;&#x6709;&#x53CD;&#x61C9;&#x600E;&#x9EBC;&#x8FA6;&#xFF1F;" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button class="send-btn" onclick="sendMessage()" title="&#x9001;&#x51FA;">
         <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
       </button>
     </div>
-    <p class="hint-text">按 Enter 送出，Shift+Enter 換行</p>
+    <p class="hint-text">&#x6309; Enter &#x9001;&#x51FA;&#xFF0C;Shift+Enter &#x63DB;&#x884C;</p>
   </div>
-
-  <!-- 訓練回饋區塊 -->
   <div class="feedback-panel">
     <div class="feedback-header" onclick="toggleFeedback()">
       <div class="feedback-header-left">
-        <div class="feedback-header-icon">📝</div>
+        <div class="feedback-header-icon">&#x1F4DD;</div>
         <div>
-          <h2>找不到答案？幫助我學習</h2>
-          <p>填寫問題與答案位置，讓管理員更新知識庫</p>
+          <h2>&#x627E;&#x4E0D;&#x5230;&#x7B54;&#x6848;&#xFF1F;&#x5E6B;&#x52A9;&#x6211;&#x5B78;&#x7FD2;</h2>
+          <p>&#x586B;&#x5BEB;&#x554F;&#x984C;&#x8207;&#x7B54;&#x6848;&#x4F4D;&#x7F6E;&#xFF0C;&#x8B93;&#x7BA1;&#x7406;&#x54E1;&#x66F4;&#x65B0;&#x77E5;&#x8B58;&#x5EAB;</p>
         </div>
       </div>
       <div class="feedback-toggle" id="feedbackToggle">
@@ -448,208 +111,96 @@
     </div>
     <div class="feedback-body" id="feedbackBody">
       <div class="fb-row">
-        <div class="fb-label">📌 你的問題（使用者會怎麼問？）</div>
-        <textarea class="fb-input" id="fbQuestion" rows="2" placeholder="例如：Ford Kuga 2016年可以安裝嗎？"></textarea>
+        <div class="fb-label">&#x1F4CC; &#x4F60;&#x7684;&#x554F;&#x984C;</div>
+        <textarea class="fb-input" id="fbQuestion" rows="2" placeholder="&#x4F8B;&#x5982;&#xFF1A;Ford Kuga 2016&#x5E74;&#x53EF;&#x4EE5;&#x5B89;&#x88DD;&#x55CE;&#xFF1F;"></textarea>
       </div>
       <div class="fb-row">
-        <div class="fb-label">🔗 答案在哪裡？（頁面連結或說明）</div>
-        <textarea class="fb-input" id="fbAnswer" rows="2" placeholder="例如：車款升級資訊查詢庫 → FORD → KUGA，2013~2018 可更換，注意高低配差異"></textarea>
+        <div class="fb-label">&#x1F517; &#x7B54;&#x6848;&#x5728;&#x54EA;&#x88E1;&#xFF1F;</div>
+        <textarea class="fb-input" id="fbAnswer" rows="2" placeholder="&#x4F8B;&#x5982;&#xFF1A;&#x8ECA;&#x6B3E;&#x5347;&#x7D1A;&#x8CC7;&#x8A0A;&#x67E5;&#x8A62;&#x5EAB; &rarr; FORD &rarr; KUGA"></textarea>
       </div>
-      <button class="fb-submit-btn" onclick="submitFeedback()">提交訓練資料</button>
-      <div class="fb-success" id="fbSuccess">✅ 已提交！感謝你的貢獻 🎉</div>
-      <div style="font-size:11px;color:#94a3b8;margin-top:10px;text-align:center;">
-        提交後自動寫入 Google 試算表 📊
-      </div>
+      <button class="fb-submit-btn" onclick="submitFeedback()">&#x63D0;&#x4EA4;&#x8A13;&#x7DF4;&#x8CC7;&#x6599;</button>
+      <div class="fb-success" id="fbSuccess">&#x2705; &#x5DF2;&#x8A18;&#x9304;&#xFF01;&#x611F;&#x8B1D;&#x4F60;&#x7684;&#x8CA2;&#x737B;&#xFF0C;&#x7BA1;&#x7406;&#x54E1;&#x6703;&#x5B9A;&#x671F;&#x66F4;&#x65B0;&#x77E5;&#x8B58;&#x5EAB;&#x3002;</div>
+      <div style="font-size:11px;color:#94a3b8;margin-top:10px;text-align:center;">&#x63D0;&#x4EA4;&#x5F8C;&#x6703;&#x81EA;&#x52D5;&#x8A18;&#x9304;&#x5230;&#x7BA1;&#x7406;&#x54E1;&#x7684; Google &#x8A66;&#x7B97;&#x8868; &#x1F4CA;</div>
     </div>
   </div>
 </div>
-
 <script>
-/* ============================================================
-   ★ Gemini AI 設定
-   取得免費 API Key：https://aistudio.google.com/app/apikey
-   （免費額度：每天 150 萬 token，每分鐘 15 次請求）
-   取得後將下方 YOUR_API_KEY_HERE 替換為你的 key 即可。
-   ============================================================ */
-const GAS_PROXY_URL = 'https://script.google.com/macros/s/AKfycbyuKNxfmhkWo6rm65LXvcf6kOIFfjxUy4P2winvMFbA3kyxeDqCol9hkYS6jcCToqIh/exec';
+var KB = [
+  {title:"\u98DB\u9CE5\u5BA2\u6236\u670D\u52D9\u4E2D\u5FC3 \u9996\u9801",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u9996\u9801",desc:"\u98DB\u9CE5\u4E3B\u6A5F\u9500\u552E\u53CA\u5B89\u88DD\u8CC7\u8A0A\u670D\u52D9\u5E73\u53F0\u9996\u9801",keywords:"\u9996\u9801 \u98DB\u9CE5 \u4E3B\u6A5F \u5B89\u88DD \u8CC7\u8A0A \u670D\u52D9 \u5165\u53E3"},
+  {title:"\u5C0E\u822A\u738B\u6C92\u6709\u8A9E\u97F3\u64AD\u5831",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.6k2ysmcjzk44",desc:"\u4F9D\u5E8F\u78BA\u8A8D\uFF1A1.\u8ECA\u6A5F\u5C0E\u822A\u6DF7\u97F3\u662F\u5426\u958B\u555F 2.\u5C0E\u822A\u662F\u5426\u975C\u97F3 3.\u8A9E\u97F3\u8A2D\u5B9A\u5C0E\u822A\u97F3\u91CF\u662F\u5426\u958B\u555F 4.\u66F4\u65B0\u5230\u6700\u65B0\u7248\u672C\u4E26\u6062\u5FA9\u5C0E\u822A\u9810\u8A2D\u5024\u3002",keywords:"\u5C0E\u822A\u738B \u8A9E\u97F3 \u64AD\u5831 \u975C\u97F3 \u6DF7\u97F3 \u97F3\u91CF \u6C92\u6709\u8072\u97F3 \u7121\u8072"},
+  {title:"\u5C0E\u822A\u738B\u8F38\u5165\u5730\u5740\u6642\u6C92\u6709\u7E23\u5E02\u53EF\u9078",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.gl8wowml92ws",desc:"\u89E3\u6CD5\uFF1A\u5148\u96E2\u958B\u5C0E\u822A\u738B\uFF0C\u5230\u6A94\u6848\u7E3D\u7BA1\u5220\u9664\u6307\u5B9ANavikingMap\u8CC7\u6599\u593E\uFF0C\u518D\u91CD\u65B0\u6253\u958B\u5C0E\u822A\u738B\u9023\u7DB2\u4E0B\u8F09\u5716\u8CC7\u3002",keywords:"\u5C0E\u822A\u738B \u5730\u5740 \u7E23\u5E02 \u9078\u4E0D\u5230 \u5716\u8CC7 \u4E0B\u8F09 NavikingMap"},
+  {title:"iPhone \u71B1\u9EDE\u4E0D\u7A69\u5B9A\u5982\u4F55\u6539\u5584\uFF1F",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.mm0iihsxuolt",desc:"iPhone 12\u5F8C\u6A5F\u578B\uFF1A\u958B\u555F\u71B1\u9EDE\u6700\u5927\u76F8\u5BB9\u6027\u8A2D\u5B9A\u3002\u820A\u6B3EiPhone\u53E6\u6709\u6539\u5584\u504F\u65B9\u3002",keywords:"iPhone \u71B1\u9EDE \u4E0D\u7A69\u5B9A \u6700\u5927\u76F8\u5BB9\u6027 \u9023\u7DDA \u65B7\u7DDA WiFi"},
+  {title:"WiFi\u9023\u7DDA\u5F8C\u4ECD\u7136\u7121\u6CD5\u4E0A\u7DB2",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.lqehnf99apmn",desc:"\u53EF\u80FD\u539F\u56E0\u662F\u88DD\u7F6E\u7CFB\u7D71\u6642\u9593\u8207\u5BE6\u969B\u6642\u9593\u5DEE\u8DDD\u592A\u5927\uFF0C\u8ACB\u5230\u8A2D\u5B9A\u624B\u52D5\u5C07\u7CFB\u7D71\u6642\u9593\u8ABF\u6574\u5230\u6B63\u78BA\u6642\u9593\u518D\u8A66\u3002",keywords:"WiFi \u4E0A\u7DB2 \u7121\u6CD5 \u7CFB\u7D71\u6642\u9593 \u9023\u7DDA \u7DB2\u8DEF \u986F\u793A\u9023\u7DDA\u4F46\u4E0D\u80FD\u7528"},
+  {title:"\u8ECA\u6A5F\u627E\u4E0D\u5230\u624B\u6A5F\u71B1\u9EDE\uFF08\u983B\u6BB5\u554F\u984C\uFF09",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.o40s1oubpml9",desc:"\u8ECA\u6A5F\u627E\u4E0D\u5230\u624B\u6A5F\u71B1\u9EDE\uFF0C\u8ACB\u78BA\u8A8D\u624B\u6A5F\u71B1\u9EDE\u983B\u6BB5\uFF0C\u8A2D\u5B9A\u70BA2.4GHz\u6216\u96D9\u983B\u3002BM-2\u3001BM-3\u4E3B\u6A5F\u4E0D\u652F\u63F85.0GHz\u3002",keywords:"\u71B1\u9EDE \u627E\u4E0D\u5230 \u983B\u6BB5 5GHz 2.4GHz \u96D9\u983B BM-2 BM-3"},
+  {title:"WiFi\u5E38\u5E38\u81EA\u52D5\u95DC\u9589\u7684\u539F\u56E0\uFF08ACK/LUX\uFF09",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.nekvcphox0q5",desc:"ACK\u3001LUX\u7CFBWiFi\u81EA\u52D5\u95DC\u9589\uFF0C\u53EF\u80FD\u662FCarlink\u81EA\u52D5\u9023\u63A5\u958B\u555F\uFF0C\u85CD\u7259\u4E00\u958B\u5C31\u555F\u52D5\u7121\u7DDA CarPlay\u5C0E\u81F4WiFi\u95DC\u9589\u3002",keywords:"WiFi \u81EA\u52D5\u95DC\u9589 Carlink \u85CD\u7259 CarPlay ACK LUX"},
+  {title:"\u63D2\u5165SIM\u5361\u5F8C\u7121\u6CD5\u4E0A\u7DB2",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.8k68u3o75s56",desc:"SIM\u5361\u6709\u8B80\u5230\u4F46\u7121\u6CD5\u4E0A\u7DB2\uFF0C\u8ACB\u78BA\u8A8DSIM\u5361\u662F\u5426\u8A2D\u5B9A\u4E86PIN\u78BC\u3002\u9700\u5148\u7528\u624B\u6A5F\u95DC\u9589SIM PIN\u5F8C\u518D\u63D2\u5165\u8ECA\u6A5F\u4F7F\u7528\u3002",keywords:"SIM\u5361 \u4E0A\u7DB2 \u7121\u6CD5 PIN\u78BC PIN \u63D2\u5361 4G"},
+  {title:"APP\u4E00\u76F4\u9583\u9000\u600E\u9EBC\u8FA6\uFF1F",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.q6yjn1xqbtuj",desc:"APP\u4E0D\u65B7\u9583\u9000\uFF1A\u6E05\u9664Google Play\u670D\u52D9\u5FEB\u53D6\u8207\u8CC7\u6599\u3002\u4E5F\u53EF\u80FD\u662FAPP\u6B63\u5728\u80CC\u666F\u66F4\u65B0\uFF0C\u7A0D\u7B49\u5E7E\u5206\u9418\u518D\u8A66\u3002",keywords:"APP \u9583\u9000 Play\u670D\u52D9 \u5FEB\u53D6 \u6E05\u9664 \u7576\u6A5F \u4E0D\u80FD\u7528"},
+  {title:"\u7121\u7DDA CarPlay\u4E00\u76F4\u7121\u6CD5\u9023\u7D50\u6210\u529F",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.mh8arxm49cw",desc:"\u7121\u7DDDTV CarPlay\u5361\u5728\u8A8D\u8B49\u756B\u9762\uFF1A1.\u5220\u9664\u5DF2\u9023\u7D50\u4E14\u6C92\u7528\u7684CarPlay\u88DD\u7F6E\u8A18\u9304\uFF1B2.\u91CD\u7F6EiPhone\u7DB2\u8DEF\u72C0\u614B\u3002",keywords:"CarPlay \u7121\u7DDD \u9023\u7D50 \u8A8D\u8B49 \u914D\u5C0D iPhone \u9023\u4E0D\u4E0A"},
+  {title:"iPhone\u85CD\u7259\u901A\u8A71\u8072\u97F3\u5F9E\u624B\u6A5F\u8A71\u7B52\u51FA\u8072",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.qabwhe6ucnb",desc:"iPhone\u8A2D\u5B9A\u8DEF\u5F91\uFF1A\u8A2D\u5B9A > \u8F14\u52A9\u4F7F\u7528 > \u89F8\u63A7 > \u4F86\u96FB\u8A9E\u97F3\u50B3\u9001 > \u9078\u300C\u85CD\u8A61\u8033\u9EA5\u300D\uFF0C\u901A\u8A71\u8072\u97F3\u5C31\u6703\u5F9E\u8ECA\u6A5F\u5589\u53ED\u51FA\u8072\u3002",keywords:"iPhone \u85CD\u7259 \u901A\u8A71 \u8072\u97F3 \u5589\u53ED \u624B\u6A5F\u8A71\u7B52 \u4F86\u96FB \u85CD\u8A61\u8033\u9EA5"},
+  {title:"YouTube\u4E0D\u65B7\u8F49\u5708\u5708\u7121\u6CD5\u89C0\u770B",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.1999soc4s3dv",desc:"\u89E3\u6C7A\uFF1A1.\u78BA\u8A8D\u767B\u5165Gmail\u5E33\u865F\uFF1B2.Play Store\u66F4\u65B0\u6700\u65B0\u7248\u3002\u53E6\u53EF\u5617\u8A66\u89E3\u9664\u66F4\u65B0YouTube\u3002",keywords:"YouTube \u8F49\u5708 \u7121\u6CD5\u770B \u7DE9\u885D \u5361\u4F4F \u64AD\u653E Gmail \u66F4\u65B0"},
+  {title:"\u4E3B\u6A5F\u4E00\u76F4\u4E82\u8DF3\u6A21\u5F0F\uFF08\u5C0F\u8297\u8A9E\u97F3\u52A9\u7406\u8AA4\u89F8\uFF09",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.5soewvdp0ds2",desc:"ACK/APK\u4E3B\u6A5F\u4E09\u4E0D\u4E94\u6642\u4E82\u8DF3\u6A21\u5F0F\uFF0C\u901A\u5E38\u662F\u5C0F\u8297\u8A9E\u97F3\u52A9\u7406\u80CC\u666F\u6536\u97F3\u8AA4\u5224\u3002\u89E3\u6CD5\uFF1A\u505C\u7528\u5C0F\u8297\u52A9\u7406\uFF08\u9577\u6309\u9996\u9801\u6A19\u984C\u8F38\u51650310\u95DC\u9589\uFF09\u3002",keywords:"\u4E82\u8DF3 \u6A21\u5F0F \u5C0F\u8297 \u8A9E\u97F3\u52A9\u7406 \u8AA4\u89F8 ACK APK \u81EA\u52D5\u5207\u63DB \u5E72\u64FE"},
+  {title:"CK/ACK \u96B1\u85CF\u529F\u80FD & \u5DE5\u5EE0\u5BC6\u78BC",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F#h.jn0wetwndtf2",desc:"ACK/CK\u4E3B\u6A5F\u96B1\u85CF\u529F\u80FD\u5217\u8868\uFF0C\u5DE5\u5EE0\u5BC6\u78BC0310\uFF08\u9577\u6309\u9996\u9801\u6A19\u984C\u8F38\u5165\uFF09\uFF0C\u96B1\u85CFAPP\u7684\u958B\u555F\u65B9\u6CD5\u3002",keywords:"\u96B1\u85CF\u529F\u80FD \u5DE5\u5EE0\u5BC6\u78BC \u5BC6\u78BC 0310 ACK CK \u9032\u968E\u8A2D\u5B9A \u96B1\u85CFAPP \u89E3\u9396"},
+  {title:"CK/ACK \u6700\u65B0\u8EDF\u9AD4 & \u5716\u8CC7\u4E0B\u8F09",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F#h.bgrdsai0o7vp",desc:"ACK/CK\u4E3B\u6A5F\u6700\u65B0\u7248\u4E3B\u7A0B\u5F0F\u8EDF\u9AD4\u4E0B\u8F09\u9023\u7D50\u3001\u7279\u5225\u8EDF\u9AD4\uFF08OTA\u3001\u5C0F\u8297\u8A9E\u97F3\u52A9\u7406\u914D\u7F6E\u6A94\uFF09\u4E0B\u8F09\u5340\u3002",keywords:"\u8EDF\u9AD4 \u4E0B\u8F09 \u66F4\u65B0 \u4E3B\u7A0B\u5F0F OTA \u5716\u8CC7 \u7248\u672C ACK CK \u6700\u65B0"},
+  {title:"CK/ACK \u4E3B\u8EDF\u9AD4\u66F4\u65B0\u6D41\u7A0B",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F#h.aysjlpwfq9ig",desc:"ACK/CK\u4E3B\u6A5F\u4E3B\u7A0B\u5F0F\u66F4\u65B0\u6B65\u9A5F\uFF1A\u4E0B\u8F09\u89E3\u58D3\u7E2E\u2192\u8907\u88FD\u5230USB\u6839\u76EE\u9304\u2192\u63D2\u5165\u4E3B\u6A5F\u2192\u81EA\u52D5\u8DF3\u51FA\u5347\u7D1A\u5305\u2192\u6309\u958B\u59CB\u66F4\u65B0\u2192\u5B8C\u6210\u5F8C\u91CD\u958B\u6A5F\u3002",keywords:"\u8EDF\u9AD4\u66F4\u65B0 \u4E3B\u7A0B\u5F0F \u66F4\u65B0\u6D41\u7A0B USB \u5347\u7D1A OTA ACK CK \u5237\u6A5F \u7248\u672C \u600E\u9EBC\u66F4\u65B0"},
+  {title:"CK/ACK CAN\u76D2\u8A2D\u5B9A\u53CA\u652F\u63F4\u8ECA\u578B\u6E05\u55AE",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F#h.8l6pqmiqufge",desc:"ACK/CK\u4E3B\u6A5FCAN\u76D2\u9078\u64C7\u6E05\u55AE\uFF0C\u5217\u51FA\u5404\u652F\u63F4\u8ECA\u6B3E\u8207\u5C0D\u61C9CAN\u76D2\u578B\u865F\uFF0C\u53EF\u67E5\u8A62\u7279\u5B9A\u8ECA\u578B\u61C9\u9078\u7528\u54EA\u500BCAN\u76D2\u3002",keywords:"CAN\u76D2 \u652F\u63F4\u8ECA\u578B \u9078\u64C7\u6E05\u55AE ACK CK \u76F8\u5BB9 \u8ECA\u6B3E \u5C0D\u61C9 \u54EA\u500B"},
+  {title:"CK/ACK \u74B0\u666F\u5B89\u88DD\u3001\u6821\u6B63\u554F\u984C",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F#h.yp63ac25mtor",desc:"ACK/CK\u74B0\u666F\u93E1\u982D\u5E38\u898B\u554F\u984C\uFF1A\u6821\u6B63\u5F8C\u6578\u64DA\u672A\u4FDD\u5B58\u3001\u93E1\u982D\u6C92\u6709\u756B\u9762\uFF084\u9853\u9700\u5168\u9023\uFF09\u3001\u5012\u8ECA\u74B0\u666F\u6162\u51FA\u73FE\u3002",keywords:"\u74B0\u666F \u6821\u6B63 \u93E1\u982D \u6C92\u6709\u756B\u9762 \u900F\u660E \u8ECA\u6A21 ACK CK 360 \u5012\u8ECA"},
+  {title:"CK/ACK \u521D\u6B21\u5B89\u88DD\u8207\u552E\u670D\u6CE8\u610F\u4E8B\u9805",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F#h.8ahkhnidwifz",desc:"\u9996\u6B21\u5B89\u88DDCK\u4E3B\u6A5F\u6CE8\u610F\u4E8B\u9805\uFF1A\u5F8C\u65B9\u6563\u71B1\u98A8\u6247\u4E00\u5B9A\u8981\u63A5\u3001\u80CE\u58D3\u63A5\u6536\u5668\u8207BM\u4E0D\u5171\u7528\u3001DVR\u8981\u7528CKVR\u578B\u865F\u3002",keywords:"\u521D\u6B21\u5B89\u88DD \u6CE8\u610F \u98A8\u6247 \u80CE\u58D3 \u63A5\u6536\u5668 CKVR DVR CarPlay \u885D\u7A81 ACK CK \u65B0\u88DD"},
+  {title:"LUX-A \u5E02\u552E\u9AD8\u968E\u4E3B\u6A5F\u76F8\u95DC\u8CC7\u8A0A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/lux-a-\u4E3B\u6A5F\u76F8\u95DC",desc:"LUX-A\u5E02\u552E\u9AD8\u968E\u8ECA\u7528\u4E3B\u6A5F\u7522\u54C1\u4ECB\u7D39\u3002",keywords:"LUX-A LUX \u4E3B\u6A5F \u9AD8\u968E \u7522\u54C1 \u4ECB\u7D39 \u898F\u683C"},
+  {title:"HONDA \u672C\u7530 \u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u8ECA\u5EE0\u54C1\u724C\u5206\u985E/honda",desc:"HONDA\u672C\u7530\u5404\u8ECA\u6B3E\u7279\u6B8A\u5B89\u88DD\u8CC7\u8A0A\uFF0C\u5305\u542BHR-V\u3001CR-V\u3001Fit\u3001City\u3001Civic\u3001Accord\u3001Odyssey\u7B49\u8ECA\u578B\u3002",keywords:"Honda \u672C\u7530 HR-V HRV CR-V CRV Fit City Civic Accord Odyssey BR-V ZR-V \u8ECA\u6B3E \u5B89\u88DD \u53EF\u4EE5\u88DD"},
+  {title:"TOYOTA \u8C50\u7530 \u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u8ECA\u5EE0\u54C1\u724C\u5206\u985E/toyota",desc:"TOYOTA\u8C50\u7530\u5404\u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A\uFF0C\u5305\u542BRAV-4\u3001Altis\u3001Camry\u3001Yaris\u3001Cross\u3001Sienta\u7B49\u8ECA\u578B\u3002",keywords:"Toyota \u8C50\u7530 RAV4 RAV-4 Altis Camry Yaris Cross Sienta Wish Noah Vios \u8ECA\u6B3E \u5B89\u88DD \u53EF\u4EE5\u88DD"},
+  {title:"NISSAN \u65E5\u7522 \u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u8ECA\u5EE0\u54C1\u724C\u5206\u985E/nissan",desc:"NISSAN\u65E5\u7522\u5404\u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A\uFF0C\u5305\u542BX-Trail\u3001Kicks\u3001Tiida\u3001Sentra\u3001March\u3001Livina\u7B49\u8ECA\u578B\u3002",keywords:"Nissan \u65E5\u7522 X-Trail XTrail Kicks Tiida Sentra March Terra Livina \u8ECA\u6B3E \u5B89\u88DD \u53EF\u4EE5\u88DD"},
+  {title:"FORD \u798F\u7279 \u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/ford",desc:"FORD\u798F\u7279\u5404\u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A\uFF0C\u5305\u542BKuga\u3001Focus\uFF083.5\u4EE3\uFF09\u3001Mondeo\u3001EcoSport\u3001Ranger\u3001Puma\u7B49\u8ECA\u578B\u3002",keywords:"Ford \u798F\u7279 Kuga Focus 3.5\u4EE3 Mondeo EcoSport Explorer Ranger Puma Escape \u8ECA\u6B3E \u5B89\u88DD \u53EF\u4EE5\u88DD \u76F8\u5BB9"},
+  {title:"MAZDA \u99AC\u81EA\u9054 \u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/mazda",desc:"MAZDA\u99AC\u81EA\u9054\u5404\u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A\uFF0C\u5305\u542BCX-5\u3001CX-3\u3001CX-30\u3001Mazda3\u3001Mazda6\u7B49\u8ECA\u578B\u3002",keywords:"Mazda \u99AC\u81EA\u9054 CX-5 CX5 CX-3 CX3 CX-30 CX30 Mazda3 Mazda6 MX-30 \u8ECA\u6B3E \u5B89\u88DD \u53EF\u4EE5\u88DD"},
+  {title:"SUBARU \u901F\u9738\u9678 \u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u8ECA\u5EE0\u54C1\u724C\u5206\u985E/subaru",desc:"SUBARU\u901F\u9738\u9678\u5404\u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A\uFF0C\u5305\u542BForester\u3001Outback\u3001Levorg\u3001XV\u3001Crosstrek\u7B49\u8ECA\u578B\u3002",keywords:"Subaru \u901F\u9738\u9678 Forester Outback Levorg Legacy XV Crosstrek \u8ECA\u6B3E \u5B89\u88DD \u53EF\u4EE5\u88DD"},
+  {title:"\u8ECA\u6B3E\u5347\u7D1A\u8CC7\u8A0A\u67E5\u8A62\u5EAB\uFF08\u5404\u8ECA\u6B3E\u53EF\u4EE5\u5B89\u88DD\u55CE\uFF1F\uFF09",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u8ECA\u6B3E\u5347\u7D1A\u8CC7\u8A0A\u67E5\u8A62\u5EAB",desc:"\u67E5\u8A62\u5404\u8ECA\u6B3E\u662F\u5426\u53EF\u4EE5\u5B89\u88DD\u98DB\u9CE5\u4E3B\u6A5F\u7684\u5B8C\u6574\u5C0D\u7167\u8868\uFF0C\u5305\u542B\u53EF\u66F4\u63DB\u3001\u6709\u689D\u4EF6\u9650\u5236\u3001\u4E0D\u5EFA\u8B70\u7B49\u8A73\u7D30\u8AAA\u660E\u3002",keywords:"\u53EF\u4EE5\u5B89\u88DD \u80FD\u4E0D\u80FD\u88DD \u652F\u63F4 \u8ECA\u6B3E\u67E5\u8A62 \u5347\u7D1A \u54EA\u6B3E \u9069\u5408 \u67E5\u8A62\u5EAB Kuga Focus CR-V RAV4 Altis Camry X-Trail CX-5 Forester Golf Tucson IS"},
+  {title:"\u7121\u6CD5\u6539\u88C5\u4E3B\u6A5F\u7684\u8ECA\u578B",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u7121\u6CD5\u6539\u4E3B\u6A5F\u7684\u8ECA\u578B",desc:"\u8AAA\u660E\u54EA\u4E9B\u8ECA\u578B\u56E0\u539F\u5EE0\u8A2D\u8A08\u9650\u5236\u7121\u6CD5\u5B89\u88DD\u98DB\u9CE5\u4E3B\u6A5F\u3002",keywords:"\u7121\u6CD5\u6539\u88C5 \u4E0D\u652F\u63F4 \u76F8\u5BB9\u6027 \u8ECA\u578B \u9650\u5236 \u4E0D\u80FD\u63DB"},
+  {title:"TPMS \u80CE\u58D3\u76E3\u6E2C\u7CFB\u7D71\u8A2D\u5B9A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/tpms\u76F8\u95DC\u8A2D\u5B9A",desc:"TPMS\u80CE\u58D3\u76E3\u6E2C\u7CFB\u7D71\u8A2D\u5B9A\u8AAA\u660E\uFF0C\u5305\u542B\u611F\u6E2C\u5668\u5B78\u7FD2\u3001\u986F\u793A\u8A2D\u5B9A\u8207\u80CE\u58D3\u8B66\u793A\u76F8\u95DC\u8A2D\u5B9A\u3002",keywords:"TPMS \u80CE\u58D3 \u76E3\u6E2C \u8A2D\u5B9A \u611F\u6E2C\u5668 \u8F2A\u80CE \u8B66\u793A"},
 
-/* ============================================================
-   知識庫 — 根據飛鳥客戶服務中心實際頁面內容建立
-   最後更新：2026-06-05
-   ============================================================ */
-const KB = [
-  { title:"飛鳥客戶服務中心 首頁", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/首頁", desc:"飛鳥主機銷售及安裝資訊服務平台首頁，各位在安裝飛鳥主機或配件時若有安裝及設定上的問題，可透過此平台取得相關資料。", keywords:"首頁 飛鳥 主機 安裝 資訊 服務 平台 入口" },
-  { title:"常見問題 - 導航王設定與問題排除", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.5k4aig1pug17", desc:"導航王相關問題總覽：語音播報沒有聲音、輸入地址沒有縣市可選、混音設定、手寫功能無法使用、序號不見、圖資更新失敗、聲控靈敏度、大貨車模式、定位問題等。", keywords:"導航 導航王 語音播報 混音 地址 縣市 手寫 序號 圖資 更新 聲控 大貨車 定位 GPS 無聲" },
-  { title:"導航王沒有語音播報，如何設定？", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.6k2ysmcjzk44", desc:"依序確認：1.車機導航混音是否開啟 2.導航是否靜音 3.語音設定導航音量是否開啟 4.更新到最新版本並恢復導航預設值。", keywords:"導航王 語音 播報 靜音 混音 音量 沒有聲音 無聲" },
-  { title:"導航王輸入地址時沒有縣市可選", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.gl8wowml92ws", desc:"解法：先離開導航王，到檔案總管刪除指定NavikingMap資料夾，再重新打開導航王連網下載圖資（導航王→選單→設定→圖資下載）。", keywords:"導航王 地址 縣市 選不到 圖資 下載 NavikingMap" },
-  { title:"導航王混音後播報音量不夠大聲", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.dj2rijblpesh", desc:"到導航王設定→語音設定→導航音量調整，並勾選「降低其他app播報音量」，可讓導航播報聲音更清晰。", keywords:"導航王 混音 音量 播報 不夠大聲 聲音小" },
-  { title:"導航王序號不見了怎麼辦？", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.n6hoqe7dfx64", desc:"在導航王內→電話搜尋輸入 288356630，再回到版本資訊頁，即會顯示開通資料。", keywords:"導航王 序號 不見 消失 開通" },
-  { title:"CK主機偶發導航無法定位的處理方法", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.gobiac4ezs6l", desc:"確認主機後方風扇接電是否接好、聲音功放開關是否開啟（預設開）。風扇若沒打開，機內過熱時會影響GPS定位。", keywords:"CK 導航 定位 失敗 GPS 過熱 風扇 功放" },
-  { title:"常見問題 - 網路 / WiFi / 手機熱點問題", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.to3lgn3c0uyv", desc:"網路相關問題：iPhone熱點不穩定改善方法、WiFi連線後無法上網、車機找不到手機熱點（5GHz頻段）、WiFi自動關閉原因、SIM卡無法上網。", keywords:"WiFi 熱點 網路 iPhone 連線 上網 5GHz 2.4GHz 頻段 不穩定 關閉" },
-  { title:"iPhone 熱點不穩定如何改善？", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.mm0iihsxuolt", desc:"iPhone 12後機型：開啟熱點最大相容性設定。舊款iPhone另有改善偏方。此問題根本解決需靠Apple更新熱點連線穩定性。", keywords:"iPhone 熱點 不穩定 最大相容性 連線 斷線 WiFi 熱點斷" },
-  { title:"WiFi連線後仍然無法上網", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.lqehnf99apmn", desc:"可能原因是裝置系統時間與實際時間差距太大，請到設定手動將系統時間調整到正確時間再試。", keywords:"WiFi 上網 無法 系統時間 連線 網路 顯示連線但不能用" },
-  { title:"車機找不到手機熱點（頻段問題）", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.o40s1oubpml9", desc:"車機找不到手機熱點，請確認手機熱點頻段，設定為2.4GHz或雙頻。BM-2、BM-3、PN-203主機不支援5.0GHz。", keywords:"熱點 找不到 掃不到 頻段 5GHz 2.4GHz 雙頻 BM-2 BM-3" },
-  { title:"WiFi常常自動關閉的原因（ACK/LUX）", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.nekvcphox0q5", desc:"ACK、LUX系列WiFi自動關閉，可能是Carlink自動連接開啟，藍牙一開就啟動無線CarPlay功能導致WiFi關閉。到Carlink設定中關閉自動連接。", keywords:"WiFi 自動關閉 Carlink 藍牙 CarPlay ACK LUX WiFi關" },
-  { title:"插入SIM卡後無法上網", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.8k68u3o75s56", desc:"SIM卡有讀到但無法上網，請確認SIM卡是否設定了PIN碼。需先用手機關閉SIM PIN後再插入車機使用。", keywords:"SIM卡 上網 無法 PIN碼 PIN 插卡 4G 讀到但不能用" },
-  { title:"常見問題 - Google帳號 / Play商店 / APP閃退", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.4axqwh6dtvmt", desc:"Google相關問題：帳號登入卡在安全認證、Play商店APP閃退、APP無法登入（系統時間問題）、關閉自動更新、Chrome/YouTube解除更新方法。", keywords:"Google Play 商店 帳號 登入 閃退 更新 自動更新 Chrome YouTube 系統時間" },
-  { title:"APP一直閃退怎麼辦？", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.q6yjn1xqbtuj", desc:"APP不斷閃退：清除Google Play服務快取與資料（設定→應用程式→Google Play服務→儲存空間→清除快取/資料）。也可能是APP正在背景更新，稍等幾分鐘再試。", keywords:"APP 閃退 Play服務 快取 清除 當機 不能用 點不進" },
-  { title:"Play商店等APP無法登入（系統時間不正確）", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.hss0qtkwcb3p", desc:"Play商店等APP無法登入，可能是系統時間不正確。請先手動調整系統時間到正確時間再重試。", keywords:"Play商店 無法登入 系統時間 時間 帳號 登入失敗" },
-  { title:"如何關閉Google自動更新？", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.nlxzdazf3v5i", desc:"關閉Google Play自動更新方法、Chrome解除更新方法、YouTube解除更新方法，避免系統更新後不穩定。", keywords:"Google 自動更新 關閉 Chrome YouTube 解除更新 更新 停止更新" },
-  { title:"Google帳號登入一直停在安全認證等待中", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.5o5i41sus0pc", desc:"在新主機上登入Google帳號後，註冊郵件會收到號碼，需在主機上按到正確號碼（即郵件中的驗證碼）完成認證。", keywords:"Google 帳號 登入 安全認證 等待 驗證 卡住" },
-  { title:"常見問題 - CarPlay / 藍牙通話 / 手機連接", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.hrwbmd7e14fd", desc:"車機與手機操作問題：無線CarPlay無法連結、CarPlay地圖模糊、藍牙通話聲音從手機出聲、iPhone通訊錄同步、Carlink自動連接問題。", keywords:"CarPlay 無線 連結 藍牙 通話 iPhone 手機 Carlink 通訊錄 配對" },
-  { title:"無線CarPlay一直無法連結成功", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.mh8arxm49cw", desc:"無線CarPlay卡在認證畫面：1. 刪除已連結且沒用的CarPlay裝置記錄（有連結上限）；2. 重置iPhone網路狀態。", keywords:"CarPlay 無線 連結 認證 配對 失敗 iPhone 連不上 卡住" },
-  { title:"iPhone藍牙通話聲音從手機話筒出聲不是車機喇叭", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.qabwhe6ucnb", desc:"iPhone設定路徑：設定 > 輔助使用 > 觸控 > 來電語音傳送 > 選「藍芽耳麥」，通話聲音就會從車機喇叭出聲。", keywords:"iPhone 藍牙 通話 聲音 喇叭 手機話筒 來電 藍芽耳麥" },
-  { title:"iPhone用戶連上車機藍牙無法通話", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.9qgpzi8d2iir", desc:"iPhone連上車機藍牙後無法通話的設定說明與排除步驟。", keywords:"iPhone 藍牙 通話 無法 連上 接不到 電話" },
-  { title:"iPhone連上車機藍牙，如何同步通訊錄？", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.b1dfiw1xl6cp", desc:"iPhone連上車機藍牙後同步通訊錄的設定方法與影片教學。", keywords:"iPhone 藍牙 通訊錄 同步 聯絡人" },
-  { title:"Carlink自動連接關閉後藍牙還是一直連手機", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.317jf9vqve89", desc:"Carlink自動連接已關閉但藍牙開啟時還是不斷連接手機的解決方法說明。", keywords:"Carlink 自動連接 藍牙 手機 一直連 CarPlay" },
-  { title:"CarPlay地圖畫面模糊破碎", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.q4dhd64edqfx", desc:"使用Carlink的CarPlay功能時地圖畫面模糊破碎，更新最新版本Carlink軟體可以改善。", keywords:"CarPlay Carlink 地圖 模糊 破碎 畫面" },
-  { title:"常見問題 - YouTube / Netflix / 影音APP問題", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.wrolevt7p1mw", desc:"影音APP問題：YouTube不斷轉圈圈、Netflix/Disney+一直暫停、MixerBox遮住倒車畫面、CarPlay音樂音量忽大忽小。", keywords:"YouTube Netflix Disney+ 影音 轉圈圈 暫停 播放 串流 MixerBox" },
-  { title:"YouTube不斷轉圈圈無法觀看", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.1999soc4s3dv", desc:"解決：1.確認登入Gmail帳號；2.Play Store更新最新版。另可嘗試解除更新YouTube。原因可能是網速、伺服器塞車、YouTube版本更新、電信資費降速等。", keywords:"YouTube 轉圈 無法看 緩衝 卡住 播放 Gmail 更新 跑圈" },
-  { title:"Netflix、Disney+影音APP一直暫停", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.fmzf4g35tjzi", desc:"可能是背景有其他APP（如第四台APP）持續搶播放權，須徹底關閉衝突APP後再使用Netflix或Disney+。", keywords:"Netflix Disney+ 暫停 播放 一直停 影音 串流" },
-  { title:"MixerBox遮住倒車畫面", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.bxfsb8ngkttl", desc:"MixerBox軟體本身特性會強制浮動停留在畫面前景，遮住倒車畫面。需關閉MixerBox才能正常顯示倒車影像。", keywords:"MixerBox 倒車 畫面 遮住 擋住 倒車鏡頭" },
-  { title:"CarPlay音樂音量忽大忽小", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.tuq2r6kkkwmz", desc:"CarPlay音樂行走中忽大忽小，可能是手機內有APP在抓定位資訊產生背景播報降音，須逐一關閉APP定位功能測試（曾發現某交友軟體影響）。", keywords:"CarPlay 音樂 音量 忽大忽小 聲音 背景 定位" },
-  { title:"常見問題 - 行車記錄器 / 環景錄影 (DVR)", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.tli5warw8hao", desc:"DVR相關問題：行車記錄器不會錄影或無法偵測記憶卡（需定期格式化）、ACK環景一體機循環錄影容量計算方式。", keywords:"行車記錄器 DVR 環景 錄影 記憶卡 隨身碟 格式化 循環" },
-  { title:"行車記錄器不會錄影或無法偵測記憶卡", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.nroc83vvssfe", desc:"請每個月重新格式化記憶卡/隨身碟一次，避免讀寫久了壞軌，確保錄影能夠穩定持續。", keywords:"行車記錄器 錄影 記憶卡 隨身碟 格式化 偵測不到 DVR 不錄影" },
-  { title:"ACK環景一體機循環錄影可以錄多久？", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.oljnr7uamg0r", desc:"ACK環景錄影採4鏡頭合併畫面，MP4格式1080P，約每小時4GB。以32GB隨身碟計算約可循環錄8小時。緊急鎖檔愈多則循環時間愈短。", keywords:"ACK 環景 錄影 循環 容量 時間 記憶卡 隨身碟 多久" },
-  { title:"主機一直亂跳模式（小芳語音助理誤觸）", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.5soewvdp0ds2", desc:"ACK/APK主機三不五時亂跳模式，通常是小芳語音助理背景收音誤判。解法：1.停用小芳助理（長按主機使用手冊首頁標題，輸入0310，關閉小芳助理）；2.關閉免喚醒詞功能。", keywords:"亂跳 模式 小芳 語音助理 誤觸 ACK APK 自動切換 干擾" },
-  { title:"主機系統時間不對", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.q46rp7upvoj5", desc:"系統時間不對：若GPS定位到且網路連通，是時區問題；若不連網時間就錯，是GPS時間同步設定問題（設定→設備設置→GPS→模式一右下自動同步選ON）。", keywords:"系統時間 時間不對 時區 GPS 同步 時鐘 日期 錯誤" },
-  { title:"螢幕夜間出現閃爍現象", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.o3iszrhq3fz8", desc:"夜間螢幕閃爍是因背光調到臨界值時LED出現弱光閃爍。建議使用飛鳥內建「夜間模式」APP（CK/PK系列），透過軟體遮罩方式降低亮度，不出現閃爍。", keywords:"螢幕 閃爍 夜間 亮度 背光 夜間模式 CK PK 閃光 閃屏" },
-  { title:"藍牙裝置無法顯示", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.1k5wiw45j4wx", desc:"藍牙裝置無法顯示，通常代表內建藍牙模組故障，需要送修處理。", keywords:"藍牙 無法顯示 故障 配對 送修 找不到" },
-  { title:"環景車體變透明怎麼辦？", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.ozupiwpuhl3r", desc:"環景車體顯示變透明時，點右下角ASUKA Logo一下即可切回實體車體顯示。", keywords:"環景 車體 透明 切換 ASUKA Logo 360" },
-  { title:"Line藍牙通話的限制說明", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.slpbz8tfpgz4", desc:"Line藍牙通話限制（Line軟體本身）：1.不會顯示來電人姓名；2.接聽時需從手機按接聽。這是Line軟體限制，非車機問題。", keywords:"Line 藍牙 通話 來電 接聽 限制 顯示 名稱" },
-  { title:"隨身碟音樂或影片無法播放", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.p06vko4oic8k", desc:"嘗試：1.用電腦將影片轉為MP4、AVI等格式；2.到Play商店安裝KM Player等第三方播放器。通常是檔案格式不支援問題。", keywords:"隨身碟 USB 音樂 影片 無法播放 格式 MP4 AVI 不支援" },
-  { title:"AV in / AUX in 聲音到背景無法關閉", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.d267gu869e4r", desc:"ACK/CK/APK/PK主機，AV in/AUX in聲音到背景無法關閉，請確認輸入音源是否誤接到Audio R/L out，或線組端子定義是否打錯。", keywords:"AV in AUX in 聲音 背景 關閉 ACK CK APK PK 線組 端子" },
-  { title:"ACK/APK環景開機環視功能設定", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.9ae9erkdec1o", desc:"ACK/APK主機環景開機環視功能為何沒有啟動，以及如何設定的說明與影片教學。", keywords:"ACK APK 環景 開機 環視 設定 功能 啟動" },
-  { title:"廣播RDS功能說明（PTY / AF / TA）", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.72ntk4u25qnt", desc:"廣播設定內的RDS（Radio Data System）功能說明：PTY節目類型代碼、AF待機頻率自動切換、TA流量通知。", keywords:"RDS 廣播 FM Radio PTY AF TA 功能 設定 按鍵" },
-  { title:"開機時一直自動開某個APP無法關閉", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.qcymnm2twiwc", desc:"開機時一直去開某一個APP且無法刷退的原因說明與解決辦法影片。", keywords:"開機 自動 APP 刷退 無法關閉 一直開" },
-  { title:"主機外接滑鼠鍵盤後虛擬鍵盤不見", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.w4i3i9q0g56e", desc:"接上USB鍵盤或滑鼠後造成虛擬鍵盤不見的解決辦法說明與影片。", keywords:"虛擬鍵盤 USB 鍵盤 滑鼠 外接 不見 消失" },
-  { title:"小芳助理如何用聲控打開導航？", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.uk8oa1x8aqxe", desc:"小芳語音助理聲控打開導航的操作說明與影片教學。", keywords:"小芳 語音助理 聲控 導航 打開 語音 控制" },
-  { title:"LUX-A 市售高階主機相關資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/lux-a-主機相關", desc:"LUX-A市售高階車用主機產品介紹，包含官網介紹連結、產品展示影片及影片檔下載連結。", keywords:"LUX-A LUX 主機 高階 產品 介紹 規格" },
-  { title:"CK＆ACK主機系列資訊總覽", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機", desc:"CK＆ACK主機系列完整資訊，包含產品介紹、軟體下載、安裝說明、環景校正、CAN盒支援車型、隱藏功能、常見問題及初次安裝注意事項。", keywords:"CK ACK 主機 ACK-MAX CK-MAX 產品 介紹 規格 車機家族 DM" },
-  { title:"CK/ACK 隱藏功能 & 工廠密碼", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.jn0wetwndtf2", desc:"ACK/CK主機隱藏功能列表，包含隱藏頁開啟方式（用asuka_cfg.ask檔案）、工廠密碼0310（長按首頁標題輸入）、隱藏APP（GF-200、Carlink等）的開啟方法。", keywords:"隱藏功能 工廠密碼 密碼 0310 隱藏頁 asuka_cfg ACK CK 進階設定 隱藏APP 解鎖" },
-  { title:"CK/ACK 最新軟體 & 圖資下載", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.bgrdsai0o7vp", desc:"ACK/CK主機最新版主程式軟體下載連結、特別軟體（OTA、小芳語音助理配置檔）下載區。", keywords:"軟體 下載 更新 主程式 OTA 圖資 版本 ACK CK 最新" },
-  { title:"CK/ACK 主軟體更新流程", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.aysjlpwfq9ig", desc:"ACK/CK主機主程式更新步驟：下載解壓縮→複製到USB根目錄→插入主機→自動跳出升級包→按開始更新→完成後重開機。也包含OTA線上更新與版本查詢方法。", keywords:"軟體更新 主程式 更新流程 USB 升級 OTA ACK CK 刷機 版本 怎麼更新" },
-  { title:"CK/ACK MCU更新流程", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.wi4gvxurx7ek", desc:"ACK/CK主機MCU韌體更新步驟，與主程式更新類似，解壓後複製2個檔案到USB根目錄執行更新。", keywords:"MCU 更新 韌體 ACK CK USB 升級" },
-  { title:"CK/ACK CAN盒設定及支援車型清單", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.8l6pqmiqufge", desc:"ACK/CK主機CAN盒選擇清單（Excel檔），列出各支援車款與對應CAN盒型號，可查詢特定車型應選用哪個CAN盒。", keywords:"CAN盒 支援車型 選擇清單 ACK CK 相容 車款 對應 哪個 Excel" },
-  { title:"CK/ACK 環景安裝、校正問題", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.yp63ac25mtor", desc:"ACK/CK環景鏡頭常見問題：校正後數據未保存、鏡頭沒有畫面（4顆需全連）、倒車環景慢出現、環景車體透明、環景校布選擇（建議3D全拼布）。", keywords:"環景 校正 鏡頭 沒有畫面 透明 車模 校布 拼布 ACK CK 360 倒車" },
-  { title:"CK/ACK 主機常見問題及須知", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.1iryz17hiyeh", desc:"CK/ACK主機重要注意事項：不能安裝BK-301/302 DVR（要用CKVR）、神盾無法安裝、有線CarPlay與環景錄影衝突、輸入法錯誤解決、GPS定位問題處理步驟、360鏡頭閃爍干擾排除。", keywords:"注意事項 限制 DVR CKVR BK-301 神盾 CarPlay 環景 衝突 輸入法 GPS 干擾 ACK CK" },
-  { title:"CK/ACK 初次安裝與售服注意事項", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.8ahkhnidwifz", desc:"首次安裝CK主機注意事項：後方散熱風扇一定要接、胎壓接收器與BM不共用（CK用12V/BM用5V）、DVR要用CKVR型號，以及有線CarPlay與環景錄影功能衝突說明。", keywords:"初次安裝 注意 風扇 胎壓 接收器 CKVR DVR CarPlay 衝突 售服 ACK CK 新裝" },
-  { title:"PK＆APK主機系列資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/pkapk主機", desc:"PK＆APK主機系列資訊及安裝說明，含影片與實裝照片。", keywords:"PK APK 主機 安裝 設定 影片" },
-  { title:"S-302 USB聯網介面盒", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/s-302-聯網盒", desc:"S-302 USB聯網介面盒產品資訊，為原廠主機擴充聯網功能，包含相關影片及各車型實裝照片。", keywords:"S-302 聯網盒 USB 介面盒 安裝 聯網 升級" },
-  { title:"LingoPlay 迷你聯網盒", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/lingoplay主頁", desc:"LingoPlay迷你聯網盒主頁，讓原廠主機擴充Android聯網功能，含產品資訊與各車型實裝照片。", keywords:"LingoPlay 聯網盒 迷你 安裝 聯網 Android" },
-  { title:"電子後視鏡相關資訊與影片", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/電子後視鏡影片", desc:"電子後視鏡產品相關資訊及影片教學，包含安裝與設定說明。", keywords:"電子後視鏡 後視鏡 影片 安裝 設定 鏡頭" },
-  { title:"mini-OWL 多視角行車輔助系統", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/mini-owl專頁", desc:"mini-OWL多視角行車輔助系統專頁，多鏡頭行車安全輔助產品資訊。", keywords:"mini-OWL OWL 多視角 行車輔助 鏡頭 環景 盲點" },
-  { title:"DK＆ADK主機相關資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/dk主機相關", desc:"DK＆ADK主機系列資訊及實裝照片，含安裝說明。", keywords:"DK ADK 主機 安裝 設定 實裝" },
-  { title:"RM系列 14吋通用型後座螢幕", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/14吋通用型後座螢幕res-168", desc:"RM系列14吋通用型後座娛樂螢幕相關說明與影片教學，後座乘客娛樂系統。", keywords:"RM 後座 螢幕 14吋 娛樂系統 後座娛樂 頭枕" },
-  { title:"BM-2 / BM-A / CBM主機（已停產）", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/bm-2bm-acbm主機", desc:"BM-2、BM-A、CBM主機已停產機型相關影片教學資訊。", keywords:"BM-2 BM-A CBM 主機 停產 影片 舊款" },
-  { title:"BM-3 / BM-3(K)主機（已停產）", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/bm-3bm-3k主機", desc:"BM-3、BM-3(K)主機已停產機型相關影片教學資訊。", keywords:"BM-3 BM-3K 主機 停產 影片 舊款" },
-  { title:"HONDA 本田 車款安裝資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車廠品牌分類/honda", desc:"HONDA本田各車款特殊安裝資訊，包含HR-V、CR-V、Fit、City、Civic、Accord、Odyssey、BR-V、ZR-V等車型的特殊接法與注意事項。", keywords:"Honda 本田 HR-V HRV CR-V CRV Fit City Civic Accord Odyssey BR-V ZR-V 車款 安裝 設定 可以裝 支援" },
-  { title:"TOYOTA 豐田 車款安裝資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車廠品牌分類/toyota", desc:"TOYOTA豐田各車款安裝資訊，包含RAV-4（五代）、Altis、Camry、Yaris、Yaris Cross、Sienta、Wish、Noah、Vios等車型說明。", keywords:"Toyota 豐田 RAV4 RAV-4 Altis Camry Yaris Cross Sienta Wish Noah Vios Corolla 車款 安裝 設定 可以裝 支援" },
-  { title:"NISSAN 日產 車款安裝資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車廠品牌分類/nissan", desc:"NISSAN日產各車款安裝資訊，包含X-Trail、Kicks、Tiida、Sentra、March、Terra、Livina等車型的接法與注意事項。", keywords:"Nissan 日產 X-Trail XTrail Kicks Tiida Sentra March Terra Livina 車款 安裝 設定 可以裝 支援" },
-  { title:"SUBARU 速霸陸 車款安裝資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車廠品牌分類/subaru", desc:"SUBARU速霸陸各車款安裝資訊，包含Forester、Outback、Levorg、Legacy、XV、Crosstrek等車型說明。", keywords:"Subaru 速霸陸 Forester Outback Levorg Legacy XV Crosstrek 車款 安裝 設定 可以裝 支援" },
-  { title:"FORD 福特 車款安裝資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/ford", desc:"FORD福特各車款安裝資訊，包含Kuga、Focus（3.5代）、Mondeo、EcoSport、Explorer、Ranger、Puma、Escape等車型的特殊接法與注意事項。", keywords:"Ford 福特 Kuga Focus 3.5代 Mondeo EcoSport Explorer Ranger Puma Escape 車款 安裝 設定 可以裝 支援 相容" },
-  { title:"KIA 起亞 車款安裝資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/kia", desc:"KIA起亞各車款安裝資訊，包含Stonic、Sportage、Niro、Sorento、Carnival等車型說明。", keywords:"KIA 起亞 Stonic Sportage Niro Sorento Carnival 車款 安裝 設定 可以裝 支援" },
-  { title:"Volkswagen VW 福斯 車款安裝資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/vw", desc:"Volkswagen福斯各車款安裝資訊，包含Golf、Tiguan、Polo、T-Roc、Touareg、ID.4等車型說明。", keywords:"VW Volkswagen 福斯 Golf Tiguan Polo T-Roc Touareg ID4 車款 安裝 設定 可以裝 支援" },
-  { title:"HYUNDAI 現代 車款安裝資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/hyundai", desc:"HYUNDAI現代各車款安裝資訊，包含Tucson、Elantra、Santa Fe、Ioniq、Kona等車型說明。", keywords:"Hyundai 現代 Tucson Elantra Santa Fe Ioniq Kona 車款 安裝 設定 可以裝 支援" },
-  { title:"MAZDA 馬自達 車款安裝資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/mazda", desc:"MAZDA馬自達各車款安裝資訊，包含CX-5、CX-3、CX-30、Mazda3、Mazda6、MX-30等車型說明。", keywords:"Mazda 馬自達 CX-5 CX5 CX-3 CX3 CX-30 CX30 Mazda3 Mazda6 MX-30 車款 安裝 設定 可以裝 支援" },
-  { title:"LEXUS 凌志 車款安裝資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/lexus", desc:"LEXUS凌志各車款安裝資訊，包含IS、ES、RX、NX、UX、CT、LX等車型說明。", keywords:"Lexus 凌志 IS ES RX NX UX CT LX GX 車款 安裝 設定 可以裝 支援" },
-  { title:"SUZUKI 鈴木 車款安裝資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/suzuki", desc:"SUZUKI鈴木各車款安裝資訊，包含Swift、Vitara、Jimny、Ignis等車型說明。", keywords:"Suzuki 鈴木 Swift Vitara Jimny Ignis 車款 安裝 設定 可以裝 支援" },
-  { title:"SKODA 斯柯達 車款安裝資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/skoda", desc:"SKODA斯柯達各車款安裝資訊，包含Kodiaq、Octavia、Karoq、Kamiq等車型說明。", keywords:"Skoda 斯柯達 Kodiaq Octavia Karoq Kamiq 車款 安裝 設定 可以裝 支援" },
-  { title:"VOLVO 富豪 車款安裝資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/volvo", desc:"VOLVO富豪各車款安裝資訊，包含XC40、XC60、XC90、V60、S60、S90等車型說明。", keywords:"Volvo 富豪 XC40 XC60 XC90 V60 S60 S90 車款 安裝 設定 可以裝 支援" },
-  { title:"MG 車款安裝資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/mg專頁", desc:"MG各車款安裝資訊，包含MG5、MG HS、ZS等車型說明。", keywords:"MG MG5 HS ZS EV 車款 安裝 設定 可以裝 支援" },
-  { title:"各車廠通用方向盤按鍵定義（方控）", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/各車廠通用方控定義", desc:"各車廠通用方向盤多功能按鍵（方控/SWC）定義說明，包含各按鍵對應功能的圖示與設定方式。", keywords:"方向盤 方控 按鍵 定義 通用 各車廠 SWC 多功能 設定 學習" },
-  { title:"特殊方控與倒車定義", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/奇奇怪怪的方控定義", desc:"特殊方向盤按鍵及倒車訊號定義說明，適用奇特車款或特殊接法的情況。", keywords:"方控 倒車 特殊 奇特 定義 按鍵 訊號 方向盤" },
-  { title:"TPMS 胎壓監測系統設定", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/tpms相關設定", desc:"TPMS胎壓監測系統設定說明，包含感測器學習、顯示設定與胎壓警示相關設定。", keywords:"TPMS 胎壓 監測 設定 感測器 輪胎 警示" },
-  { title:"無法改裝主機的車型", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/無法改主機的車型", desc:"說明哪些車型因原廠設計限制無法安裝飛鳥主機，購買前請先確認車型相容性，避免安裝後有疑慮。", keywords:"無法改裝 不支援 相容性 車型 限制 不能換 不適合" },
-  { title:"車款升級資訊查詢庫（各車款可以安裝嗎？）", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫", desc:"查詢各車款是否可以安裝飛鳥主機的完整對照表，包含可更換、有條件限制、不建議等詳細說明，以及特殊注意事項。支援查詢Ford、Honda、Toyota、Nissan、Mazda、Subaru、VW、Hyundai、Lexus、KIA、Mitsubishi、Skoda、Suzuki、Volvo、MG、Luxgen、BMW、Benz、Audi等品牌。", keywords:"可以安裝 能不能裝 支援 相容 車款查詢 升級 哪款 適合 可以換 型號 建議 查詢庫 Kuga Focus Mondeo Escape Puma CR-V CRV Odyssey Accord Fit City Civic HRV HR-V RAV4 Altis Camry Yaris Cross Sienta Noah Wish Vios X-Trail Kicks Tiida Sentra Livina CX-5 CX-3 CX-30 Mazda3 Mazda6 Forester Outback Golf Tiguan Polo T-Roc Tucson Elantra Santa Fe IS ES RX NX CT Sportage Stonic Kodiaq XC40 XC60 XC90 MG HS Outlander Lancer LUXGEN U6 BENZ W204 W211 三菱 納智捷" },
-  { title:"常用APP下載連結", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/app下載連結", desc:"飛鳥主機常用APP下載連結，包含導航王、Carlink等常用應用程式官方下載入口。", keywords:"APP 下載 應用程式 導航王 Carlink 軟體 安裝" },
-  { title:"好用的小撇步分享", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/好用的小撇步分享", desc:"飛鳥FAE工程師分享的實用技巧，例如交車前不登入個人帳號就能更新安卓APP的方法等實用小技巧。", keywords:"小撇步 技巧 交車 更新 APP 安卓 不登入 帳號 訣竅" },
-  { title:"飛鳥產品說明書", url:"https://www.asuka-tw.com/Docs/Index/267", desc:"飛鳥各主機型號的詳細操作說明書下載，包含功能說明與操作指引。", keywords:"說明書 手冊 操作 文件 使用 產品 PDF 下載" },
-  { title:"飛鳥檢驗資訊 (BSMI / NCC認證)", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/bsmi-ncc", desc:"飛鳥產品BSMI、NCC認證檢驗相關資訊文件，符合台灣法規要求的認證資料。", keywords:"BSMI NCC 檢驗 認證 合格 安規 認証" },
-  { title:"經銷店家行銷素材", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/經銷店家行銷素材", desc:"提供給經銷商的行銷素材資源，包含產品介紹圖文等推廣素材。", keywords:"行銷 素材 經銷 廣告 圖文 推廣 商家" }
+  {title:"Ford Kuga \u8ECA\u6B3E\u5347\u7D1A\u8CC7\u8A0A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u8ECA\u6B3E\u5347\u7D1A\u8CC7\u8A0A\u67E5\u8A62\u5EAB#h.thiecunpv68",desc:"Ford Kuga \u53EF\u4EE5\u5B89\u88DD\u98DB\u9CE5\u4E3B\u6A5F\uFF0C\u8A73\u7D30\u8CC7\u8A0A\u8ACB\u67E5\u95B1\u8ECA\u6B3E\u5347\u7D1A\u8CC7\u8A0A\u67E5\u8A62\u5EAB",keywords:"Ford Kuga \u80FD\u88DD\u55CE \u53EF\u4EE5\u88DD \u798F\u7279 kuga \u76F8\u5BB9"},
+  {title:"TOYOTA Prius \u8ECA\u6B3E\u5347\u7D1A\u8CC7\u8A0A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u8ECA\u6B3E\u5347\u7D1A\u8CC7\u8A0A\u67E5\u8A62\u5EAB",desc:"TOYOTA Prius 3\u4EE3/\u03B1/PHV 2009~2012\u5E74\u53EF\u66F4\u63DB\u97F3\u97FF\u4E3B\u6A5F\uFF0C\u5207\u63DB\u5E74\u662F2012\u5E74\uFF0C\u4E0D\u9700\u7528\u5354\u8B70\u76D2",keywords:"Toyota Prius \u666E\u9510\u65AF 3\u4EE3 \u53EF\u4EE5\u88DD \u80FD\u88DD\u55CE \u76F8\u5BB9 \u5354\u8B70\u76D2"},
+  {title:"APP \u4E0B\u8F09\u9023\u7D50\uFF08\u5C0E\u822A\u738B\u3001NaviKing \u7B49\uFF09",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/app\u4E0B\u8F09\u9023\u7D50",desc:"\u5E38\u7528APP\u4E0B\u8F09\u9023\u7D50\uFF0C\u5305\u542B3D\u5C0E\u822A\u738BAPK\u3001NaviKing\u7B49\u5404\u5F0F\u61C9\u7528\u7A0B\u5F0F\u4E0B\u8F09",keywords:"\u5C0E\u822A\u738B APK \u4E0B\u8F09 NaviKing 3D \u61C9\u7528\u7A0B\u5F0F app \u5B89\u88DD"},
+  {title:"HONDA CR-V \u5EE3\u64AD/\u6536\u97F3\u6A5F\u554F\u984C",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u8ECA\u5EE0\u54C1\u724C\u5206\u985E/honda/crv#h.bwqrzfrqo896",desc:"CR-V 5\u4EE3\u5EE3\u64AD\u6536\u4E0D\u5230\u7684\u89E3\u6C7A\u65B9\u5F0F\uFF0C\u5305\u542BCAN\u8A0A\u865F\u76F8\u95DC\u8A2D\u5B9A\u8AAA\u660E",keywords:"CRV CR-V \u5EE3\u64AD \u6536\u97F3\u6A5F \u6536\u4E0D\u5230 Honda 5\u4EE3"},
+  {title:"LUX-A \u539F\u8ECA\u756B\u9762\u7121\u6CD5\u986F\u793A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/lux-a-\u4E3B\u6A5F\u76F8\u95DC#h.6pszqe8jcawm",desc:"LUX-A \u4E3B\u6A5F\u539F\u8ECA\u756B\u9762\u51FA\u4E0D\u4F86\u7684\u89E3\u6C7A\u65B9\u5F0F\u8207\u8A2D\u5B9A\u8AAA\u660E",keywords:"LUX-A \u539F\u8ECA\u756B\u9762 \u51FA\u4E0D\u4F86 \u7121\u6CD5\u986F\u793A \u9ED1\u756B\u9762 LUX"},
+  {title:"OTA \u529F\u80FD\u4F7F\u7528\u65B9\u6CD5",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F",desc:"ACK/CK \u4E3B\u6A5F OTA \u7A7A\u4E2D\u66F4\u65B0\u529F\u80FD\u4F7F\u7528\u65B9\u6CD5\uFF0C\u9069\u7528\u7D93\u9500\u5E97\u5BB6\u7248\u8AAA\u660E",keywords:"OTA \u600E\u9EBC\u7528 \u66F4\u65B0 \u7A7A\u4E2D\u4E0B\u8F09 \u97CC\u9AD4 \u9060\u7AEF\u66F4\u65B0 ACK CK \u7121\u7DDA\u66F4\u65B0 \u600E\u9EBC\u66F4\u65B0\u97CC\u9AD4"},
+  {title:"\u74B0\u666F\u5012\u8ECA/\u65B9\u5411\u71C8\u756B\u9762\u51FA\u73FE\u5F88\u6162",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F#h.1iryz17hiyeh",desc:"ACK\u6253\u5012\u8ECA\u6216\u5207\u65B9\u5411\u71C8\u6642\u74B0\u666F\u756B\u9762\u5F88\u6162\u51FA\u73FE\uFF0C\u53EF\u80FD\u662F4\u9853\u93E1\u982D\u5C11\u5075\u6E2C\u5230\u5176\u4E2D\u4E00\u9853\u9020\u6210\u3002\u8ACB\u6AA2\u67E5/\u66F4\u63DB\u93E1\u982D\u8207\u9023\u63A5\u7DDA\u7D44",keywords:"\u74B0\u666F \u5012\u8ECA \u51FA\u73FE\u5F88\u6162 \u65B9\u5411\u71C8 \u6162 \u5EF6\u9072 \u93E1\u982D ACK CK 360 \u5012\u8ECA\u5F88\u6EAF\u51FA\u4F86"},
+  {title:"\u89F8\u63A7\u6309\u9375\u5931\u6548/\u4E0D\u6E96\uFF0C\u91CD\u65B0\u8A2D\u5B9A\u65B9\u6CD5",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F#h.rqpim1q1a09i",desc:"\u5DE6\u5074\u89F8\u63A7\u6309\u9375\u5931\u6548\u6216\u4E0D\u6E96\u78BA\uFF0C\u9700\u91CD\u65B0\u8A2D\u5B9A\uFF1A\u8A2D\u5B9A(\u9F52\u8F2A\u9375)=>\u5DE5\u5EE0\u8A2D\u5B9A=>\u5BC6\u78BC0310=>\u89F8\u6478\u5C4F\u6309\u9375\u5B78\u7FD2",keywords:"\u89F8\u63A7 \u6309\u9375 \u5931\u6548 \u4E0D\u6E96 \u4E0D\u80FD\u89F8\u63A7 \u5DE5\u5EE0\u8A2D\u5B9A 0310 \u89F8\u6478\u5C4F\u6309\u9375\u5B78\u7FD2"},
+  {title:"\u85CD\u7259\u901A\u8A71 MIC \u97F3\u91CF\u592A\u5C0F\uFF08\u5C0D\u65B9\u807D\u4E0D\u6E05\u695A\uFF09",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F#h.rqpim1q1a09i",desc:"\u85CD\u7259\u901A\u8A71\u6642\u5C0D\u65B9\u89BA\u5F97\u8ECA\u5167\u8072\u97F3\u592A\u5C0F\uFF0C\u89E3\u6CD5\uFF1A\u8A2D\u5B9A=>\u8A2D\u5099\u8A2D\u7F6E=>MIC\u589E\u76CA\u62C9\u9AD8",keywords:"\u85CD\u7259 \u901A\u8A71 \u5C0F\u8072 MIC \u589E\u76CA \u5C0D\u65B9\u807D\u4E0D\u5230 \u9EA5\u514B\u98A8 \u97F3\u91CF \u85CD\u8A61"},
+  {title:"Toyota \u539F\u5EE0\u74B0\u666F\u93E1\u982D\u652F\u63F4\uFF082023/2024\u5E74\uFF09",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u8ECA\u5EE0\u54C1\u724C\u5206\u985E/2023\u5E74toyota\u539F\u5EE0\u74B0\u666F\u93E1\u982D\u652F\u63F4\u5C08\u9801",desc:"ACK\u914D2023/2024\u5E74Toyota\u539F\u5EE0\u74B0\u666F\u93E1\u982D\u5F8C\u93E1\u982D\u756B\u9762\u984D\u5012\u3001\u9ED1\u767D\u6216\u7121\u756B\u9762\u7684\u89E3\u6C7A\u65B9\u5F0F\uFF0C\u4E5F\u5305\u542B\u5F37\u5236\u6A94\u8A2D\u5B9A\u8AAA\u660E",keywords:"Toyota \u539F\u5EE0\u74B0\u666F \u93E1\u982D \u984D\u5012 \u9ED1\u767D \u7121\u756B\u9762 2023 2024 CC Camry Cross \u5F37\u5236\u6A94 RAV4"},
+  {title:"\u70BA\u4EC0\u9EBC AVM \u74B0\u666F\u756B\u9762\u6700\u5916\u5074\u6703\u51FA\u73FE\u9ED1\u5F71\uFF1F",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.nroc83vvssfe",desc:"\u6B64\u73FE\u8C61\u662F\u56E0\u5DE6\u53F3\u5074\u93E1\u982D\u5B89\u88DD\u89D2\u5EA6\u904E\u65BC\u9760\u8FD1\u8ECA\u8EAB\u6240\u9020\u6210\u3002\u8ACB\u8ABF\u6574\u5DE6\u53F3\u5074\u74B0\u666F\u93E1\u982D\u89D2\u5EA6\u3002",keywords:"\u74B0\u666F \u9ED1\u5F71 AVM \u9ED1\u8272 \u9670\u5F71 \u6700\u5916\u5074 \u93E1\u982D\u89D2\u5EA6 \u5DE6\u53F3\u5074 360"},
+  {title:"\u5404\u7522\u54C1\u898F\u683C\u8868\uFF08CK\u3001ACK\u3001LUX \u7B49\uFF09",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5404\u7522\u54C1\u898F\u683C",desc:"\u98DB\u9CE5\u5404\u4E3B\u6A5F\u578B\u865F\u7684\u8A73\u7D30\u7522\u54C1\u898F\u683C\uFF0C\u5305\u542BCK\u3001ACK\u3001LUX-A\u7B49\u578B\u865F\u898F\u683C\u67E5\u8A62",keywords:"\u898F\u683C \u7522\u54C1\u898F\u683C CK\u898F\u683C ACK\u898F\u683C LUX\u898F\u683C \u898F\u683C\u8868 \u53C3\u6570 \u786C\u9AD4\u898F\u683C"},
+  {title:"\u98DB\u9CE5\u7522\u54C1\u8AAA\u660E\u66F8",url:"https://www.asuka-tw.com/Docs/Index/267",desc:"\u98DB\u9CE5\u5404\u4E3B\u6A5F\u578B\u865F\u7684\u8A73\u7D30\u64CD\u4F5C\u8AAA\u660E\u66F8\u4E0B\u8F09\u3002",keywords:"\u8AAA\u660E\u66F8 \u624B\u518A \u64CD\u4F5C \u6587\u4EF6 \u4F7F\u7528 \u7522\u54C1 PDF \u4E0B\u8F09"}
 ];
 
-/* ============================================================
-   Fuse.js 模糊搜尋（用來取相關上下文給 AI）
-   ============================================================ */
-const fuse = new Fuse(KB, {
-  keys: [
-    { name: "title",    weight: 0.4 },
-    { name: "keywords", weight: 0.4 },
-    { name: "desc",     weight: 0.2 }
-  ],
-  threshold: 0.55,
-  minMatchCharLength: 2,
-  includeScore: true,
-  useExtendedSearch: false,
-  ignoreLocation: true,
-  distance: 200
+var fuse = new Fuse(KB, {
+  keys: [{name:"title",weight:0.4},{name:"keywords",weight:0.4},{name:"desc",weight:0.2}],
+  threshold: 0.55, minMatchCharLength: 2, includeScore: true,
+  useExtendedSearch: false, ignoreLocation: true, distance: 200
 });
 
-/* ============================================================
-   Gemini AI 呼叫
-   ============================================================ */
-async function callGeminiAI(question, topResults) {
-  const contextText = topResults.length > 0
-    ? topResults.map(r => `【${r.item.title}】\n說明：${r.item.desc}\n連結：${r.item.url}`).join('\n\n')
-    : '（知識庫中找不到明確相關內容）';
+/* GAS Proxy -> Groq API */
+var GAS_PROXY_URL = 'https://script.google.com/macros/s/AKfycbyuKNxfmhkWo6rm65LXvcf6kOIFfjxUy4P2winvMFbA3kyxeDqCol9hkYS6jcCToqIh/exec';
+var AI_SYSTEM_PROMPT = '\u4F60\u662F\u98DB\u9CE5(Asuka)\u8ECA\u7528\u4E3B\u6A5F\u7684\u6280\u8853\u5BA2\u670D\u52A9\u624B\uFF0C\u5C08\u9580\u89E3\u7B54\u95DC\u65BC\u98DB\u9CE5\u8ECA\u7528\u591A\u5A92\u9AD4\u4E3B\u6A5F\u7684\u5B89\u88DD\u3001\u8A2D\u5B9A\u8207\u6545\u969C\u6392\u9664\u554F\u984C\u3002\u8ACB\u7528\u7E41\u9AD4\u4E2D\u6587\u56DE\u7B54\uFF0C\u8A9E\u6C23\u89AA\u5207\u5C08\u696D\u3002\u56DE\u7B54\u8981\u7C21\u6F54\u660E\u78BA\uFF0C\u901A\u5E803\u81F36\u53E5\u8A71\u5373\u53EF\u3002\u82E5\u554F\u984C\u8D85\u51FA\u98DB\u9CE5\u7522\u54C1\u7BC4\u570D\uFF0C\u8ACB\u793C\u8C8C\u8AAA\u660E\u4E26\u5EFA\u8B70\u806F\u7D61\u98DB\u9CE5FAE\u5DE5\u7A0B\u5E2B\u3002';
 
-  const prompt = `你是「飛鳥車用電子（ASUKA）」的技術客服AI助理。飛鳥是台灣車用電子品牌，產品包含車用主機（CK、ACK、PK、APK、LUX系列等）、環景攝影系統、後座螢幕等。
-
-以下是與客戶問題最相關的知識庫內容：
-
-${contextText}
-
-客戶問題：${question}
-
-請用繁體中文直接回答。規則：
-- 直接切入重點，不需要說「根據知識庫」等前言
-- 有步驟的話請用數字條列（1. 2. 3.）
-- 回答簡潔，100～200字為宜
-- 若知識庫資訊不足，誠實說明並建議聯繫飛鳥FAE工程師`;
-
-  // Support both API key (?key=) and Bearer token auth
-  const isApiKey = GEMINI_API_KEY.startsWith('AIza');
-  const url = isApiKey
-    ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`
-    : `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`;
-  const authHeaders = isApiKey
-    ? { 'Content-Type': 'application/json' }
-    : { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GEMINI_API_KEY}` };
-
-  const resp = await fetch(url,
-    {
-      method: 'POST',
-      headers: authHeaders,
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.2, maxOutputTokens: 600 }
-      })
-    }
-  );
-
-  if (!resp.ok) {
-    const err = await resp.json().catch(() => ({}));
-    throw new Error(err.error?.message || `HTTP ${resp.status}`);
+async function callAI(question) {
+  var resp = await fetch(GAS_PROXY_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({question: question, systemPrompt: AI_SYSTEM_PROMPT})
+  });
+  var data = await resp.json();
+  if (data.candidates && data.candidates[0] && data.candidates[0].content &&
+      data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
+    return data.candidates[0].content.parts[0].text;
   }
-  const data = await resp.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || '無法取得 AI 回答';
+  return '\u6292\u6B49\uFF0CAI \u66AB\u6642\u7121\u6CD5\u56DE\u61C9\uFF0C\u8ACB\u53C3\u8003\u4E0B\u65B9\u77E5\u8B58\u5EAB\u641C\u5C0B\u7D50\u679C\u3002';
 }
 
-/* ============================================================
-   UI 邏輯
-   ============================================================ */
-const chatMessages = document.getElementById("chatMessages");
-const userInput    = document.getElementById("userInput");
-const AI_ENABLED   = GEMINI_API_KEY && GEMINI_API_KEY !== 'YOUR_API_KEY_HERE';
+var chatMessages = document.getElementById("chatMessages");
+var userInput    = document.getElementById("userInput");
 
-window.onload = () => {
-  appendBotMessage(
-    AI_ENABLED
-      ? `你好！我是飛鳥技術客服 AI 助手 👋\n\n請直接描述你遇到的問題，我會用 AI 語意理解幫你找到精準答案。`
-      : `你好！我是飛鳥技術客服助手 👋\n\n請用口語描述你遇到的問題，我會幫你找到最相關的說明頁面。`,
-    ["導航王沒有語音播報", "WiFi 連線但無法上網", "CarPlay 一直連不上", "行車記錄器不錄影"]
-  );
+window.onload = function() {
+  appendBotMsg('\u4F60\u597D\uFF01\u6211\u662F\u98DB\u9CE5\u6280\u8853\u5BA2\u670D\u52A9\u624B \uD83D\uDEE0\uFE0F\n\n\u8ACB\u7528\u53E3\u8A9E\u63CF\u8FF0\u4F60\u9047\u5230\u7684\u554F\u984C\uFF0C\u6211\u6703\u7528 AI \u5E6B\u4F60\u56DE\u7B54\uFF0C\u4E26\u627E\u5230\u6700\u76F8\u95DC\u7684\u8AAA\u660E\u9801\u9762\u3002',
+    ['\u5F37\u5236\u6A94\u600E\u9EBC\u8A2D\u5B9A\uFF1F','\u74B0\u666F\u756B\u9762\u6709\u9ED1\u5F71','\u5C0E\u822A\u738BAPK\u4E0B\u8F09','OTA\u600E\u9EBC\u7528\uFF1F']);
 };
 
 function handleKey(e) {
@@ -662,187 +213,135 @@ function autoResize(el) {
 }
 
 async function sendMessage() {
-  const text = userInput.value.trim();
+  var text = userInput.value.trim();
   if (!text) return;
-
-  appendUserMessage(text);
+  appendUserMsg(text);
   userInput.value = "";
   userInput.style.height = "auto";
-
-  const typingEl = appendTyping();
-  const fuseResults = fuse.search(text, { limit: 5 });
-
-  if (AI_ENABLED) {
-    try {
-      const aiText = await callGeminiAI(text, fuseResults);
-      typingEl.remove();
-      renderAIResults(aiText, fuseResults.slice(0, 3));
-    } catch (err) {
-      console.error('Gemini error:', err);
-      typingEl.remove();
-      appendBotMessage(`⚠️ AI 暫時無法回應（${err.message}），改用關鍵字搜尋：`);
-      renderResults(fuseResults.slice(0, 3), text);
-    }
-  } else {
-    setTimeout(() => {
-      typingEl.remove();
-      renderResults(fuseResults.slice(0, 3), text);
-      scrollToBottom();
-    }, 600);
+  var typingEl = appendTyping();
+  var kbResults = fuse.search(text, {limit: 3});
+  try {
+    var aiAnswer = await callAI(text);
+    typingEl.remove();
+    renderAI(aiAnswer, kbResults);
+  } catch(err) {
+    console.error('AI error:', err);
+    typingEl.remove();
+    renderKB(kbResults, text);
   }
+  scrollBot();
 }
 
-/* ---- AI 結果渲染 ---- */
-function renderAIResults(aiText, fuseResults) {
-  const div = document.createElement("div");
-  div.className = "msg bot";
-
-  // 格式化 AI 回答：換行 → 段落
-  const paragraphs = aiText.split(/\n\n+/).map(p => `<p>${escHtml(p).replace(/\n/g,'<br>')}</p>`).join('');
-
-  let html = `
-    <div class="ai-answer-wrap">
-      <div class="ai-answer-label">✨ AI 智能回答</div>
-      <div class="ai-answer-body">${paragraphs}</div>
-    </div>`;
-
-  if (fuseResults.length) {
-    const rankLabels = ["最相關", "次相關", "參考"];
-    html += `<div class="source-label">📖 參考說明頁面</div>`;
-    html += `<div class="results-list">` + fuseResults.map((r, i) => `
-      <a class="result-card" href="${escHtml(r.item.url)}" target="_blank" rel="noopener">
-        <div class="rank">${rankLabels[i] || "#"+(i+1)}</div>
-        <div class="title">${escHtml(r.item.title)}</div>
-        <div class="desc">${escHtml(r.item.desc)}</div>
-        <div class="link-hint">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
-          </svg>
-          點擊開啟頁面
-        </div>
-      </a>`).join("") + `</div>`;
-  }
-
-  div.innerHTML = html;
-  chatMessages.appendChild(div);
-  scrollToBottom();
-}
-
-/* ---- 傳統搜尋結果渲染（AI 未啟用或失敗時備用） ---- */
-function renderResults(results, query) {
-  const div = document.createElement("div");
-  div.className = "msg bot";
-
-  if (!results.length) {
-    div.innerHTML = `
-      <div class="bubble">找不到「${escHtml(query)}」的相關說明 😔<br><br>
-      建議換個關鍵字再試試，或直接聯絡 FAE 工程師協助。</div>
-      <div class="no-result">
-        💡 可以試試：<br>
-        • 描述具體症狀（例如「黑畫面」「無訊號」）<br>
-        • 使用功能名稱（例如「車速」「倒車」「方向盤」）<br>
-        • 使用型號或車款名稱
-      </div>`;
-  } else {
-    const rankLabels = ["最相關", "次相關", "參考"];
-    div.innerHTML = `
-      <div class="bubble">找到 ${results.length} 個相關說明，點擊連結查看：</div>
-      <div class="results-list">` +
-      results.map((r, i) => `
-        <a class="result-card" href="${escHtml(r.item.url)}" target="_blank" rel="noopener">
-          <div class="rank">${rankLabels[i] || "#"+(i+1)}</div>
-          <div class="title">${escHtml(r.item.title)}</div>
-          <div class="desc">${escHtml(r.item.desc)}</div>
-          <div class="link-hint">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
-            </svg>
-            點擊開啟頁面
-          </div>
-        </a>`).join("") + `</div>`;
-  }
-  chatMessages.appendChild(div);
-  scrollToBottom();
-}
-
-/* ---- Helper 函數 ---- */
-function appendUserMessage(text) {
-  const div = document.createElement("div");
+function appendUserMsg(text) {
+  var div = document.createElement("div");
   div.className = "msg user";
-  div.innerHTML = `<div class="bubble">${escHtml(text)}</div>`;
+  div.innerHTML = '<div class="bubble">' + esc(text) + '</div>';
   chatMessages.appendChild(div);
-  scrollToBottom();
+  scrollBot();
 }
 
-function appendBotMessage(text, suggestions = []) {
-  const div = document.createElement("div");
+function appendBotMsg(text, suggestions) {
+  suggestions = suggestions || [];
+  var div = document.createElement("div");
   div.className = "msg bot";
-  let html = `<div class="bubble">${escHtml(text).replace(/\n/g, "<br>")}</div>`;
+  var html = '<div class="bubble">' + esc(text).replace(/\n/g,"<br>") + '</div>';
   if (suggestions.length) {
-    html += `<div class="suggestions">` +
-      suggestions.map(s => `<button class="suggestion-btn" onclick="quickSend(this)">${escHtml(s)}</button>`).join("") +
-    `</div>`;
+    html += '<div class="suggestions">' + suggestions.map(function(s){
+      return '<button class="suggestion-btn" onclick="quickSend(this)">' + esc(s) + '</button>';
+    }).join("") + '</div>';
   }
   div.innerHTML = html;
   chatMessages.appendChild(div);
-  scrollToBottom();
+  scrollBot();
   return div;
 }
 
 function appendTyping() {
-  const div = document.createElement("div");
+  var div = document.createElement("div");
   div.className = "msg bot";
-  div.innerHTML = `<div class="typing-dot"><span></span><span></span><span></span></div>`;
+  div.innerHTML = '<div class="typing-dot"><span></span><span></span><span></span></div>';
   chatMessages.appendChild(div);
-  scrollToBottom();
+  scrollBot();
   return div;
 }
 
-function quickSend(btn) { userInput.value = btn.textContent; sendMessage(); }
-function scrollToBottom() { chatMessages.scrollTop = chatMessages.scrollHeight; }
-function escHtml(str) {
-  return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+function cardHtml(r, i) {
+  var item = r.item;
+  var labels = ["\u6700\u76F8\u95DC","\u6B21\u76F8\u95DC","\u53C3\u8003"];
+  return '<a class="result-card" href="' + esc(item.url) + '" target="_blank" rel="noopener">' +
+    '<div class="rank">' + (labels[i]||("#"+(i+1))) + '</div>' +
+    '<div class="title">' + esc(item.title) + '</div>' +
+    '<div class="desc">' + esc(item.desc) + '</div>' +
+    '<div class="link-hint"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>\u9EDE\u64CA\u958B\u555F\u9801\u9762</div>' +
+    '</a>';
 }
+
+function renderAI(aiAnswer, results) {
+  var div = document.createElement("div");
+  div.className = "msg bot";
+  var html = '<div class="bubble">' + esc(aiAnswer).replace(/\n/g,"<br>") + '</div>';
+  if (results.length > 0) {
+    html += '<div style="font-size:11px;color:#94a3b8;margin-top:10px;margin-bottom:4px;">&#x1F4DA; \u76F8\u95DC\u8AAA\u660E\u9801\u9762\uFF1A</div>' +
+      '<div class="results-list">' + results.map(cardHtml).join("") + '</div>';
+  }
+  div.innerHTML = html;
+  chatMessages.appendChild(div);
+}
+
+function renderKB(results, query) {
+  var div = document.createElement("div");
+  div.className = "msg bot";
+  if (!results.length) {
+    div.innerHTML = '<div class="bubble">\u627E\u4E0D\u5230\u300C' + esc(query) + '\u300D\u7684\u76F8\u95DC\u8AAA\u660E \uD83D\uDE14<br><br>\u5EFA\u8B70\u63DB\u500B\u95DC\u9375\u5B57\u518D\u8A66\u8A66\uFF0C\u6216\u76F4\u63A5\u806F\u7D61 FAE \u5DE5\u7A0B\u5E2B\u5354\u52A9\u3002</div>' +
+      '<div class="no-result">\uD83D\uDCA1 \u53EF\u4EE5\u8A66\u8A66\uFF1A<br>\u2022 \u63CF\u8FF0\u5177\u9AD4\u75C7\u72C0\uFF08\u4F8B\u5982\u300C\u9ED1\u756B\u9762\u300D\u300C\u7121\u8A0A\u865F\u300D\uFF09<br>\u2022 \u4F7F\u7528\u529F\u80FD\u540D\u7A31\uFF08\u4F8B\u5982\u300C\u8ECA\u901F\u300D\u300C\u5012\u8ECA\u300D\u300C\u65B9\u5411\u76E4\u300D\uFF09<br>\u2022 \u4F7F\u7528\u578B\u865F\u6216\u8ECA\u6B3E\u540D\u7A31</div>';
+  } else {
+    var label = results.length === 1 ? "\u627E\u5230 1 \u500B\u76F8\u95DC\u8AAA\u660E" : ("\u627E\u5230 " + results.length + " \u500B\u76F8\u95DC\u8AAA\u660E");
+    div.innerHTML = '<div class="bubble">' + label + '\uFF0C\u9EDE\u64CA\u9023\u7D50\u67E5\u770B\u8A73\u7D30\u8AAA\u660E\uFF1A</div>' +
+      '<div class="results-list">' + results.map(cardHtml).join("") + '</div>';
+  }
+  chatMessages.appendChild(div);
+}
+
+function quickSend(btn) { userInput.value = btn.textContent; sendMessage(); }
+function scrollBot() { chatMessages.scrollTop = chatMessages.scrollHeight; }
+function esc(str) { return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
 function clearChat() {
   chatMessages.innerHTML = '';
   userInput.value = '';
   userInput.style.height = 'auto';
-  appendBotMessage(`對話已清除 🗑️\n\n請繼續輸入你的問題。`,
-    ["導航王沒有語音播報","WiFi 連線但無法上網","CarPlay 一直連不上","行車記錄器不錄影"]);
+  appendBotMsg('\u5C0D\u8A71\u5DF2\u6E05\u9664 \uD83D\uDDD1\uFE0F\n\n\u8ACB\u7E7C\u7E8C\u8F38\u5165\u4F60\u7684\u554F\u984C\u3002',
+    ['\u5F37\u5236\u6A94\u600E\u9EBC\u8A2D\u5B9A\uFF1F','\u74B0\u666F\u756B\u9762\u6709\u9ED1\u5F71','\u5C0E\u822A\u738BAPK\u4E0B\u8F09','OTA\u600E\u9EBC\u7528\uFF1F']);
 }
 
-/* ── 訓練回饋功能 ── */
-const FEEDBACK_API = 'https://script.google.com/macros/s/AKfycby7DtvaCSibzRmPYoGjBeVyVS5lXIJE1btBEX3hui_duuk9A9hPvXFMEgId0mIOK5Vm/exec';
+var FEEDBACK_API = 'https://script.google.com/macros/s/AKfycby7DtvaCSibzRmPYoGjBeVyVS5lXIJE1btBEX3hui_duuk9A9hPvXFMEgId0mIOK5Vm/exec';
 
 function toggleFeedback() {
-  const body   = document.getElementById('feedbackBody');
-  const toggle = document.getElementById('feedbackToggle');
-  const isOpen = body.classList.contains('open');
+  var body = document.getElementById('feedbackBody');
+  var toggle = document.getElementById('feedbackToggle');
+  var isOpen = body.classList.contains('open');
   body.classList.toggle('open', !isOpen);
   toggle.classList.toggle('open', !isOpen);
 }
 
 function submitFeedback() {
-  const q = document.getElementById('fbQuestion').value.trim();
-  const a = document.getElementById('fbAnswer').value.trim();
-  if (!q || !a) { alert('請填寫問題與答案位置'); return; }
-  const btn = document.querySelector('.fb-submit-btn');
-  btn.textContent = '提交中...'; btn.disabled = true;
-  fetch(FEEDBACK_API, {
-    method: 'POST', mode: 'no-cors',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ question: q, answer: a })
-  }).then(() => {
+  var q = document.getElementById('fbQuestion').value.trim();
+  var a = document.getElementById('fbAnswer').value.trim();
+  if (!q || !a) { alert('\u8ACB\u586B\u5BEB\u554F\u984C\u8207\u7B54\u6848\u4F4D\u7F6E'); return; }
+  var btn = document.querySelector('.fb-submit-btn');
+  btn.textContent = '\u63D0\u4EA4\u4E2D...'; btn.disabled = true;
+  fetch(FEEDBACK_API, {method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,answer:a})})
+  .then(function(){
     document.getElementById('fbQuestion').value = '';
     document.getElementById('fbAnswer').value = '';
-    const suc = document.getElementById('fbSuccess');
+    var suc = document.getElementById('fbSuccess');
     suc.classList.add('show');
-    setTimeout(() => suc.classList.remove('show'), 4000);
-    btn.textContent = '提交訓練資料'; btn.disabled = false;
-  }).catch(() => {
-    alert('提交失敗，請確認網路連線後再試');
-    btn.textContent = '提交訓練資料'; btn.disabled = false;
+    setTimeout(function(){ suc.classList.remove('show'); }, 4000);
+    btn.textContent = '\u63D0\u4EA4\u8A13\u7DF4\u8CC7\u6599'; btn.disabled = false;
+  })
+  .catch(function(){
+    alert('\u63D0\u4EA4\u5931\u6557\uFF0C\u8ACB\u78BA\u8A8D\u7DB2\u8DEF\u9023\u7DDA\u5F8C\u518D\u8A66');
+    btn.textContent = '\u63D0\u4EA4\u8A13\u7DF4\u8CC7\u6599'; btn.disabled = false;
   });
 }
 </script>
