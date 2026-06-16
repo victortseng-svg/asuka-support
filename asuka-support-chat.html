@@ -179,13 +179,19 @@ var fuse = new Fuse(KB, {
 
 /* GAS Proxy -> Groq API */
 var GAS_PROXY_URL = 'https://script.google.com/macros/s/AKfycbyuKNxfmhkWo6rm65LXvcf6kOIFfjxUy4P2winvMFbA3kyxeDqCol9hkYS6jcCToqIh/exec';
-var AI_SYSTEM_PROMPT = '\u4F60\u662F\u98DB\u9CE5(Asuka)\u8ECA\u7528\u4E3B\u6A5F\u7684\u6280\u8853\u5BA2\u670D\u52A9\u624B\uFF0C\u5C08\u9580\u89E3\u7B54\u95DC\u65BC\u98DB\u9CE5\u8ECA\u7528\u591A\u5A92\u9AD4\u4E3B\u6A5F\u7684\u5B89\u88DD\u3001\u8A2D\u5B9A\u8207\u6545\u969C\u6392\u9664\u554F\u984C\u3002\u8ACB\u7528\u7E41\u9AD4\u4E2D\u6587\u56DE\u7B54\uFF0C\u8A9E\u6C23\u89AA\u5207\u5C08\u696D\u3002\u56DE\u7B54\u8981\u7C21\u6F54\u660E\u78BA\uFF0C\u901A\u5E803\u81F36\u53E5\u8A71\u5373\u53EF\u3002\u82E5\u554F\u984C\u8D85\u51FA\u98DB\u9CE5\u7522\u54C1\u7BC4\u570D\uFF0C\u8ACB\u793C\u8C8C\u8AAA\u660E\u4E26\u5EFA\u8B70\u806F\u7D61\u98DB\u9CE5FAE\u5DE5\u7A0B\u5E2B\u3002';
+var chatHistory = [];
+var MAX_HISTORY = 10;
+var AI_SYSTEM_PROMPT = '\u4F60\u662F\u98DB\u9CE5(Asuka)\u8ECA\u7528\u591A\u5A92\u9AD4\u4E3B\u6A5F\u7684\u6280\u8853\u5BA2\u670D\u52A9\u624B\u3002\n\n\u300A\u4E92\u52D5\u539F\u5247\u300B\n\u554F\u984C\u6A21\u7CCA\u6216\u8CC7\u8A0A\u4E0D\u8DB3\u6642\uFF0C\u4E00\u6B21\u53EA\u554F\u4E00\u500B\u6700\u95DC\u9375\u7684\u7CFA\u6E05\u554F\u984C\uFF08\u4F8B\u5982\uFF1A\u300C\u8ACB\u554F\u662F\u54EA\u6B3E\u8ECA\u578B\uFF1F\u300D\u300C\u662FACK\u9084\u662FCK\u4E3B\u6A5F\uFF1F\u300D\u300C\u75C7\u72C0\u662F\u4EC0\u9EBC\u6642\u5019\u958B\u59CB\u7684\uFF1F\u300D\uFF09\u3002\u7D2F\u7A4D\u8DB3\u5920\u8CC7\u8A0A\u5F8C\u518D\u63D0\u4F9B\u5177\u9AD4\u6392\u67E5\u6B65\u9A5F\u3002\u8A9E\u6C23\u81EA\u7136\u89AA\u5207\uFF0C\u50CF\u6709\u7D93\u9A57\u7684\u6280\u5E2B\u5728\u5C0D\u8A71\uFF0C\u4E0D\u8981\u592A\u6B63\u5F0F\u3002\n\n\u300A\u56DE\u7B54\u539F\u5247\u300B\n\u6709\u660E\u78BA\u7B54\u6848\u6642\uFF1A\u76F4\u63A5\u7D66\u6B65\u9A5F\uFF0C3\u52306\u53E5\u5373\u53EF\u3002\u554F\u984C\u6A21\u7CCA\u6642\uFF1A\u5148\u554F\u4E00\u500B\u6700\u91CD\u8981\u7684\u7CFA\u6E05\u554F\u984C\uFF0C\u4E0D\u8981\u4E00\u6B21\u554F\u5F88\u591A\u3002\u8D85\u51FA\u98DB\u9CE5\u7522\u54C1\u7BC4\u570D\u6642\uFF1A\u793C\u8C8C\u8AAA\u660E\u4E26\u5EFA\u8B70\u806F\u7D61\u98DB\u9CE5FAE\u5DE5\u7A0B\u5E2B\u3002\n\n\u8ACB\u7528\u7E41\u9AD4\u4E2D\u6587\u56DE\u7B54\u3002';
 
 async function callAI(question) {
+  var messages = [{role: 'system', content: AI_SYSTEM_PROMPT}];
+  var histSlice = chatHistory.slice(-MAX_HISTORY);
+  histSlice.forEach(function(m){ messages.push(m); });
+  messages.push({role: 'user', content: question});
   var resp = await fetch(GAS_PROXY_URL, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({question: question, systemPrompt: AI_SYSTEM_PROMPT})
+    body: JSON.stringify({messages: messages})
   });
   var data = await resp.json();
   if (data.candidates && data.candidates[0] && data.candidates[0].content &&
@@ -218,14 +224,18 @@ async function sendMessage() {
   appendUserMsg(text);
   userInput.value = "";
   userInput.style.height = "auto";
+  chatHistory.push({role: 'user', content: text});
   var typingEl = appendTyping();
   var kbResults = fuse.search(text, {limit: 3});
   try {
     var aiAnswer = await callAI(text);
     typingEl.remove();
+    chatHistory.push({role: 'assistant', content: aiAnswer});
+    if (chatHistory.length > MAX_HISTORY * 2) chatHistory = chatHistory.slice(-MAX_HISTORY);
     renderAI(aiAnswer, kbResults);
   } catch(err) {
     console.error('AI error:', err);
+    chatHistory.pop();
     typingEl.remove();
     renderKB(kbResults, text);
   }
@@ -310,6 +320,7 @@ function clearChat() {
   chatMessages.innerHTML = '';
   userInput.value = '';
   userInput.style.height = 'auto';
+  chatHistory = [];
   appendBotMsg('\u5C0D\u8A71\u5DF2\u6E05\u9664 \uD83D\uDDD1\uFE0F\n\n\u8ACB\u7E7C\u7E8C\u8F38\u5165\u4F60\u7684\u554F\u984C\u3002',
     ['\u5F37\u5236\u6A94\u600E\u9EBC\u8A2D\u5B9A\uFF1F','\u74B0\u666F\u756B\u9762\u6709\u9ED1\u5F71','\u5C0E\u822A\u738BAPK\u4E0B\u8F09','OTA\u600E\u9EBC\u7528\uFF1F']);
 }
