@@ -7,143 +7,351 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/7.0.0/fuse.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
       background: #f0f2f5;
-      display: flex; align-items: flex-start; justify-content: center;
-      min-height: 100dvh; min-height: 100vh;
-      padding: 16px; overflow-y: auto;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      min-height: 100dvh;
+      min-height: 100vh;
+      padding: 16px;
+      overflow-y: auto;
     }
+
     .chat-container {
-      width: 100%; max-width: 680px;
-      background: #fff; border-radius: 16px;
+      width: 100%;
+      max-width: 680px;
+      background: #fff;
+      border-radius: 16px;
       box-shadow: 0 4px 24px rgba(0,0,0,0.10);
-      display: flex; flex-direction: column; overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      margin-bottom: 0;
     }
+
+    /* Header */
     .chat-header {
       background: linear-gradient(135deg, #1a56db, #1e429f);
-      color: #fff; padding: 14px 18px;
-      display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+      color: #fff;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
     }
     .chat-header .icon {
-      width: 38px; height: 38px; background: rgba(255,255,255,0.2);
-      border-radius: 50%; display: flex; align-items: center;
-      justify-content: center; font-size: 18px; flex-shrink: 0;
+      width: 38px; height: 38px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
     }
     .chat-header .header-text { flex: 1; min-width: 0; }
     .chat-header h1 { font-size: 15px; font-weight: 700; }
     .chat-header p  { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+
+    /* AI Badge in header */
+    .ai-header-badge {
+      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 8px;
+      color: #fff;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    /* Clear button */
     .clear-btn {
-      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
-      border-radius: 8px; color: #fff; cursor: pointer; padding: 6px 10px;
-      font-size: 12px; display: flex; align-items: center; gap: 4px;
-      flex-shrink: 0; transition: background 0.15s; white-space: nowrap;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      padding: 6px 10px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+      transition: background 0.15s;
+      white-space: nowrap;
     }
     .clear-btn:hover { background: rgba(255,255,255,0.25); }
     .clear-btn svg { width: 13px; height: 13px; fill: #fff; }
+
+    /* Messages */
     .chat-messages {
-      flex: 1; overflow-y: auto; padding: 16px;
-      display: flex; flex-direction: column; gap: 14px;
-      -webkit-overflow-scrolling: touch; min-height: 260px; max-height: 420px;
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      -webkit-overflow-scrolling: touch;
+      min-height: 260px;
+      max-height: 460px;
     }
-    .msg { display: flex; flex-direction: column; max-width: 92%; }
+
+    .msg {
+      display: flex;
+      flex-direction: column;
+      max-width: 92%;
+    }
     .msg.bot  { align-self: flex-start; }
     .msg.user { align-self: flex-end; }
-    .msg .bubble { padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.6; }
+
+    .msg .bubble {
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
     .msg.bot  .bubble { background: #f1f5ff; color: #1e293b; border-bottom-left-radius: 4px; }
     .msg.user .bubble { background: #1a56db; color: #fff; border-bottom-right-radius: 4px; }
+
+    /* AI answer bubble */
+    .ai-answer-wrap {
+      background: #fff;
+      border: 1px solid #e0d4ff;
+      border-left: 3px solid #7c3aed;
+      border-radius: 12px;
+      border-bottom-left-radius: 4px;
+      overflow: hidden;
+    }
+    .ai-answer-label {
+      background: linear-gradient(135deg, #f5f3ff, #ede9fe);
+      padding: 6px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #7c3aed;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      border-bottom: 1px solid #e0d4ff;
+    }
+    .ai-answer-body {
+      padding: 12px 16px;
+      font-size: 14px;
+      line-height: 1.7;
+      color: #1e293b;
+    }
+    .ai-answer-body p { margin-bottom: 8px; }
+    .ai-answer-body p:last-child { margin-bottom: 0; }
+
+    /* Source links label */
+    .source-label {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 10px;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* Result cards */
     .results-list { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+
     .result-card {
-      background: #fff; border: 1px solid #dde4f5; border-radius: 10px;
-      padding: 12px 14px; text-decoration: none; display: block;
-      transition: box-shadow 0.2s, border-color 0.2s; color: inherit;
+      background: #fff;
+      border: 1px solid #dde4f5;
+      border-radius: 10px;
+      padding: 12px 14px;
+      text-decoration: none;
+      display: block;
+      transition: box-shadow 0.2s, border-color 0.2s;
+      color: inherit;
     }
-    .result-card:hover { box-shadow: 0 2px 12px rgba(26,86,219,0.12); border-color: #1a56db; }
+    .result-card:hover {
+      box-shadow: 0 2px 12px rgba(26,86,219,0.12);
+      border-color: #1a56db;
+    }
     .result-card .rank {
-      display: inline-block; background: #1a56db; color: #fff;
-      font-size: 10px; font-weight: 700; border-radius: 4px;
-      padding: 1px 6px; margin-bottom: 6px;
+      display: inline-block;
+      background: #1a56db;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      border-radius: 4px;
+      padding: 1px 6px;
+      margin-bottom: 6px;
     }
-    .result-card .title { font-size: 14px; font-weight: 600; color: #1a56db; margin-bottom: 4px; }
+    .result-card .title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a56db;
+      margin-bottom: 4px;
+    }
     .result-card .desc {
-      font-size: 12px; color: #64748b; line-height: 1.5; overflow: hidden;
-      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      font-size: 12px;
+      color: #64748b;
+      line-height: 1.5;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
     }
     .result-card .link-hint {
-      font-size: 11px; color: #94a3b8; margin-top: 6px;
-      display: flex; align-items: center; gap: 4px;
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
+
+    /* No result */
     .no-result {
-      background: #fff8f0; border: 1px solid #ffd6a0;
-      border-radius: 10px; padding: 12px 14px; font-size: 13px; color: #92400e;
+      background: #fff8f0;
+      border: 1px solid #ffd6a0;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #92400e;
     }
-    .suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+    /* Suggestions */
+    .suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
     .suggestion-btn {
-      background: #f1f5ff; border: 1px solid #c7d7f8; border-radius: 20px;
-      padding: 6px 14px; font-size: 12px; color: #1a56db;
-      cursor: pointer; transition: background 0.15s;
+      background: #f1f5ff;
+      border: 1px solid #c7d7f8;
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 12px;
+      color: #1a56db;
+      cursor: pointer;
+      transition: background 0.15s;
     }
     .suggestion-btn:hover { background: #dbeafe; }
-    .chat-input-area { border-top: 1px solid #e9edf5; padding: 14px 16px; background: #fff; }
-    .input-row { display: flex; gap: 10px; align-items: flex-end; }
+
+    /* Input */
+    .chat-input-area {
+      border-top: 1px solid #e9edf5;
+      padding: 14px 16px;
+      background: #fff;
+    }
+    .input-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
     .input-row textarea {
-      flex: 1; border: 1px solid #d1d9f0; border-radius: 10px;
-      padding: 10px 14px; font-size: 14px; font-family: inherit;
-      resize: none; outline: none; line-height: 1.5; max-height: 100px;
+      flex: 1;
+      border: 1px solid #d1d9f0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: none;
+      outline: none;
+      line-height: 1.5;
+      max-height: 100px;
       transition: border-color 0.2s;
     }
     .input-row textarea:focus { border-color: #1a56db; }
     .input-row textarea::placeholder { color: #aab4cc; }
+
     .send-btn {
-      width: 42px; height: 42px; background: #1a56db; border: none;
-      border-radius: 10px; cursor: pointer;
+      width: 42px; height: 42px;
+      background: #1a56db;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; transition: background 0.15s, transform 0.1s;
+      flex-shrink: 0;
+      transition: background 0.15s, transform 0.1s;
     }
     .send-btn:hover  { background: #1e429f; }
     .send-btn:active { transform: scale(0.95); }
     .send-btn svg { width: 18px; height: 18px; fill: #fff; }
-    .hint-text { font-size: 11px; color: #aab4cc; margin-top: 6px; text-align: center; }
+
+    .hint-text {
+      font-size: 11px;
+      color: #aab4cc;
+      margin-top: 6px;
+      text-align: center;
+    }
+
+    /* Typing indicator */
     .typing-dot {
-      display: inline-flex; align-items: center; gap: 4px;
-      padding: 10px 14px; background: #f1f5ff;
-      border-radius: 12px; border-bottom-left-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 10px 14px;
+      background: #f1f5ff;
+      border-radius: 12px;
+      border-bottom-left-radius: 4px;
     }
     .typing-dot span {
-      width: 7px; height: 7px; background: #93acd8;
-      border-radius: 50%; animation: bounce 1.2s infinite;
+      width: 7px; height: 7px;
+      background: #93acd8;
+      border-radius: 50%;
+      animation: bounce 1.2s infinite;
     }
     .typing-dot span:nth-child(2) { animation-delay: 0.2s; }
     .typing-dot span:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-6px); }
+    }
+
     @media (max-width: 600px) {
       body { padding: 0; }
       .chat-container { border-radius: 0; }
-      .chat-messages { padding: 12px; min-height: 220px; max-height: 340px; }
+      .chat-messages { padding: 12px; min-height: 220px; max-height: 360px; }
       .chat-header { padding: 12px 14px; }
       .hint-text { display: none; }
     }
-    /* 訓練回饋 */
-    .feedback-panel { border-top: 2px solid #f0f2f5; background: #fff; flex-shrink: 0; }
+
+    /* ── 訓練回饋區塊 ── */
+    .feedback-panel {
+      border-top: 2px solid #f0f2f5;
+      background: #fff;
+      flex-shrink: 0;
+    }
     .feedback-header {
-      background: #f8fafc; border-bottom: 1px solid #e2e8f0;
-      padding: 14px 18px; display: flex; align-items: center;
-      justify-content: space-between; cursor: pointer; user-select: none;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
     }
     .feedback-header:hover { background: #f1f5f9; }
     .feedback-header-left { display: flex; align-items: center; gap: 10px; }
     .feedback-header-icon {
       width: 34px; height: 34px;
       background: linear-gradient(135deg, #f59e0b, #d97706);
-      border-radius: 50%; display: flex; align-items: center;
-      justify-content: center; font-size: 16px; flex-shrink: 0;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
     }
     .feedback-header h2 { font-size: 14px; font-weight: 700; color: #1e293b; }
     .feedback-header p  { font-size: 11px; color: #64748b; margin-top: 2px; }
     .feedback-toggle {
-      width: 28px; height: 28px; background: #e2e8f0; border-radius: 50%;
+      width: 28px; height: 28px;
+      background: #e2e8f0;
+      border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      transition: transform 0.2s; flex-shrink: 0;
+      transition: transform 0.2s;
+      flex-shrink: 0;
     }
     .feedback-toggle svg { width: 14px; height: 14px; fill: #64748b; }
     .feedback-toggle.open { transform: rotate(180deg); }
@@ -151,63 +359,87 @@
     .feedback-body.open { display: block; }
     .fb-label { font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 5px; }
     .fb-input {
-      width: 100%; border: 1px solid #d1d9f0; border-radius: 8px;
-      padding: 9px 12px; font-size: 13px; font-family: inherit;
-      outline: none; resize: vertical; transition: border-color 0.2s; min-height: 40px;
+      width: 100%;
+      border: 1px solid #d1d9f0;
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      resize: vertical;
+      transition: border-color 0.2s;
+      min-height: 40px;
     }
     .fb-input:focus { border-color: #f59e0b; }
     .fb-row { margin-bottom: 12px; }
     .fb-submit-btn {
       background: linear-gradient(135deg, #f59e0b, #d97706);
-      color: #fff; border: none; border-radius: 8px; padding: 9px 20px;
-      font-size: 13px; font-weight: 600; cursor: pointer;
-      transition: opacity 0.15s; font-family: inherit;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      font-family: inherit;
     }
     .fb-submit-btn:hover { opacity: 0.9; }
     .fb-success {
-      display: none; background: #f0fdf4; border: 1px solid #86efac;
-      border-radius: 8px; padding: 10px 14px; font-size: 13px;
-      color: #166534; margin-top: 10px;
+      display: none;
+      background: #f0fdf4;
+      border: 1px solid #86efac;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #166534;
+      margin-top: 10px;
     }
     .fb-success.show { display: block; }
-    /* 訓練資料結果卡片 */
-    .result-card.training { border-color: #fde68a; cursor: default; }
-    .result-card.training .title { color: #92400e; }
-    .result-card.training .rank { background: #f59e0b; }
   </style>
 </head>
 <body>
+
 <div class="chat-container">
   <div class="chat-header">
     <div class="icon">🔧</div>
     <div class="header-text">
       <h1>Asuka 技術客服助手</h1>
-      <p>輸入問題，我幫你找到最相關的說明頁面</p>
+      <p>AI 智能語意理解，精準找到你需要的說明</p>
     </div>
+    <div class="ai-header-badge">✨ AI</div>
     <button class="clear-btn" onclick="clearChat()" title="清除對話">
       <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
       清除
     </button>
   </div>
+
   <div class="chat-messages" id="chatMessages"></div>
+
   <div class="chat-input-area">
     <div class="input-row">
-      <textarea id="userInput" rows="1"
-        placeholder="請輸入你的問題，例如：導航王沒有語音怎麼辦？"
-        onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <textarea
+        id="userInput"
+        rows="1"
+        placeholder="請輸入你的問題，例如：CAN bus 訊號沒有反應怎麼辦？"
+        onkeydown="handleKey(event)"
+        oninput="autoResize(this)"
+      ></textarea>
       <button class="send-btn" onclick="sendMessage()" title="送出">
         <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
       </button>
     </div>
     <p class="hint-text">按 Enter 送出，Shift+Enter 換行</p>
   </div>
+
+  <!-- 訓練回饋區塊 -->
   <div class="feedback-panel">
     <div class="feedback-header" onclick="toggleFeedback()">
       <div class="feedback-header-left">
         <div class="feedback-header-icon">📝</div>
         <div>
           <h2>找不到答案？幫助我學習</h2>
-          <p>填寫問題與答案位置，下次就能自動找到</p>
+          <p>填寫問題與答案位置，讓管理員更新知識庫</p>
         </div>
       </div>
       <div class="feedback-toggle" id="feedbackToggle">
@@ -217,344 +449,392 @@
     <div class="feedback-body" id="feedbackBody">
       <div class="fb-row">
         <div class="fb-label">📌 你的問題（使用者會怎麼問？）</div>
-        <textarea class="fb-input" id="fbQuestion" rows="2"
-          placeholder="例如：Ford Kuga 2016年可以安裝嗎？"></textarea>
+        <textarea class="fb-input" id="fbQuestion" rows="2" placeholder="例如：Ford Kuga 2016年可以安裝嗎？"></textarea>
       </div>
       <div class="fb-row">
-        <div class="fb-label">🔗 答案在哪裡？（頁面連結）</div>
-        <textarea class="fb-input" id="fbAnswer" rows="2"
-          placeholder="請貼上頁面連結，例如：https://sites.google.com/.../車款升級資訊查詢庫#h.thiecunpv68"></textarea>
-        <div style="font-size:11px;color:#64748b;margin-top:5px;line-height:1.5;background:#f8fafc;border-radius:6px;padding:7px 10px;">
-          💡 <b>如何取得精確連結？</b><br>
-          1. 打開 Google Site，找到對應段落<br>
-          2. 點段落標題旁的 <b>🔗 複製連結</b> 圖示<br>
-          3. 貼上（帶有 <code style="background:#e2e8f0;padding:1px 4px;border-radius:3px;">#h.xxxxx</code> 的連結可直接跳到該段）
-        </div>
+        <div class="fb-label">🔗 答案在哪裡？（頁面連結或說明）</div>
+        <textarea class="fb-input" id="fbAnswer" rows="2" placeholder="例如：車款升級資訊查詢庫 → FORD → KUGA，2013~2018 可更換，注意高低配差異"></textarea>
       </div>
       <button class="fb-submit-btn" onclick="submitFeedback()">提交訓練資料</button>
-      <div class="fb-success" id="fbSuccess">✅ 已提交！下次開啟對話框就能搜尋到這筆資料 🎉</div>
+      <div class="fb-success" id="fbSuccess">✅ 已提交！感謝你的貢獻 🎉</div>
       <div style="font-size:11px;color:#94a3b8;margin-top:10px;text-align:center;">
-        提交後自動寫入 Google 試算表，並即時加入搜尋庫 📊
+        提交後自動寫入 Google 試算表 📊
       </div>
     </div>
   </div>
 </div>
 
 <script>
-/* ===== 知識庫 ===== */
-const KB=[{title:"飛鳥客戶服務中心 首頁",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/首頁",desc:"飛鳥主機銷售及安裝資訊服務平台首頁，各位在安裝飛鳥主機或配件時若有安裝及設定上的問題，可透過此平台取得相關資料。",keywords:"首頁 飛鳥 主機 安裝 資訊 服務 平台 入口"},{title:"常見問題 - 導航王設定與問題排除",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.5k4aig1pug17",desc:"導航王相關問題總覽：語音播報沒有聲音、輸入地址沒有縣市可選、混音設定、手寫功能無法使用、序號不見、圖資更新失敗、聲控靈敏度、大貨車模式、定位問題等。",keywords:"導航 導航王 語音播報 混音 地址 縣市 手寫 序號 圖資 更新 聲控 大貨車 定位 GPS 無聲"},{title:"導航王沒有語音播報，如何設定？",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.6k2ysmcjzk44",desc:"依序確認：1.車機導航混音是否開啟 2.導航是否靜音 3.語音設定導航音量是否開啟 4.更新到最新版本並恢復導航預設值。",keywords:"導航王 語音 播報 靜音 混音 音量 沒有聲音 無聲"},{title:"導航王輸入地址時沒有縣市可選",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.gl8wowml92ws",desc:"解法：先離開導航王，到檔案總管刪除指定NavikingMap資料夾，再重新打開導航王連網下載圖資（導航王→選單→設定→圖資下載）。",keywords:"導航王 地址 縣市 選不到 圖資 下載 NavikingMap"},{title:"導航王混音後播報音量不夠大聲",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.dj2rijblpesh",desc:"到導航王設定→語音設定→導航音量調整，並勾選「降低其他app播報音量」，可讓導航播報聲音更清晰。",keywords:"導航王 混音 音量 播報 不夠大聲 聲音小"},{title:"導航王序號不見了怎麼辦？",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.n6hoqe7dfx64",desc:"在導航王內→電話搜尋輸入 288356630，再回到版本資訊頁，即會顯示開通資料。",keywords:"導航王 序號 不見 消失 開通"},{title:"CK主機偶發導航無法定位的處理方法",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.gobiac4ezs6l",desc:"確認主機後方風扇接電是否接好、聲音功放開關是否開啟（預設開）。風扇若沒打開，機內過熱時會影響GPS定位。",keywords:"CK 導航 定位 失敗 GPS 過熱 風扇 功放"},{title:"常見問題 - 網路 / WiFi / 手機熱點問題",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.to3lgn3c0uyv",desc:"網路相關問題：iPhone熱點不穩定改善方法、WiFi連線後無法上網、車機找不到手機熱點（5GHz頻段）、WiFi自動關閉原因、SIM卡無法上網。",keywords:"WiFi 熱點 網路 iPhone 連線 上網 5GHz 2.4GHz 頻段 不穩定 關閉"},{title:"iPhone 熱點不穩定如何改善？",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.mm0iihsxuolt",desc:"iPhone 12後機型：開啟熱點最大相容性設定。舊款iPhone另有改善偏方。此問題根本解決需靠Apple更新熱點連線穩定性。",keywords:"iPhone 熱點 不穩定 最大相容性 連線 斷線 WiFi 熱點斷"},{title:"WiFi連線後仍然無法上網",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.lqehnf99apmn",desc:"可能原因是裝置系統時間與實際時間差距太大，請到設定手動將系統時間調整到正確時間再試。",keywords:"WiFi 上網 無法 系統時間 連線 網路 顯示連線但不能用"},{title:"車機找不到手機熱點（頻段問題）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.o40s1oubpml9",desc:"車機找不到手機熱點，請確認手機熱點頻段，設定為2.4GHz或雙頻。BM-2、BM-3、PN-203主機不支援5.0GHz。",keywords:"熱點 找不到 掃不到 頻段 5GHz 2.4GHz 雙頻 BM-2 BM-3"},{title:"WiFi常常自動關閉的原因（ACK/LUX）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.nekvcphox0q5",desc:"ACK、LUX系列WiFi自動關閉，可能是Carlink自動連接開啟，藍牙一開就啟動無線CarPlay功能導致WiFi關閉。到Carlink設定中關閉自動連接。",keywords:"WiFi 自動關閉 Carlink 藍牙 CarPlay ACK LUX WiFi關"},{title:"插入SIM卡後無法上網",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.8k68u3o75s56",desc:"SIM卡有讀到但無法上網，請確認SIM卡是否設定了PIN碼。需先用手機關閉SIM PIN後再插入車機使用。",keywords:"SIM卡 上網 無法 PIN碼 PIN 插卡 4G 讀到但不能用"},{title:"常見問題 - Google帳號 / Play商店 / APP閃退",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.4axqwh6dtvmt",desc:"Google相關問題：帳號登入卡在安全認證、Play商店APP閃退、APP無法登入（系統時間問題）、關閉自動更新、Chrome/YouTube解除更新方法。",keywords:"Google Play 商店 帳號 登入 閃退 更新 自動更新 Chrome YouTube 系統時間"},{title:"APP一直閃退怎麼辦？",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.q6yjn1xqbtuj",desc:"APP不斷閃退：清除Google Play服務快取與資料（設定→應用程式→Google Play服務→儲存空間→清除快取/資料）。也可能是APP正在背景更新，稍等幾分鐘再試。",keywords:"APP 閃退 Play服務 快取 清除 當機 不能用 點不進"},{title:"Play商店等APP無法登入（系統時間不正確）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.hss0qtkwcb3p",desc:"Play商店等APP無法登入，可能是系統時間不正確。請先手動調整系統時間到正確時間再重試。",keywords:"Play商店 無法登入 系統時間 時間 帳號 登入失敗"},{title:"如何關閉Google自動更新？",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.nlxzdazf3v5i",desc:"關閉Google Play自動更新方法、Chrome解除更新方法、YouTube解除更新方法，避免系統更新後不穩定。",keywords:"Google 自動更新 關閉 Chrome YouTube 解除更新 更新 停止更新"},{title:"Google帳號登入一直停在安全認證等待中",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.5o5i41sus0pc",desc:"在新主機上登入Google帳號後，註冊郵件會收到號碼，需在主機上按到正確號碼（即郵件中的驗證碼）完成認證。",keywords:"Google 帳號 登入 安全認證 等待 驗證 卡住"},{title:"常見問題 - CarPlay / 藍牙通話 / 手機連接",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.hrwbmd7e14fd",desc:"車機與手機操作問題：無線CarPlay無法連結、CarPlay地圖模糊、藍牙通話聲音從手機出聲、iPhone通訊錄同步、Carlink自動連接問題。",keywords:"CarPlay 無線 連結 藍牙 通話 iPhone 手機 Carlink 通訊錄 配對"},{title:"無線CarPlay一直無法連結成功",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.mh8arxm49cw",desc:"無線CarPlay卡在認證畫面：1. 刪除已連結且沒用的CarPlay裝置記錄（有連結上限）；2. 重置iPhone網路狀態。",keywords:"CarPlay 無線 連結 認證 配對 失敗 iPhone 連不上 卡住"},{title:"iPhone藍牙通話聲音從手機話筒出聲不是車機喇叭",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.qabwhe6ucnb",desc:"iPhone設定路徑：設定 > 輔助使用 > 觸控 > 來電語音傳送 > 選「藍芽耳麥」，通話聲音就會從車機喇叭出聲。",keywords:"iPhone 藍牙 通話 聲音 喇叭 手機話筒 來電 藍芽耳麥"},{title:"iPhone用戶連上車機藍牙無法通話",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.9qgpzi8d2iir",desc:"iPhone連上車機藍牙後無法通話的設定說明與排除步驟。",keywords:"iPhone 藍牙 通話 無法 連上 接不到 電話"},{title:"iPhone連上車機藍牙，如何同步通訊錄？",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.b1dfiw1xl6cp",desc:"iPhone連上車機藍牙後同步通訊錄的設定方法與影片教學。",keywords:"iPhone 藍牙 通訊錄 同步 聯絡人"},{title:"Carlink自動連接關閉後藍牙還是一直連手機",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.317jf9vqve89",desc:"Carlink自動連接已關閉但藍牙開啟時還是不斷連接手機的解決方法說明。",keywords:"Carlink 自動連接 藍牙 手機 一直連 CarPlay"},{title:"CarPlay地圖畫面模糊破碎",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.q4dhd64edqfx",desc:"使用Carlink的CarPlay功能時地圖畫面模糊破碎，更新最新版本Carlink軟體可以改善。",keywords:"CarPlay Carlink 地圖 模糊 破碎 畫面"},{title:"常見問題 - YouTube / Netflix / 影音APP問題",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.wrolevt7p1mw",desc:"影音APP問題：YouTube不斷轉圈圈、Netflix/Disney+一直暫停、MixerBox遮住倒車畫面、CarPlay音樂音量忽大忽小。",keywords:"YouTube Netflix Disney+ 影音 轉圈圈 暫停 播放 串流 MixerBox"},{title:"YouTube不斷轉圈圈無法觀看",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.1999soc4s3dv",desc:"解決：1.確認登入Gmail帳號；2.Play Store更新最新版。另可嘗試解除更新YouTube。原因可能是網速、伺服器塞車、YouTube版本更新、電信資費降速等。",keywords:"YouTube 轉圈 無法看 緩衝 卡住 播放 Gmail 更新 跑圈"},{title:"Netflix、Disney+影音APP一直暫停",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.fmzf4g35tjzi",desc:"可能是背景有其他APP（如第四台APP）持續搶播放權，須徹底關閉衝突APP後再使用Netflix或Disney+。",keywords:"Netflix Disney+ 暫停 播放 一直停 影音 串流"},{title:"MixerBox遮住倒車畫面",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.bxfsb8ngkttl",desc:"MixerBox軟體本身特性會強制浮動停留在畫面前景，遮住倒車畫面。需關閉MixerBox才能正常顯示倒車影像。",keywords:"MixerBox 倒車 畫面 遮住 擋住 倒車鏡頭"},{title:"CarPlay音樂音量忽大忽小",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.tuq2r6kkkwmz",desc:"CarPlay音樂行走中忽大忽小，可能是手機內有APP在抓定位資訊產生背景播報降音，須逐一關閉APP定位功能測試（曾發現某交友軟體影響）。",keywords:"CarPlay 音樂 音量 忽大忽小 聲音 背景 定位"},{title:"常見問題 - 行車記錄器 / 環景錄影 (DVR)",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.tli5warw8hao",desc:"DVR相關問題：行車記錄器不會錄影或無法偵測記憶卡（需定期格式化）、ACK環景一體機循環錄影容量計算方式。",keywords:"行車記錄器 DVR 環景 錄影 記憶卡 隨身碟 格式化 循環"},{title:"行車記錄器不會錄影或無法偵測記憶卡",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.nroc83vvssfe",desc:"請每個月重新格式化記憶卡/隨身碟一次，避免讀寫久了壞軌，確保錄影能夠穩定持續。",keywords:"行車記錄器 錄影 記憶卡 隨身碟 格式化 偵測不到 DVR 不錄影"},{title:"ACK環景一體機循環錄影可以錄多久？",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.oljnr7uamg0r",desc:"ACK環景錄影採4鏡頭合併畫面，MP4格式1080P，約每小時4GB。以32GB隨身碟計算約可循環錄8小時。緊急鎖檔愈多則循環時間愈短。",keywords:"ACK 環景 錄影 循環 容量 時間 記憶卡 隨身碟 多久"},{title:"主機一直亂跳模式（小芳語音助理誤觸）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.5soewvdp0ds2",desc:"ACK/APK主機三不五時亂跳模式，通常是小芳語音助理背景收音誤判。解法：1.停用小芳助理（長按主機使用手冊首頁標題，輸入0310，關閉小芳助理）；2.關閉免喚醒詞功能。",keywords:"亂跳 模式 小芳 語音助理 誤觸 ACK APK 自動切換 干擾"},{title:"主機系統時間不對",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.q46rp7upvoj5",desc:"系統時間不對：若GPS定位到且網路連通，是時區問題；若不連網時間就錯，是GPS時間同步設定問題（設定→設備設置→GPS→模式一右下自動同步選ON）。",keywords:"系統時間 時間不對 時區 GPS 同步 時鐘 日期 錯誤"},{title:"螢幕夜間出現閃爍現象",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.o3iszrhq3fz8",desc:"夜間螢幕閃爍是因背光調到臨界值時LED出現弱光閃爍。建議使用飛鳥內建「夜間模式」APP（CK/PK系列），透過軟體遮罩方式降低亮度，不出現閃爍。",keywords:"螢幕 閃爍 夜間 亮度 背光 夜間模式 CK PK 閃光 閃屏"},{title:"藍牙裝置無法顯示",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.1k5wiw45j4wx",desc:"藍牙裝置無法顯示，通常代表內建藍牙模組故障，需要送修處理。",keywords:"藍牙 無法顯示 故障 配對 送修 找不到"},{title:"環景車體變透明怎麼辦？",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.ozupiwpuhl3r",desc:"環景車體顯示變透明時，點右下角ASUKA Logo一下即可切回實體車體顯示。",keywords:"環景 車體 透明 切換 ASUKA Logo 360"},{title:"AVM環景畫面最外側出現黑影",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.nroc83vvssfe_l",desc:"此現象是因左右側鏡頭安裝角度過於靠近車身所造成。從原始鏡頭畫面可看到，約有一半畫面被車身佔據，真正拍攝車外環境的區域不足，因此在環景拼接後，鏡頭邊緣的不可視區會被顯示出來，形成黑影。正常建議鏡頭視角約為 1/3 車身、2/3 車外環境，可獲得較佳的環景效果。",keywords:"環景 黑影 AVM 最外側 黑色 陰影 側鏡頭 校正 拼接 不可視區 鏡頭角度 360"},{title:"Line藍牙通話的限制說明",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.slpbz8tfpgz4",desc:"Line藍牙通話限制（Line軟體本身）：1.不會顯示來電人姓名；2.接聽時需從手機按接聽。這是Line軟體限制，非車機問題。",keywords:"Line 藍牙 通話 來電 接聽 限制 顯示 名稱"},{title:"隨身碟音樂或影片無法播放",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.p06vko4oic8k",desc:"嘗試：1.用電腦將影片轉為MP4、AVI等格式；2.到Play商店安裝KM Player等第三方播放器。通常是檔案格式不支援問題。",keywords:"隨身碟 USB 音樂 影片 無法播放 格式 MP4 AVI 不支援"},{title:"AV in / AUX in 聲音到背景無法關閉",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.d267gu869e4r",desc:"ACK/CK/APK/PK主機，AV in/AUX in聲音到背景無法關閉，請確認輸入音源是否誤接到Audio R/L out，或線組端子定義是否打錯。",keywords:"AV in AUX in 聲音 背景 關閉 ACK CK APK PK 線組 端子"},{title:"ACK/APK環景開機環視功能設定",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.9ae9erkdec1o",desc:"ACK/APK主機環景開機環視功能為何沒有啟動，以及如何設定的說明與影片教學。",keywords:"ACK APK 環景 開機 環視 設定 功能 啟動"},{title:"廣播RDS功能說明（PTY / AF / TA）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.72ntk4u25qnt",desc:"廣播設定內的RDS（Radio Data System）功能說明：PTY節目類型代碼、AF待機頻率自動切換、TA流量通知。",keywords:"RDS 廣播 FM Radio PTY AF TA 功能 設定 按鍵"},{title:"開機時一直自動開某個APP無法關閉",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.qcymnm2twiwc",desc:"開機時一直去開某一個APP且無法刷退的原因說明與解決辦法影片。",keywords:"開機 自動 APP 刷退 無法關閉 一直開"},{title:"主機外接滑鼠鍵盤後虛擬鍵盤不見",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.w4i3i9q0g56e",desc:"接上USB鍵盤或滑鼠後造成虛擬鍵盤不見的解決辦法說明與影片。",keywords:"虛擬鍵盤 USB 鍵盤 滑鼠 外接 不見 消失"},{title:"小芳助理如何用聲控打開導航？",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.uk8oa1x8aqxe",desc:"小芳語音助理聲控打開導航的操作說明與影片教學。",keywords:"小芳 語音助理 聲控 導航 打開 語音 控制"},{title:"LUX-A 市售高階主機相關資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/lux-a-主機相關",desc:"LUX-A市售高階車用主機產品介紹，包含官網介紹連結、產品展示影片及影片檔下載連結。",keywords:"LUX-A LUX 主機 高階 產品 介紹 規格"},{title:"LUX相關影片教學",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/lux相關影片",desc:"LUX系列主機的相關安裝與設定影片教學資源。",keywords:"LUX 影片 教學 安裝 設定 操作"},{title:"LUX-A主機實裝照片",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/lux主機實裝照",desc:"LUX-A主機各車型實裝安裝照片參考。",keywords:"LUX-A 實裝 安裝 照片 參考 實照"},{title:"LUX-B主機實裝照片",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/lux-b實裝照",desc:"LUX-B主機各車型實裝安裝照片參考。",keywords:"LUX-B 實裝 安裝 照片 參考"},{title:"CK＆ACK主機系列資訊總覽",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機",desc:"CK＆ACK主機系列完整資訊，包含產品介紹、軟體下載、安裝說明、環景校正、CAN盒支援車型、隱藏功能、常見問題及初次安裝注意事項。",keywords:"CK ACK 主機 ACK-MAX CK-MAX 產品 介紹 規格 車機家族 DM"},{title:"CK/ACK 隱藏功能 & 工廠密碼",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.jn0wetwndtf2",desc:"ACK/CK主機隱藏功能列表，包含隱藏頁開啟方式（用asuka_cfg.ask檔案）、工廠密碼0310（長按首頁標題輸入）、隱藏APP（GF-200、Carlink等）的開啟方法。",keywords:"隱藏功能 工廠密碼 密碼 0310 隱藏頁 asuka_cfg ACK CK 進階設定 隱藏APP 解鎖"},{title:"CK/ACK 最新軟體 & 圖資下載",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.bgrdsai0o7vp",desc:"ACK/CK主機最新版主程式軟體下載連結、特別軟體（OTA、小芳語音助理配置檔）下載區。",keywords:"軟體 下載 更新 主程式 OTA 圖資 版本 ACK CK 最新"},{title:"CK/ACK OTA線上更新 & 主軟體更新流程",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.aysjlpwfq9ig",desc:"ACK/CK主機OTA線上更新使用方法（經銷店家版），以及主程式USB更新步驟：下載解壓縮→複製到USB根目錄→插入主機→自動跳出升級包→按開始更新→完成後重開機。含版本查詢方法。",keywords:"OTA 線上更新 OTA更新 怎麼用 如何使用 主程式 更新流程 USB 升級 ACK CK 刷機 版本 怎麼更新 主軟體"},{title:"CK/ACK MCU更新流程",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.wi4gvxurx7ek",desc:"ACK/CK主機MCU韌體更新步驟，與主程式更新類似，解壓後複製2個檔案到USB根目錄執行更新。",keywords:"MCU 更新 韌體 ACK CK USB 升級"},{title:"CK/ACK CAN盒設定及支援車型清單",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.8l6pqmiqufge",desc:"ACK/CK主機CAN盒選擇清單（Excel檔），列出各支援車款（Honda CRV、Toyota、Nissan、Ford等）與對應CAN盒型號，可查詢特定車型應選用哪個CAN盒。",keywords:"CAN盒 CAN can盒 選擇 設定 支援車型 選擇清單 ACK CK 相容 車款 對應 哪個 Excel Honda CRV CR-V 6代 5代 Toyota Nissan Ford 協議盒 車款對應"},{title:"CK/ACK 主機常用功能設定路徑（觸控按鍵/藍牙MIC）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.rqpim1q1a09i",desc:"ACK/CK主機常用功能設定路徑：導航APP選擇、WiFi設定。左側觸控按鍵失效/不準重新設定：設定=>工廠設定=>密碼0310=>觸摸屏按鍵學習。藍牙通話對方聽到聲音很小：設定=>設備設置=>MIC增益拉高。",keywords:"設定路徑 功能 ACK CK 設定 導航 WiFi 怎麼設 在哪 觸控按鍵 觸摸屏 按鍵學習 不能觸控 觸控失效 左側按鍵 側邊按鍵 工廠設定 0310 藍牙通話 MIC增益 MIC 小聲 對方聽不清楚 麥克風 通話音量 增益"},{title:"CK/ACK 環景安裝、校正問題",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.yp63ac25mtor",desc:"ACK/CK環景鏡頭常見問題：校正後數據未保存、鏡頭沒有畫面（4顆需全連）、倒車環景慢出現、環景車體透明、環景校布選擇（建議3D全拼布）。",keywords:"環景 校正 鏡頭 沒有畫面 透明 車模 校布 拼布 ACK CK 360 倒車"},{title:"CK/ACK 主機常見問題及須知（環景畫面慢/鏡頭異常）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.1iryz17hiyeh",desc:"CK/ACK主機重要注意事項：不能安裝BK-301/302 DVR（要用CKVR）、神盾無法安裝、有線CarPlay與環景錄影衝突、輸入法錯誤解決、GPS定位問題。環景畫面很慢出現（打倒車或方向燈時）：可能是4顆鏡頭少偵測到其中一顆，請檢查/更換鏡頭與連接線組。",keywords:"注意事項 限制 DVR CKVR BK-301 神盾 CarPlay 環景 衝突 輸入法 GPS 干擾 ACK CK 環景慢 倒車慢 很慢出現 方向燈慢 環景出現很慢 打倒車 切方向燈 鏡頭偵測 連接線 4顆鏡頭 360慢"},{title:"CK/ACK 初次安裝與售服注意事項",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.8ahkhnidwifz",desc:"首次安裝CK主機注意事項：後方散熱風扇一定要接、胎壓接收器與BM不共用（CK用12V/BM用5V）、DVR要用CKVR型號，以及有線CarPlay與環景錄影功能衝突說明。",keywords:"初次安裝 注意 風扇 胎壓 接收器 CKVR DVR CarPlay 衝突 售服 ACK CK 新裝"},{title:"CK、ACK主機相關影片與說明",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機/ack相關影片",desc:"CK、ACK主機相關影片及說明，包含安裝教學和功能操作說明。",keywords:"CK ACK 影片 教學 安裝 功能 說明 操作"},{title:"CK、ACK主機各車型實裝照",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機/ckack主機實裝照",desc:"CK、ACK主機各車型實裝安裝照片，包含ACK-MAX實裝照參考。",keywords:"CK ACK ACK-MAX 實裝 安裝 照片 車型"},{title:"ACK-MAX主機實裝照",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/ack-max實裝照",desc:"ACK-MAX主機各車型實裝安裝照片參考。",keywords:"ACK-MAX ACK MAX 實裝 安裝 照片"},{title:"PK＆APK主機系列資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/pkapk主機",desc:"PK＆APK主機系列資訊及安裝說明，含影片與實裝照片。",keywords:"PK APK 主機 安裝 設定 影片"},{title:"S-302 USB聯網介面盒",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/s-302-聯網盒",desc:"S-302 USB聯網介面盒產品資訊，為原廠主機擴充聯網功能，包含相關影片及各車型實裝照片。",keywords:"S-302 聯網盒 USB 介面盒 安裝 聯網 升級"},{title:"S-302聯網盒相關影片",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/s-302-聯網盒/s-302相關影片",desc:"S-302聯網盒使用說明與安裝教學影片。",keywords:"S-302 影片 教學 安裝 設定 操作"},{title:"S-302各車型實裝照片",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/s-302-聯網盒/s-302各車型實裝照片",desc:"S-302聯網盒各車型實裝安裝照片參考。",keywords:"S-302 實裝 安裝 照片 車型"},{title:"LingoPlay 迷你聯網盒",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/lingoplay主頁",desc:"LingoPlay迷你聯網盒主頁，讓原廠主機擴充Android聯網功能，含產品資訊與各車型實裝照片。",keywords:"LingoPlay 聯網盒 迷你 安裝 聯網 Android"},{title:"電子後視鏡相關資訊與影片",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/電子後視鏡影片",desc:"電子後視鏡產品相關資訊及影片教學，包含安裝與設定說明。",keywords:"電子後視鏡 後視鏡 影片 安裝 設定 鏡頭"},{title:"mini-OWL 多視角行車輔助系統",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/mini-owl專頁",desc:"mini-OWL多視角行車輔助系統專頁，多鏡頭行車安全輔助產品資訊。",keywords:"mini-OWL OWL 多視角 行車輔助 鏡頭 環景 盲點"},{title:"DK＆ADK主機相關資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/dk主機相關",desc:"DK＆ADK主機系列資訊及實裝照片，含安裝說明。",keywords:"DK ADK 主機 安裝 設定 實裝"},{title:"RM系列 14吋通用型後座螢幕",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/14吋通用型後座螢幕res-168",desc:"RM系列14吋通用型後座娛樂螢幕相關說明與影片教學，後座乘客娛樂系統。",keywords:"RM 後座 螢幕 14吋 娛樂系統 後座娛樂 頭枕"},{title:"RM系列後座螢幕實裝照",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/rm系列_實裝照",desc:"RM系列後座娛樂螢幕各車型實裝安裝照片。",keywords:"RM 後座 螢幕 實裝 安裝 照片"},{title:"BM-2 / BM-A / CBM主機（已停產）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/bm-2bm-acbm主機",desc:"BM-2、BM-A、CBM主機已停產機型相關影片教學資訊。",keywords:"BM-2 BM-A CBM 主機 停產 影片 舊款"},{title:"BM-3 / BM-3(K)主機（已停產）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/bm-3bm-3k主機",desc:"BM-3、BM-3(K)主機已停產機型相關影片教學資訊。",keywords:"BM-3 BM-3K 主機 停產 影片 舊款"},{title:"APX主機相關資訊與影片（已停產）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/apx相關影片",desc:"APX主機相關資訊與影片，已停產機型。",keywords:"APX 主機 停產 影片 舊款"},{title:"HONDA 本田 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車廠品牌分類/honda",desc:"HONDA本田各車款特殊安裝資訊，包含HR-V、CR-V、Fit、City、Civic、Accord、Odyssey、BR-V、ZR-V等車型的特殊接法與注意事項。",keywords:"Honda 本田 HR-V HRV CR-V CRV Fit City Civic Accord Odyssey BR-V ZR-V 車款 安裝 設定 可以裝 支援"},{title:"TOYOTA 豐田 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車廠品牌分類/toyota",desc:"TOYOTA豐田各車款安裝資訊，包含RAV-4（五代）、Altis、Camry、Yaris、Yaris Cross、Sienta、Wish、Noah、Vios等車型說明。",keywords:"Toyota 豐田 RAV4 RAV-4 Altis Camry Yaris Cross Sienta Wish Noah Vios Corolla 車款 安裝 設定 可以裝 支援"},{title:"NISSAN 日產 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車廠品牌分類/nissan",desc:"NISSAN日產各車款安裝資訊，包含X-Trail、Kicks、Tiida、Sentra、March、Terra、Livina等車型的接法與注意事項。",keywords:"Nissan 日產 X-Trail XTrail Kicks Tiida Sentra March Terra Livina 車款 安裝 設定 可以裝 支援"},{title:"SUBARU 速霸陸 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車廠品牌分類/subaru",desc:"SUBARU速霸陸各車款安裝資訊，包含Forester、Outback、Levorg、Legacy、XV、Crosstrek等車型說明。",keywords:"Subaru 速霸陸 Forester Outback Levorg Legacy XV Crosstrek 車款 安裝 設定 可以裝 支援"},{title:"FORD 福特 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/ford",desc:"FORD福特各車款安裝資訊，包含Kuga、Focus（3.5代）、Mondeo、EcoSport、Explorer、Ranger、Puma、Escape等車型的特殊接法與注意事項。",keywords:"Ford 福特 Kuga Focus 3.5代 Mondeo EcoSport Explorer Ranger Puma Escape 車款 安裝 設定 可以裝 支援 相容"},{title:"KIA 起亞 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/kia",desc:"KIA起亞各車款安裝資訊，包含Stonic、Sportage、Niro、Sorento、Carnival等車型說明。",keywords:"KIA 起亞 Stonic Sportage Niro Sorento Carnival 車款 安裝 設定 可以裝 支援"},{title:"Volkswagen VW 福斯 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/vw",desc:"Volkswagen福斯各車款安裝資訊，包含Golf、Tiguan、Polo、T-Roc、Touareg、ID.4等車型說明。",keywords:"VW Volkswagen 福斯 Golf Tiguan Polo T-Roc Touareg ID4 車款 安裝 設定 可以裝 支援"},{title:"HYUNDAI 現代 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/hyundai",desc:"HYUNDAI現代各車款安裝資訊，包含Tucson、Elantra、Santa Fe、Ioniq、Kona等車型說明。",keywords:"Hyundai 現代 Tucson Elantra Santa Fe Ioniq Kona 車款 安裝 設定 可以裝 支援"},{title:"MAZDA 馬自達 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/mazda",desc:"MAZDA馬自達各車款安裝資訊，包含CX-5、CX-3、CX-30、Mazda3、Mazda6、MX-30等車型說明。",keywords:"Mazda 馬自達 CX-5 CX5 CX-3 CX3 CX-30 CX30 Mazda3 Mazda6 MX-30 車款 安裝 設定 可以裝 支援"},{title:"LEXUS 凌志 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/lexus",desc:"LEXUS凌志各車款安裝資訊，包含IS、ES、RX、NX、UX、CT、LX等車型說明。",keywords:"Lexus 凌志 IS ES RX NX UX CT LX GX 車款 安裝 設定 可以裝 支援"},{title:"SUZUKI 鈴木 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/suzuki",desc:"SUZUKI鈴木各車款安裝資訊，包含Swift、Vitara、Jimny、Ignis等車型說明。",keywords:"Suzuki 鈴木 Swift Vitara Jimny Ignis 車款 安裝 設定 可以裝 支援"},{title:"SKODA 斯柯達 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/skoda",desc:"SKODA斯柯達各車款安裝資訊，包含Kodiaq、Octavia、Karoq、Kamiq等車型說明。",keywords:"Skoda 斯柯達 Kodiaq Octavia Karoq Kamiq 車款 安裝 設定 可以裝 支援"},{title:"VOLVO 富豪 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/volvo",desc:"VOLVO富豪各車款安裝資訊，包含XC40、XC60、XC90、V60、S60、S90等車型說明。",keywords:"Volvo 富豪 XC40 XC60 XC90 V60 S60 S90 車款 安裝 設定 可以裝 支援"},{title:"MG 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/mg專頁",desc:"MG各車款安裝資訊，包含MG5、MG HS、ZS等車型說明。",keywords:"MG MG5 HS ZS EV 車款 安裝 設定 可以裝 支援"},{title:"各車廠通用方向盤按鍵定義（方控）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/各車廠通用方控定義",desc:"各車廠通用方向盤多功能按鍵（方控/SWC）定義說明，包含各按鍵對應功能的圖示與設定方式。",keywords:"方向盤 方控 按鍵 定義 通用 各車廠 SWC 多功能 設定 學習"},{title:"特殊方控與倒車定義",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/奇奇怪怪的方控定義",desc:"特殊方向盤按鍵及倒車訊號定義說明，適用奇特車款或特殊接法的情況。",keywords:"方控 倒車 特殊 奇特 定義 按鍵 訊號 方向盤"},{title:"TPMS 胎壓監測系統設定",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/tpms相關設定",desc:"TPMS胎壓監測系統設定說明，包含感測器學習、顯示設定與胎壓警示相關設定。",keywords:"TPMS 胎壓 監測 設定 感測器 輪胎 警示"},{title:"各式週邊配件設定",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/配件相關設定",desc:"各式週邊配件的設定說明，包含外接設備與功能配件設定方式。",keywords:"配件 週邊 設定 外接 功能 安裝 周邊"},{title:"專用環景鏡頭實裝照",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/專用環景鏡頭實裝照",desc:"飛鳥專用環景鏡頭各車型實裝安裝照片參考，360度環景系統安裝位置說明。",keywords:"環景 鏡頭 實裝 安裝 照片 360度 四路 攝影機"},{title:"無法改裝主機的車型",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/無法改主機的車型",desc:"說明哪些車型因原廠設計限制無法安裝飛鳥主機，購買前請先確認車型相容性，避免安裝後有疑慮。",keywords:"無法改裝 不支援 相容性 車型 限制 不能換 不適合"},{title:"車款升級資訊查詢庫（各車款可以安裝嗎？）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫",desc:"查詢各車款是否可以安裝飛鳥主機的完整對照表，包含可更換、有條件限制、不建議等詳細說明，以及特殊注意事項。支援查詢Ford、Honda、Toyota、Nissan、Mazda、Subaru、VW、Hyundai、Lexus、KIA、Mitsubishi、Skoda、Suzuki、Volvo、MG、Luxgen、BMW、Benz、Audi等品牌。",keywords:"可以安裝 能不能裝 支援 相容 車款查詢 升級 哪款 適合 可以換 型號 建議 查詢庫"},
+/* ============================================================
+   ★ Gemini AI 設定
+   取得免費 API Key：https://aistudio.google.com/app/apikey
+   （免費額度：每天 150 萬 token，每分鐘 15 次請求）
+   取得後將下方 YOUR_API_KEY_HERE 替換為你的 key 即可。
+   ============================================================ */
+const GEMINI_API_KEY = 'YOUR_API_KEY_HERE';
 
-// ── 車款查詢庫 各車廠分區直達連結 ────────────────────────
-{title:"FORD 福特 車款可以安裝嗎？（查詢庫）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫#h.thiecunpv68",desc:"Ford 福特各車款安裝可行性查詢：Kuga（2013~2018 可換，注意高低配）、Focus 3代/3.5代/4代、Mondeo、EcoSport、Escape、Fiesta等，含特殊限制說明。",keywords:"Ford 福特 Kuga Focus Mondeo EcoSport Escape Fiesta 可以裝 可以換 能不能裝 查詢"},
-{title:"HONDA 本田 車款可以安裝嗎？（查詢庫）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫#h.9xc8r3s6o81e",desc:"Honda 本田各車款安裝可行性查詢：CR-V（3/3.5/4/4.5/5/5.5/6代）、Odyssey、Accord、Fit、City、Civic、HR-V、BR-V、ZR-V等，含年份與限制說明。",keywords:"Honda 本田 CR-V CRV HRV HR-V Odyssey Accord Fit City Civic 可以裝 可以換 能不能裝 查詢"},
-{title:"TOYOTA 豐田 車款可以安裝嗎？（查詢庫）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫#h.f802u3jlwxlf",desc:"Toyota 豐田各車款安裝可行性查詢：RAV-4、Altis、Camry、Yaris、Cross、Sienta、Wish、Noah、Vios等，含年份與限制說明。",keywords:"Toyota 豐田 RAV4 RAV-4 Altis Camry Yaris Cross Sienta Wish Noah Vios Corolla 可以裝 可以換 能不能裝 查詢"},
-{title:"NISSAN 日產 車款可以安裝嗎？（查詢庫）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫#h.jdwalgy5u609",desc:"Nissan 日產各車款安裝可行性查詢：X-Trail（2014後有條件限制、2020後不建議）、Kicks、Tiida、Sentra、Livina、Teana等，含年份與限制說明。",keywords:"Nissan 日產 X-Trail XTrail Kicks Tiida Sentra Livina Teana March Bluebird 可以裝 可以換 能不能裝 查詢"},
-{title:"MAZDA 馬自達 車款可以安裝嗎？（查詢庫）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫#h.bk5ubu8clwvm",desc:"Mazda 馬自達各車款安裝可行性查詢：CX-5、CX-9、CX-3、Mazda2、Mazda3、Mazda5、Mazda6等，含年份與限制說明。",keywords:"Mazda 馬自達 CX-5 CX5 CX-3 CX3 CX-9 Mazda2 Mazda3 Mazda6 馬2 馬3 馬5 馬6 可以裝 可以換 能不能裝 查詢"},
-{title:"SUBARU 速霸陸 車款可以安裝嗎？（查詢庫）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫#h.vuiea7etpnr7",desc:"Subaru 速霸陸各車款安裝可行性查詢：Forester（4/4.5/5代）、Outback、XV、Levorg等，含年份與限制說明。",keywords:"Subaru 速霸陸 Forester Outback XV Levorg Legacy Crosstrek 可以裝 可以換 能不能裝 查詢"},
-{title:"VW 福斯 車款可以安裝嗎？（查詢庫）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫#h.cjeixwcyn7dt",desc:"Volkswagen VW 福斯各車款安裝可行性查詢，含年份與限制說明。",keywords:"VW Volkswagen 福斯 Golf Tiguan Polo T-Roc 可以裝 可以換 能不能裝 查詢"},
-{title:"HYUNDAI 現代 車款可以安裝嗎？（查詢庫）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫#h.fb5ykcdgeson",desc:"Hyundai 現代各車款安裝可行性查詢：Tucson、Elantra、Santa Fe、iX35、Venue等，含年份與限制說明。",keywords:"Hyundai 現代 Tucson Elantra Santa Fe iX35 Venue 可以裝 可以換 能不能裝 查詢"},
-{title:"LEXUS 凌志 車款可以安裝嗎？（查詢庫）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫#h.mjhq8g8yqpes",desc:"Lexus 凌志各車款安裝可行性查詢：CT200、IS200、IS250、RX330等，含年份與限制說明。",keywords:"Lexus 凌志 CT200 IS200 IS250 RX330 RX NX 可以裝 可以換 能不能裝 查詢"},
-{title:"MITSUBISHI 三菱 車款可以安裝嗎？（查詢庫）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫#h.cmdii32t910m",desc:"Mitsubishi 三菱各車款安裝可行性查詢：Outlander（大歐）、Lancer Fortis等，含年份與限制說明。",keywords:"Mitsubishi 三菱 Outlander 大歐 Lancer Fortis 可以裝 可以換 能不能裝 查詢"},
-{title:"SKODA 斯柯達 車款可以安裝嗎？（查詢庫）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫#h.bjjje8n886j5",desc:"Skoda 斯柯達各車款安裝可行性查詢：Superb、YETI等，含年份與限制說明。",keywords:"Skoda 斯柯達 Superb YETI Kodiaq Octavia 可以裝 可以換 能不能裝 查詢"},
-{title:"SUZUKI 鈴木 車款可以安裝嗎？（查詢庫）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫#h.jkm1gc6q9r2i",desc:"Suzuki 鈴木各車款安裝可行性查詢：Swift、Vitara等，含年份與限制說明。",keywords:"Suzuki 鈴木 Swift Vitara Jimny 可以裝 可以換 能不能裝 查詢"},
-{title:"VOLVO 富豪 車款可以安裝嗎？（查詢庫）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫#h.izkq5do4j2ql",desc:"Volvo 富豪各車款安裝可行性查詢，含年份與限制說明。",keywords:"Volvo 富豪 XC40 XC60 XC90 V60 S60 可以裝 可以換 能不能裝 查詢"},
-{title:"MG 車款可以安裝嗎？（查詢庫）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫#h.vj2ao4bzj2v7",desc:"MG各車款安裝可行性查詢：HS（2018後有條件限制）等，含年份與限制說明。",keywords:"MG HS ZS MG5 可以裝 可以換 能不能裝 查詢"},
-{title:"BENZ 賓士 車款可以安裝嗎？（查詢庫）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫#h.to2g51nqg732",desc:"Mercedes-Benz 賓士各車款安裝可行性查詢：W164(ML)、W166(ML)、W211、W219、C-Class(W204)、E220等，含年份與特殊限制說明。",keywords:"BENZ 賓士 Benz Mercedes W164 W166 W211 W219 W204 C-Class E220 ML 可以裝 可以換 能不能裝 查詢"},
-{title:"BMW 車款可以安裝嗎？（查詢庫）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫#h.go1y8j9v8uiv",desc:"BMW各車款安裝可行性查詢：E53（1999~2006）等，含年份與限制說明。",keywords:"BMW E53 可以裝 可以換 能不能裝 查詢"},
-{title:"AUDI 奧迪 車款可以安裝嗎？（查詢庫）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫#h.pij5xxj0jt5l",desc:"Audi 奧迪各車款安裝可行性查詢：Q3（2013~2018）等，含年份與限制說明。",keywords:"Audi 奧迪 Q3 Q5 A4 A6 可以裝 可以換 能不能裝 查詢"},
-{title:"LUXGEN 納智捷 車款可以安裝嗎？（查詢庫）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫#h.gl6xjf6100zu",desc:"Luxgen 納智捷各車款安裝可行性查詢：U6（2013~2016，有條件限制）等，含年份與限制說明。",keywords:"Luxgen 納智捷 U6 U7 可以裝 可以換 能不能裝 查詢"},
-{title:"KIA 起亞 車款可以安裝嗎？（查詢庫）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫#h.bifcm48noxlf",desc:"KIA 起亞各車款安裝可行性查詢：Picanto等，含年份與限制說明。",keywords:"KIA 起亞 Picanto Sportage Stonic Sorento 可以裝 可以換 能不能裝 查詢"},
-// ── CRV 專頁 ──────────────────────────────────────────────
-{title:"Honda CRV 專頁（各代安裝資訊）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車廠品牌分類/honda/crv",desc:"Honda CR-V 各代（3/3.5/4/4.5/5/5.5/6代）安裝資訊：CAN盒設定、廣播天線、胎壓重置、後雷達、解限速、保養記錄歸零、警示燈改裝、盲區設定等。",keywords:"Honda CRV CR-V 3代 4代 5代 5.5代 6代 安裝 設定 專頁"},
-{title:"CRV 5代 廣播收不到 / 天線改裝說明",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車廠品牌分類/honda/crv#h.bwqrzfrqo896",desc:"CR-V 5代改裝主機後廣播天線改裝說明（原車低配無螢幕主機不適用），解決改裝後廣播收不到的問題。",keywords:"CRV 5代 廣播 收不到 天線 改裝 FM Radio 無廣播"},
-{title:"CRV 5代 CAN盒設定",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車廠品牌分類/honda/crv#h.bwsvzd49lahe",desc:"CR-V 5代 CAN盒設定說明，包含方控、倒車、車速等功能的CAN協議盒設定方式。",keywords:"CRV CRV5 5代 CAN盒 設定 協議盒 方控 倒車 車速"},
-{title:"CRV 6代 P版安裝手冊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車廠品牌分類/honda/crv#h.f7uedv2yz018",desc:"Honda CR-V 6代 P版（有螢幕）安裝手冊，詳細說明安裝步驟與注意事項。",keywords:"CRV CRV6 6代 P版 安裝手冊 安裝說明 2023 2024"},
-{title:"CRV 4代 / 4.5代 CAN盒設定",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車廠品牌分類/honda/crv#h.kzwqbm6rak6u",desc:"CR-V 4代（2012~2015）及4.5代（2015~2016）CAN盒設定說明。",keywords:"CRV4 CRV 4代 4.5代 CAN盒 設定 2012 2013 2014 2015 2016"},
-{title:"CRV 5.5代頂規 CAN盒不一樣",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車廠品牌分類/honda/crv#h.fwf0py16vo8v",desc:"CRV 5.5代頂規車款的CAN盒與一般版本不同，安裝前請確認車款版本。",keywords:"CRV 5.5代 頂規 CAN盒 不同 特殊 2022 2023"},
-{title:"CRV 5代 / 5.5代 原廠後雷達顯示",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車廠品牌分類/honda/crv#h.ljc5aaer573o",desc:"CRV 5代及5.5代原廠後雷達顯示設定方式。",keywords:"CRV 5代 5.5代 後雷達 倒車雷達 顯示 設定"},
-{title:"CRV 5代 胎壓重置方法",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車廠品牌分類/honda/crv#h.b651g0anrihw",desc:"Honda CRV 5代胎壓（TPMS）重置操作步驟說明。",keywords:"CRV 5代 胎壓 TPMS 重置 歸零 設定"},
-{title:"CRV 保養記錄歸零方法",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車廠品牌分類/honda/crv#h.nipn42siac5j",desc:"Honda CR-V 保養記錄（機油壽命）歸零操作方法。",keywords:"CRV 保養記錄 歸零 機油 維修提示 重置"},
-{title:"CRV 5代 解限速連動方法",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車廠品牌分類/honda/crv#h.ye0k7tmvpaw6",desc:"Honda CRV 5代解除限速連動設定說明。",keywords:"CRV 5代 限速 解限速 連動 設定"},
+/* ============================================================
+   知識庫 — 根據飛鳥客戶服務中心實際頁面內容建立
+   最後更新：2026-06-05
+   ============================================================ */
+const KB = [
+  { title:"飛鳥客戶服務中心 首頁", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/首頁", desc:"飛鳥主機銷售及安裝資訊服務平台首頁，各位在安裝飛鳥主機或配件時若有安裝及設定上的問題，可透過此平台取得相關資料。", keywords:"首頁 飛鳥 主機 安裝 資訊 服務 平台 入口" },
+  { title:"常見問題 - 導航王設定與問題排除", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.5k4aig1pug17", desc:"導航王相關問題總覽：語音播報沒有聲音、輸入地址沒有縣市可選、混音設定、手寫功能無法使用、序號不見、圖資更新失敗、聲控靈敏度、大貨車模式、定位問題等。", keywords:"導航 導航王 語音播報 混音 地址 縣市 手寫 序號 圖資 更新 聲控 大貨車 定位 GPS 無聲" },
+  { title:"導航王沒有語音播報，如何設定？", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.6k2ysmcjzk44", desc:"依序確認：1.車機導航混音是否開啟 2.導航是否靜音 3.語音設定導航音量是否開啟 4.更新到最新版本並恢復導航預設值。", keywords:"導航王 語音 播報 靜音 混音 音量 沒有聲音 無聲" },
+  { title:"導航王輸入地址時沒有縣市可選", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.gl8wowml92ws", desc:"解法：先離開導航王，到檔案總管刪除指定NavikingMap資料夾，再重新打開導航王連網下載圖資（導航王→選單→設定→圖資下載）。", keywords:"導航王 地址 縣市 選不到 圖資 下載 NavikingMap" },
+  { title:"導航王混音後播報音量不夠大聲", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.dj2rijblpesh", desc:"到導航王設定→語音設定→導航音量調整，並勾選「降低其他app播報音量」，可讓導航播報聲音更清晰。", keywords:"導航王 混音 音量 播報 不夠大聲 聲音小" },
+  { title:"導航王序號不見了怎麼辦？", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.n6hoqe7dfx64", desc:"在導航王內→電話搜尋輸入 288356630，再回到版本資訊頁，即會顯示開通資料。", keywords:"導航王 序號 不見 消失 開通" },
+  { title:"CK主機偶發導航無法定位的處理方法", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.gobiac4ezs6l", desc:"確認主機後方風扇接電是否接好、聲音功放開關是否開啟（預設開）。風扇若沒打開，機內過熱時會影響GPS定位。", keywords:"CK 導航 定位 失敗 GPS 過熱 風扇 功放" },
+  { title:"常見問題 - 網路 / WiFi / 手機熱點問題", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.to3lgn3c0uyv", desc:"網路相關問題：iPhone熱點不穩定改善方法、WiFi連線後無法上網、車機找不到手機熱點（5GHz頻段）、WiFi自動關閉原因、SIM卡無法上網。", keywords:"WiFi 熱點 網路 iPhone 連線 上網 5GHz 2.4GHz 頻段 不穩定 關閉" },
+  { title:"iPhone 熱點不穩定如何改善？", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.mm0iihsxuolt", desc:"iPhone 12後機型：開啟熱點最大相容性設定。舊款iPhone另有改善偏方。此問題根本解決需靠Apple更新熱點連線穩定性。", keywords:"iPhone 熱點 不穩定 最大相容性 連線 斷線 WiFi 熱點斷" },
+  { title:"WiFi連線後仍然無法上網", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.lqehnf99apmn", desc:"可能原因是裝置系統時間與實際時間差距太大，請到設定手動將系統時間調整到正確時間再試。", keywords:"WiFi 上網 無法 系統時間 連線 網路 顯示連線但不能用" },
+  { title:"車機找不到手機熱點（頻段問題）", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.o40s1oubpml9", desc:"車機找不到手機熱點，請確認手機熱點頻段，設定為2.4GHz或雙頻。BM-2、BM-3、PN-203主機不支援5.0GHz。", keywords:"熱點 找不到 掃不到 頻段 5GHz 2.4GHz 雙頻 BM-2 BM-3" },
+  { title:"WiFi常常自動關閉的原因（ACK/LUX）", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.nekvcphox0q5", desc:"ACK、LUX系列WiFi自動關閉，可能是Carlink自動連接開啟，藍牙一開就啟動無線CarPlay功能導致WiFi關閉。到Carlink設定中關閉自動連接。", keywords:"WiFi 自動關閉 Carlink 藍牙 CarPlay ACK LUX WiFi關" },
+  { title:"插入SIM卡後無法上網", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.8k68u3o75s56", desc:"SIM卡有讀到但無法上網，請確認SIM卡是否設定了PIN碼。需先用手機關閉SIM PIN後再插入車機使用。", keywords:"SIM卡 上網 無法 PIN碼 PIN 插卡 4G 讀到但不能用" },
+  { title:"常見問題 - Google帳號 / Play商店 / APP閃退", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.4axqwh6dtvmt", desc:"Google相關問題：帳號登入卡在安全認證、Play商店APP閃退、APP無法登入（系統時間問題）、關閉自動更新、Chrome/YouTube解除更新方法。", keywords:"Google Play 商店 帳號 登入 閃退 更新 自動更新 Chrome YouTube 系統時間" },
+  { title:"APP一直閃退怎麼辦？", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.q6yjn1xqbtuj", desc:"APP不斷閃退：清除Google Play服務快取與資料（設定→應用程式→Google Play服務→儲存空間→清除快取/資料）。也可能是APP正在背景更新，稍等幾分鐘再試。", keywords:"APP 閃退 Play服務 快取 清除 當機 不能用 點不進" },
+  { title:"Play商店等APP無法登入（系統時間不正確）", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.hss0qtkwcb3p", desc:"Play商店等APP無法登入，可能是系統時間不正確。請先手動調整系統時間到正確時間再重試。", keywords:"Play商店 無法登入 系統時間 時間 帳號 登入失敗" },
+  { title:"如何關閉Google自動更新？", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.nlxzdazf3v5i", desc:"關閉Google Play自動更新方法、Chrome解除更新方法、YouTube解除更新方法，避免系統更新後不穩定。", keywords:"Google 自動更新 關閉 Chrome YouTube 解除更新 更新 停止更新" },
+  { title:"Google帳號登入一直停在安全認證等待中", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.5o5i41sus0pc", desc:"在新主機上登入Google帳號後，註冊郵件會收到號碼，需在主機上按到正確號碼（即郵件中的驗證碼）完成認證。", keywords:"Google 帳號 登入 安全認證 等待 驗證 卡住" },
+  { title:"常見問題 - CarPlay / 藍牙通話 / 手機連接", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.hrwbmd7e14fd", desc:"車機與手機操作問題：無線CarPlay無法連結、CarPlay地圖模糊、藍牙通話聲音從手機出聲、iPhone通訊錄同步、Carlink自動連接問題。", keywords:"CarPlay 無線 連結 藍牙 通話 iPhone 手機 Carlink 通訊錄 配對" },
+  { title:"無線CarPlay一直無法連結成功", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.mh8arxm49cw", desc:"無線CarPlay卡在認證畫面：1. 刪除已連結且沒用的CarPlay裝置記錄（有連結上限）；2. 重置iPhone網路狀態。", keywords:"CarPlay 無線 連結 認證 配對 失敗 iPhone 連不上 卡住" },
+  { title:"iPhone藍牙通話聲音從手機話筒出聲不是車機喇叭", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.qabwhe6ucnb", desc:"iPhone設定路徑：設定 > 輔助使用 > 觸控 > 來電語音傳送 > 選「藍芽耳麥」，通話聲音就會從車機喇叭出聲。", keywords:"iPhone 藍牙 通話 聲音 喇叭 手機話筒 來電 藍芽耳麥" },
+  { title:"iPhone用戶連上車機藍牙無法通話", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.9qgpzi8d2iir", desc:"iPhone連上車機藍牙後無法通話的設定說明與排除步驟。", keywords:"iPhone 藍牙 通話 無法 連上 接不到 電話" },
+  { title:"iPhone連上車機藍牙，如何同步通訊錄？", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.b1dfiw1xl6cp", desc:"iPhone連上車機藍牙後同步通訊錄的設定方法與影片教學。", keywords:"iPhone 藍牙 通訊錄 同步 聯絡人" },
+  { title:"Carlink自動連接關閉後藍牙還是一直連手機", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.317jf9vqve89", desc:"Carlink自動連接已關閉但藍牙開啟時還是不斷連接手機的解決方法說明。", keywords:"Carlink 自動連接 藍牙 手機 一直連 CarPlay" },
+  { title:"CarPlay地圖畫面模糊破碎", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.q4dhd64edqfx", desc:"使用Carlink的CarPlay功能時地圖畫面模糊破碎，更新最新版本Carlink軟體可以改善。", keywords:"CarPlay Carlink 地圖 模糊 破碎 畫面" },
+  { title:"常見問題 - YouTube / Netflix / 影音APP問題", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.wrolevt7p1mw", desc:"影音APP問題：YouTube不斷轉圈圈、Netflix/Disney+一直暫停、MixerBox遮住倒車畫面、CarPlay音樂音量忽大忽小。", keywords:"YouTube Netflix Disney+ 影音 轉圈圈 暫停 播放 串流 MixerBox" },
+  { title:"YouTube不斷轉圈圈無法觀看", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.1999soc4s3dv", desc:"解決：1.確認登入Gmail帳號；2.Play Store更新最新版。另可嘗試解除更新YouTube。原因可能是網速、伺服器塞車、YouTube版本更新、電信資費降速等。", keywords:"YouTube 轉圈 無法看 緩衝 卡住 播放 Gmail 更新 跑圈" },
+  { title:"Netflix、Disney+影音APP一直暫停", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.fmzf4g35tjzi", desc:"可能是背景有其他APP（如第四台APP）持續搶播放權，須徹底關閉衝突APP後再使用Netflix或Disney+。", keywords:"Netflix Disney+ 暫停 播放 一直停 影音 串流" },
+  { title:"MixerBox遮住倒車畫面", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.bxfsb8ngkttl", desc:"MixerBox軟體本身特性會強制浮動停留在畫面前景，遮住倒車畫面。需關閉MixerBox才能正常顯示倒車影像。", keywords:"MixerBox 倒車 畫面 遮住 擋住 倒車鏡頭" },
+  { title:"CarPlay音樂音量忽大忽小", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.tuq2r6kkkwmz", desc:"CarPlay音樂行走中忽大忽小，可能是手機內有APP在抓定位資訊產生背景播報降音，須逐一關閉APP定位功能測試（曾發現某交友軟體影響）。", keywords:"CarPlay 音樂 音量 忽大忽小 聲音 背景 定位" },
+  { title:"常見問題 - 行車記錄器 / 環景錄影 (DVR)", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.tli5warw8hao", desc:"DVR相關問題：行車記錄器不會錄影或無法偵測記憶卡（需定期格式化）、ACK環景一體機循環錄影容量計算方式。", keywords:"行車記錄器 DVR 環景 錄影 記憶卡 隨身碟 格式化 循環" },
+  { title:"行車記錄器不會錄影或無法偵測記憶卡", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.nroc83vvssfe", desc:"請每個月重新格式化記憶卡/隨身碟一次，避免讀寫久了壞軌，確保錄影能夠穩定持續。", keywords:"行車記錄器 錄影 記憶卡 隨身碟 格式化 偵測不到 DVR 不錄影" },
+  { title:"ACK環景一體機循環錄影可以錄多久？", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.oljnr7uamg0r", desc:"ACK環景錄影採4鏡頭合併畫面，MP4格式1080P，約每小時4GB。以32GB隨身碟計算約可循環錄8小時。緊急鎖檔愈多則循環時間愈短。", keywords:"ACK 環景 錄影 循環 容量 時間 記憶卡 隨身碟 多久" },
+  { title:"主機一直亂跳模式（小芳語音助理誤觸）", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.5soewvdp0ds2", desc:"ACK/APK主機三不五時亂跳模式，通常是小芳語音助理背景收音誤判。解法：1.停用小芳助理（長按主機使用手冊首頁標題，輸入0310，關閉小芳助理）；2.關閉免喚醒詞功能。", keywords:"亂跳 模式 小芳 語音助理 誤觸 ACK APK 自動切換 干擾" },
+  { title:"主機系統時間不對", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.q46rp7upvoj5", desc:"系統時間不對：若GPS定位到且網路連通，是時區問題；若不連網時間就錯，是GPS時間同步設定問題（設定→設備設置→GPS→模式一右下自動同步選ON）。", keywords:"系統時間 時間不對 時區 GPS 同步 時鐘 日期 錯誤" },
+  { title:"螢幕夜間出現閃爍現象", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.o3iszrhq3fz8", desc:"夜間螢幕閃爍是因背光調到臨界值時LED出現弱光閃爍。建議使用飛鳥內建「夜間模式」APP（CK/PK系列），透過軟體遮罩方式降低亮度，不出現閃爍。", keywords:"螢幕 閃爍 夜間 亮度 背光 夜間模式 CK PK 閃光 閃屏" },
+  { title:"藍牙裝置無法顯示", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.1k5wiw45j4wx", desc:"藍牙裝置無法顯示，通常代表內建藍牙模組故障，需要送修處理。", keywords:"藍牙 無法顯示 故障 配對 送修 找不到" },
+  { title:"環景車體變透明怎麼辦？", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.ozupiwpuhl3r", desc:"環景車體顯示變透明時，點右下角ASUKA Logo一下即可切回實體車體顯示。", keywords:"環景 車體 透明 切換 ASUKA Logo 360" },
+  { title:"Line藍牙通話的限制說明", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.slpbz8tfpgz4", desc:"Line藍牙通話限制（Line軟體本身）：1.不會顯示來電人姓名；2.接聽時需從手機按接聽。這是Line軟體限制，非車機問題。", keywords:"Line 藍牙 通話 來電 接聽 限制 顯示 名稱" },
+  { title:"隨身碟音樂或影片無法播放", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.p06vko4oic8k", desc:"嘗試：1.用電腦將影片轉為MP4、AVI等格式；2.到Play商店安裝KM Player等第三方播放器。通常是檔案格式不支援問題。", keywords:"隨身碟 USB 音樂 影片 無法播放 格式 MP4 AVI 不支援" },
+  { title:"AV in / AUX in 聲音到背景無法關閉", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.d267gu869e4r", desc:"ACK/CK/APK/PK主機，AV in/AUX in聲音到背景無法關閉，請確認輸入音源是否誤接到Audio R/L out，或線組端子定義是否打錯。", keywords:"AV in AUX in 聲音 背景 關閉 ACK CK APK PK 線組 端子" },
+  { title:"ACK/APK環景開機環視功能設定", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.9ae9erkdec1o", desc:"ACK/APK主機環景開機環視功能為何沒有啟動，以及如何設定的說明與影片教學。", keywords:"ACK APK 環景 開機 環視 設定 功能 啟動" },
+  { title:"廣播RDS功能說明（PTY / AF / TA）", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.72ntk4u25qnt", desc:"廣播設定內的RDS（Radio Data System）功能說明：PTY節目類型代碼、AF待機頻率自動切換、TA流量通知。", keywords:"RDS 廣播 FM Radio PTY AF TA 功能 設定 按鍵" },
+  { title:"開機時一直自動開某個APP無法關閉", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.qcymnm2twiwc", desc:"開機時一直去開某一個APP且無法刷退的原因說明與解決辦法影片。", keywords:"開機 自動 APP 刷退 無法關閉 一直開" },
+  { title:"主機外接滑鼠鍵盤後虛擬鍵盤不見", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.w4i3i9q0g56e", desc:"接上USB鍵盤或滑鼠後造成虛擬鍵盤不見的解決辦法說明與影片。", keywords:"虛擬鍵盤 USB 鍵盤 滑鼠 外接 不見 消失" },
+  { title:"小芳助理如何用聲控打開導航？", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.uk8oa1x8aqxe", desc:"小芳語音助理聲控打開導航的操作說明與影片教學。", keywords:"小芳 語音助理 聲控 導航 打開 語音 控制" },
+  { title:"LUX-A 市售高階主機相關資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/lux-a-主機相關", desc:"LUX-A市售高階車用主機產品介紹，包含官網介紹連結、產品展示影片及影片檔下載連結。", keywords:"LUX-A LUX 主機 高階 產品 介紹 規格" },
+  { title:"CK＆ACK主機系列資訊總覽", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機", desc:"CK＆ACK主機系列完整資訊，包含產品介紹、軟體下載、安裝說明、環景校正、CAN盒支援車型、隱藏功能、常見問題及初次安裝注意事項。", keywords:"CK ACK 主機 ACK-MAX CK-MAX 產品 介紹 規格 車機家族 DM" },
+  { title:"CK/ACK 隱藏功能 & 工廠密碼", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.jn0wetwndtf2", desc:"ACK/CK主機隱藏功能列表，包含隱藏頁開啟方式（用asuka_cfg.ask檔案）、工廠密碼0310（長按首頁標題輸入）、隱藏APP（GF-200、Carlink等）的開啟方法。", keywords:"隱藏功能 工廠密碼 密碼 0310 隱藏頁 asuka_cfg ACK CK 進階設定 隱藏APP 解鎖" },
+  { title:"CK/ACK 最新軟體 & 圖資下載", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.bgrdsai0o7vp", desc:"ACK/CK主機最新版主程式軟體下載連結、特別軟體（OTA、小芳語音助理配置檔）下載區。", keywords:"軟體 下載 更新 主程式 OTA 圖資 版本 ACK CK 最新" },
+  { title:"CK/ACK 主軟體更新流程", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.aysjlpwfq9ig", desc:"ACK/CK主機主程式更新步驟：下載解壓縮→複製到USB根目錄→插入主機→自動跳出升級包→按開始更新→完成後重開機。也包含OTA線上更新與版本查詢方法。", keywords:"軟體更新 主程式 更新流程 USB 升級 OTA ACK CK 刷機 版本 怎麼更新" },
+  { title:"CK/ACK MCU更新流程", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.wi4gvxurx7ek", desc:"ACK/CK主機MCU韌體更新步驟，與主程式更新類似，解壓後複製2個檔案到USB根目錄執行更新。", keywords:"MCU 更新 韌體 ACK CK USB 升級" },
+  { title:"CK/ACK CAN盒設定及支援車型清單", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.8l6pqmiqufge", desc:"ACK/CK主機CAN盒選擇清單（Excel檔），列出各支援車款與對應CAN盒型號，可查詢特定車型應選用哪個CAN盒。", keywords:"CAN盒 支援車型 選擇清單 ACK CK 相容 車款 對應 哪個 Excel" },
+  { title:"CK/ACK 環景安裝、校正問題", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.yp63ac25mtor", desc:"ACK/CK環景鏡頭常見問題：校正後數據未保存、鏡頭沒有畫面（4顆需全連）、倒車環景慢出現、環景車體透明、環景校布選擇（建議3D全拼布）。", keywords:"環景 校正 鏡頭 沒有畫面 透明 車模 校布 拼布 ACK CK 360 倒車" },
+  { title:"CK/ACK 主機常見問題及須知", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.1iryz17hiyeh", desc:"CK/ACK主機重要注意事項：不能安裝BK-301/302 DVR（要用CKVR）、神盾無法安裝、有線CarPlay與環景錄影衝突、輸入法錯誤解決、GPS定位問題處理步驟、360鏡頭閃爍干擾排除。", keywords:"注意事項 限制 DVR CKVR BK-301 神盾 CarPlay 環景 衝突 輸入法 GPS 干擾 ACK CK" },
+  { title:"CK/ACK 初次安裝與售服注意事項", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.8ahkhnidwifz", desc:"首次安裝CK主機注意事項：後方散熱風扇一定要接、胎壓接收器與BM不共用（CK用12V/BM用5V）、DVR要用CKVR型號，以及有線CarPlay與環景錄影功能衝突說明。", keywords:"初次安裝 注意 風扇 胎壓 接收器 CKVR DVR CarPlay 衝突 售服 ACK CK 新裝" },
+  { title:"PK＆APK主機系列資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/pkapk主機", desc:"PK＆APK主機系列資訊及安裝說明，含影片與實裝照片。", keywords:"PK APK 主機 安裝 設定 影片" },
+  { title:"S-302 USB聯網介面盒", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/s-302-聯網盒", desc:"S-302 USB聯網介面盒產品資訊，為原廠主機擴充聯網功能，包含相關影片及各車型實裝照片。", keywords:"S-302 聯網盒 USB 介面盒 安裝 聯網 升級" },
+  { title:"LingoPlay 迷你聯網盒", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/lingoplay主頁", desc:"LingoPlay迷你聯網盒主頁，讓原廠主機擴充Android聯網功能，含產品資訊與各車型實裝照片。", keywords:"LingoPlay 聯網盒 迷你 安裝 聯網 Android" },
+  { title:"電子後視鏡相關資訊與影片", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/電子後視鏡影片", desc:"電子後視鏡產品相關資訊及影片教學，包含安裝與設定說明。", keywords:"電子後視鏡 後視鏡 影片 安裝 設定 鏡頭" },
+  { title:"mini-OWL 多視角行車輔助系統", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/mini-owl專頁", desc:"mini-OWL多視角行車輔助系統專頁，多鏡頭行車安全輔助產品資訊。", keywords:"mini-OWL OWL 多視角 行車輔助 鏡頭 環景 盲點" },
+  { title:"DK＆ADK主機相關資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/dk主機相關", desc:"DK＆ADK主機系列資訊及實裝照片，含安裝說明。", keywords:"DK ADK 主機 安裝 設定 實裝" },
+  { title:"RM系列 14吋通用型後座螢幕", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/14吋通用型後座螢幕res-168", desc:"RM系列14吋通用型後座娛樂螢幕相關說明與影片教學，後座乘客娛樂系統。", keywords:"RM 後座 螢幕 14吋 娛樂系統 後座娛樂 頭枕" },
+  { title:"BM-2 / BM-A / CBM主機（已停產）", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/bm-2bm-acbm主機", desc:"BM-2、BM-A、CBM主機已停產機型相關影片教學資訊。", keywords:"BM-2 BM-A CBM 主機 停產 影片 舊款" },
+  { title:"BM-3 / BM-3(K)主機（已停產）", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/bm-3bm-3k主機", desc:"BM-3、BM-3(K)主機已停產機型相關影片教學資訊。", keywords:"BM-3 BM-3K 主機 停產 影片 舊款" },
+  { title:"HONDA 本田 車款安裝資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車廠品牌分類/honda", desc:"HONDA本田各車款特殊安裝資訊，包含HR-V、CR-V、Fit、City、Civic、Accord、Odyssey、BR-V、ZR-V等車型的特殊接法與注意事項。", keywords:"Honda 本田 HR-V HRV CR-V CRV Fit City Civic Accord Odyssey BR-V ZR-V 車款 安裝 設定 可以裝 支援" },
+  { title:"TOYOTA 豐田 車款安裝資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車廠品牌分類/toyota", desc:"TOYOTA豐田各車款安裝資訊，包含RAV-4（五代）、Altis、Camry、Yaris、Yaris Cross、Sienta、Wish、Noah、Vios等車型說明。", keywords:"Toyota 豐田 RAV4 RAV-4 Altis Camry Yaris Cross Sienta Wish Noah Vios Corolla 車款 安裝 設定 可以裝 支援" },
+  { title:"NISSAN 日產 車款安裝資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車廠品牌分類/nissan", desc:"NISSAN日產各車款安裝資訊，包含X-Trail、Kicks、Tiida、Sentra、March、Terra、Livina等車型的接法與注意事項。", keywords:"Nissan 日產 X-Trail XTrail Kicks Tiida Sentra March Terra Livina 車款 安裝 設定 可以裝 支援" },
+  { title:"SUBARU 速霸陸 車款安裝資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車廠品牌分類/subaru", desc:"SUBARU速霸陸各車款安裝資訊，包含Forester、Outback、Levorg、Legacy、XV、Crosstrek等車型說明。", keywords:"Subaru 速霸陸 Forester Outback Levorg Legacy XV Crosstrek 車款 安裝 設定 可以裝 支援" },
+  { title:"FORD 福特 車款安裝資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/ford", desc:"FORD福特各車款安裝資訊，包含Kuga、Focus（3.5代）、Mondeo、EcoSport、Explorer、Ranger、Puma、Escape等車型的特殊接法與注意事項。", keywords:"Ford 福特 Kuga Focus 3.5代 Mondeo EcoSport Explorer Ranger Puma Escape 車款 安裝 設定 可以裝 支援 相容" },
+  { title:"KIA 起亞 車款安裝資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/kia", desc:"KIA起亞各車款安裝資訊，包含Stonic、Sportage、Niro、Sorento、Carnival等車型說明。", keywords:"KIA 起亞 Stonic Sportage Niro Sorento Carnival 車款 安裝 設定 可以裝 支援" },
+  { title:"Volkswagen VW 福斯 車款安裝資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/vw", desc:"Volkswagen福斯各車款安裝資訊，包含Golf、Tiguan、Polo、T-Roc、Touareg、ID.4等車型說明。", keywords:"VW Volkswagen 福斯 Golf Tiguan Polo T-Roc Touareg ID4 車款 安裝 設定 可以裝 支援" },
+  { title:"HYUNDAI 現代 車款安裝資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/hyundai", desc:"HYUNDAI現代各車款安裝資訊，包含Tucson、Elantra、Santa Fe、Ioniq、Kona等車型說明。", keywords:"Hyundai 現代 Tucson Elantra Santa Fe Ioniq Kona 車款 安裝 設定 可以裝 支援" },
+  { title:"MAZDA 馬自達 車款安裝資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/mazda", desc:"MAZDA馬自達各車款安裝資訊，包含CX-5、CX-3、CX-30、Mazda3、Mazda6、MX-30等車型說明。", keywords:"Mazda 馬自達 CX-5 CX5 CX-3 CX3 CX-30 CX30 Mazda3 Mazda6 MX-30 車款 安裝 設定 可以裝 支援" },
+  { title:"LEXUS 凌志 車款安裝資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/lexus", desc:"LEXUS凌志各車款安裝資訊，包含IS、ES、RX、NX、UX、CT、LX等車型說明。", keywords:"Lexus 凌志 IS ES RX NX UX CT LX GX 車款 安裝 設定 可以裝 支援" },
+  { title:"SUZUKI 鈴木 車款安裝資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/suzuki", desc:"SUZUKI鈴木各車款安裝資訊，包含Swift、Vitara、Jimny、Ignis等車型說明。", keywords:"Suzuki 鈴木 Swift Vitara Jimny Ignis 車款 安裝 設定 可以裝 支援" },
+  { title:"SKODA 斯柯達 車款安裝資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/skoda", desc:"SKODA斯柯達各車款安裝資訊，包含Kodiaq、Octavia、Karoq、Kamiq等車型說明。", keywords:"Skoda 斯柯達 Kodiaq Octavia Karoq Kamiq 車款 安裝 設定 可以裝 支援" },
+  { title:"VOLVO 富豪 車款安裝資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/volvo", desc:"VOLVO富豪各車款安裝資訊，包含XC40、XC60、XC90、V60、S60、S90等車型說明。", keywords:"Volvo 富豪 XC40 XC60 XC90 V60 S60 S90 車款 安裝 設定 可以裝 支援" },
+  { title:"MG 車款安裝資訊", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/mg專頁", desc:"MG各車款安裝資訊，包含MG5、MG HS、ZS等車型說明。", keywords:"MG MG5 HS ZS EV 車款 安裝 設定 可以裝 支援" },
+  { title:"各車廠通用方向盤按鍵定義（方控）", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/各車廠通用方控定義", desc:"各車廠通用方向盤多功能按鍵（方控/SWC）定義說明，包含各按鍵對應功能的圖示與設定方式。", keywords:"方向盤 方控 按鍵 定義 通用 各車廠 SWC 多功能 設定 學習" },
+  { title:"特殊方控與倒車定義", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/奇奇怪怪的方控定義", desc:"特殊方向盤按鍵及倒車訊號定義說明，適用奇特車款或特殊接法的情況。", keywords:"方控 倒車 特殊 奇特 定義 按鍵 訊號 方向盤" },
+  { title:"TPMS 胎壓監測系統設定", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/tpms相關設定", desc:"TPMS胎壓監測系統設定說明，包含感測器學習、顯示設定與胎壓警示相關設定。", keywords:"TPMS 胎壓 監測 設定 感測器 輪胎 警示" },
+  { title:"無法改裝主機的車型", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/無法改主機的車型", desc:"說明哪些車型因原廠設計限制無法安裝飛鳥主機，購買前請先確認車型相容性，避免安裝後有疑慮。", keywords:"無法改裝 不支援 相容性 車型 限制 不能換 不適合" },
+  { title:"車款升級資訊查詢庫（各車款可以安裝嗎？）", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫", desc:"查詢各車款是否可以安裝飛鳥主機的完整對照表，包含可更換、有條件限制、不建議等詳細說明，以及特殊注意事項。支援查詢Ford、Honda、Toyota、Nissan、Mazda、Subaru、VW、Hyundai、Lexus、KIA、Mitsubishi、Skoda、Suzuki、Volvo、MG、Luxgen、BMW、Benz、Audi等品牌。", keywords:"可以安裝 能不能裝 支援 相容 車款查詢 升級 哪款 適合 可以換 型號 建議 查詢庫 Kuga Focus Mondeo Escape Puma CR-V CRV Odyssey Accord Fit City Civic HRV HR-V RAV4 Altis Camry Yaris Cross Sienta Noah Wish Vios X-Trail Kicks Tiida Sentra Livina CX-5 CX-3 CX-30 Mazda3 Mazda6 Forester Outback Golf Tiguan Polo T-Roc Tucson Elantra Santa Fe IS ES RX NX CT Sportage Stonic Kodiaq XC40 XC60 XC90 MG HS Outlander Lancer LUXGEN U6 BENZ W204 W211 三菱 納智捷" },
+  { title:"常用APP下載連結", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/app下載連結", desc:"飛鳥主機常用APP下載連結，包含導航王、Carlink等常用應用程式官方下載入口。", keywords:"APP 下載 應用程式 導航王 Carlink 軟體 安裝" },
+  { title:"好用的小撇步分享", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/好用的小撇步分享", desc:"飛鳥FAE工程師分享的實用技巧，例如交車前不登入個人帳號就能更新安卓APP的方法等實用小技巧。", keywords:"小撇步 技巧 交車 更新 APP 安卓 不登入 帳號 訣竅" },
+  { title:"飛鳥產品說明書", url:"https://www.asuka-tw.com/Docs/Index/267", desc:"飛鳥各主機型號的詳細操作說明書下載，包含功能說明與操作指引。", keywords:"說明書 手冊 操作 文件 使用 產品 PDF 下載" },
+  { title:"飛鳥檢驗資訊 (BSMI / NCC認證)", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/bsmi-ncc", desc:"飛鳥產品BSMI、NCC認證檢驗相關資訊文件，符合台灣法規要求的認證資料。", keywords:"BSMI NCC 檢驗 認證 合格 安規 認証" },
+  { title:"經銷店家行銷素材", url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/經銷店家行銷素材", desc:"提供給經銷商的行銷素材資源，包含產品介紹圖文等推廣素材。", keywords:"行銷 素材 經銷 廣告 圖文 推廣 商家" }
+];
 
-// ── LUX-A 專頁 ────────────────────────────────────────────
-{title:"LUX-A 安裝時原車畫面沒出現",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/lux-a-主機相關#h.6pszqe8jcawm",desc:"安裝 LUX-A 主機後原車畫面（OEM畫面）沒有出現的原因排除，包含LVDS設定說明。",keywords:"LUX-A 原車畫面 沒出現 不顯示 LVDS 黑屏 OEM 畫面"},
-{title:"LUX-A LVDS參數設定",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/lux-a-主機相關#h.g0gapc3bqbzo",desc:"LUX-A主機LVDS參數設定說明（2025年9月前的機子需手動設定，新機子自動偵測）。包含自動偵測不到LVDS畫面的處理方法。",keywords:"LUX-A LVDS 參數 設定 自動偵測 畫面 原車畫面 OEM"},
-{title:"LUX-A 支援車款",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/lux-a-主機相關#h.9fw0ooiev68b",desc:"LUX-A主機支援的車款清單（2024.08.12更新），含各車廠支援型號。",keywords:"LUX-A 支援車款 相容 哪些車 車型 清單 2024"},
-{title:"LUX-A 常見問題",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/lux-a-主機相關#h.y79ywe3uml2f",desc:"LUX-A主機常見問題整理，包含安裝後各種異常狀況的排除方法。",keywords:"LUX-A 常見問題 問題 排除 故障 異常"},
-{title:"LUX-A 安裝注意事項",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/lux-a-主機相關#h.t3o7vmfjh4fu",desc:"LUX-A主機安裝時的注意事項，安裝前請詳閱避免安裝問題。",keywords:"LUX-A 安裝 注意事項 重要 說明"},
-{title:"LUX-A 各車款特殊注意事項",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/lux-a-主機相關#h.7th5q2ihdyia",desc:"LUX-A主機各車款安裝時的特殊注意事項，不同車款可能有特殊接法。",keywords:"LUX-A 特殊 注意事項 車款 接法 安裝"},
-{title:"LUX-A 主軟體更新流程",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/lux-a-主機相關#h.5fx6u41jrd",desc:"LUX-A主機主程式軟體更新步驟說明。",keywords:"LUX-A 更新 軟體 主程式 升級 韌體"},
-{title:"常用APP下載連結（導航王、Netflix、CarLink等APK下載）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/app下載連結",desc:"飛鳥主機常用APP下載：導航王3D（A5i3D v701）、導航王3D+、導航王2D、CarLink、Netflix、Disney+、小芳語音助理、GF-200 TV App、AutoKit、行車記錄器BK-301/302、一鍵安裝包等。",keywords:"APP 下載 apk 導航王 導航王3D 導航王2D A5i3D A5i CarLink Car Link Netflix Disney+ 小芳 語音助理 GF-200 AutoKit BK-301 BK-302 一鍵安裝 軟體 安裝 3D 2D 版本"},{title:"好用的小撇步分享",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/好用的小撇步分享",desc:"飛鳥FAE工程師分享的實用技巧，例如交車前不登入個人帳號就能更新安卓APP的方法等實用小技巧。",keywords:"小撇步 技巧 交車 更新 APP 安卓 不登入 帳號 訣竅"},{title:"飛鳥產品說明書",url:"https://www.asuka-tw.com/Docs/Index/267",desc:"飛鳥各主機型號的詳細操作說明書下載，包含功能說明與操作指引。",keywords:"說明書 手冊 操作 文件 使用 產品 PDF 下載"},{title:"飛鳥檢驗資訊 (BSMI / NCC認證)",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/bsmi-ncc",desc:"飛鳥產品BSMI、NCC認證檢驗相關資訊文件，符合台灣法規要求的認證資料。",keywords:"BSMI NCC 檢驗 認證 合格 安規 認証"},{title:"PTA相關影片教學",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/pta相關影片",desc:"PTA（平行輔助停車）相關功能的影片教學與說明。",keywords:"PTA 停車輔助 平行停車 影片 教學 輔助"},
-{title:"經銷店家行銷素材",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/經銷店家行銷素材",desc:"提供給經銷商的行銷素材資源，包含產品介紹圖文等推廣素材。",keywords:"行銷 素材 經銷 廣告 圖文 推廣 商家"},
-
-// ── 車款查詢庫 各車廠分區直達連結 ─────────────────────────
-{title:"FORD 福特 車款可以安裝嗎？（查詢庫）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫#h.thiecunpv68",desc:"Ford 福特各車款安裝可行性查詢：Kuga（2013~2018 可換，注意高低配）、Focus 3代/3.5代/4代、Mondeo、EcoSport、Escape、Fiesta等，含特殊限制說明。",keywords:"Ford 福特 Kuga Focus Mondeo EcoSport Escape Fiesta 可以裝 可以換 能不能裝 查詢"},
-{title:"HONDA 本田 車款可以安裝嗎？（查詢庫）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫#h.9xc8r3s6o81e",desc:"Honda 本田各車款安裝可行性查詢：CR-V（3~6代）、Odyssey、Accord、Fit、City、Civic、HR-V、BR-V、ZR-V等，含年份與限制說明。",keywords:"Honda 本田 CR-V CRV HRV HR-V Odyssey Accord Fit City Civic 可以裝 可以換 能不能裝 查詢"},
-{title:"TOYOTA 豐田 車款可以安裝嗎？（查詢庫）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫#h.f802u3jlwxlf",desc:"Toyota 豐田各車款安裝可行性查詢：RAV-4、Altis、Camry、Yaris、Cross、Sienta、Wish、Noah、Vios、Prius等，含年份與限制說明。",keywords:"Toyota 豐田 RAV4 RAV-4 Altis Camry Yaris Cross Sienta Wish Noah Vios Prius 可以裝 可以換 能不能裝 查詢"},
-{title:"Toyota Prius 可以安裝嗎？（查詢庫）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫#h.f802u3jlwxlf",desc:"Toyota Prius 各型號安裝查詢：Prius 3代（2009~2012）可換，切換年2012年不需協議盒；Prius α/阿法（2012~2021）可換，原車空調卡榫要剪掉，JBL擴大機需加購TOYOTA通用協議盒；Prius PHV（2016後）可換，建議琦森飾框TA-8264IX。",keywords:"Prius Prius阿法 Prius alpha Prius PHV 3代 Toyota 豐田 可以裝 可以換 能不能裝 查詢 協議盒 JBL 阿法"},
-{title:"NISSAN 日產 車款可以安裝嗎？（查詢庫）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫#h.jdwalgy5u609",desc:"Nissan 日產各車款安裝可行性查詢：X-Trail、Kicks、Tiida、Sentra、Livina、Teana等，含年份與限制說明。",keywords:"Nissan 日產 X-Trail XTrail Kicks Tiida Sentra Livina Teana 可以裝 可以換 能不能裝 查詢"},
-{title:"MAZDA 馬自達 車款可以安裝嗎？（查詢庫）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫#h.bk5ubu8clwvm",desc:"Mazda 馬自達各車款安裝可行性查詢：CX-5、CX-9、CX-3、Mazda2、Mazda3、Mazda5、Mazda6等，含年份與限制說明。",keywords:"Mazda 馬自達 CX-5 CX5 CX-3 CX3 CX-9 Mazda2 Mazda3 Mazda6 馬3 馬6 可以裝 可以換 能不能裝 查詢"},
-{title:"SUBARU 速霸陸 車款可以安裝嗎？（查詢庫）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫#h.vuiea7etpnr7",desc:"Subaru 速霸陸各車款安裝可行性查詢：Forester、Outback、XV、Levorg等，含年份與限制說明。",keywords:"Subaru 速霸陸 Forester Outback XV Levorg 可以裝 可以換 能不能裝 查詢"},
-{title:"HYUNDAI 現代 車款可以安裝嗎？（查詢庫）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫#h.fb5ykcdgeson",desc:"Hyundai 現代各車款安裝可行性查詢：Tucson、Elantra、Santa Fe、iX35、Venue等，含年份與限制說明。",keywords:"Hyundai 現代 Tucson Elantra Santa Fe iX35 Venue 可以裝 可以換 能不能裝 查詢"},
-{title:"BENZ BMW AUDI 其他車款可以安裝嗎？（查詢庫）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫",desc:"Benz（W164/W166/W211/C-Class/E220）、BMW E53、Audi Q3、Mitsubishi Outlander/Lancer、KIA Picanto、Skoda Superb/YETI、Suzuki Swift/Vitara、Volvo、MG HS、Luxgen U6 等車款安裝可行性查詢。",keywords:"BENZ 賓士 BMW Audi Q3 Mitsubishi 三菱 Outlander KIA Picanto Skoda Superb Suzuki Swift Vitara Volvo MG HS Luxgen U6 納智捷 可以裝 查詢"},{title:"ACK 配 Toyota 原廠環景鏡頭 – 畫面異常（顛倒/黑白/無畫面）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車廠品牌分類/2023年toyota原廠環景鏡頭支援專頁",desc:"ACK主機搭配2023/2024年Toyota（含Corolla Cross CC等）原廠環景鏡頭的支援說明，解決後鏡頭畫面顛倒、黑白畫面、無畫面等異常問題。",keywords:"Toyota 原廠環景 2023 2024 CC Corolla Cross 後鏡頭 畫面顛倒 顛倒 黑白畫面 無畫面 畫面異常 ACK 環景鏡頭 原廠鏡頭 豐田 鏡頭畫面"},{title:"CK/ACK 主機產品介紹（含ACK-MAX/MAX Plus）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.bjuath6lhqas",desc:"CK/ACK、ACK-MAX、ACK-MAX Plus主機產品介紹影片與資料，以及ACK/CK車機家族表和常用介紹DM下載。",keywords:"產品介紹 ACK CK MAX Plus 介紹影片 家族表 DM 規格 型號 哪款 差別 比較 功能"}
-,{title:"ACK/CK 車機家族表",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.o6u518lm12bs",desc:"ACK/CK車機產品家族對照表，了解各型號差異。",keywords:"家族表 型號 對照表 哪款 差別 比較 機型 ACK CK MAX"}
-,{title:"CK/ACK 特別軟體（AR導航升級包/360 Logo更新包）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.mxp520drkj0r",desc:"特別軟體下載：2025 AR導航功能升級包、解決ACK主機360 Logo更新包等特殊軟體。",keywords:"特別軟體 AR導航 導航升級 360 Logo 更新包 特殊版本 下載 升級包"}
-,{title:"CK/ACK 產品安裝說明（接線/EQ/環景）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.25px1nm22j0u",desc:"飛鳥CK&ACK主機接線說明、EQ介面設定（含重低音）、環景接線說明、環景校正說明等安裝相關影片與文件。",keywords:"安裝 接線 說明 EQ 重低音 環景接線 校正 安裝影片 怎麼安裝 接線圖"}
-,{title:"CK/ACK 選擇全拼布流程（環景校正）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.jjmi0kf01ows",desc:"2022年8月後新版環景全拼布流程，包含720P/1080P鏡頭選擇說明。",keywords:"全拼布 環景校正 校布流程 720P 1080P 鏡頭選擇 6048 拼布 如何選擇 校正布"}
-,{title:"CK/ACK 環景校布推薦",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.vaotdb9dn9nr",desc:"哪種環景校正布比較好？建議採用3D全拼布，校正速度快、視野廣。",keywords:"校正布 校布 哪種好 3D全拼布 推薦 環景布 拼布 校正推薦 什麼布"}
-,{title:"CK/ACK 主機胎壓（TPMS）接線方式",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.wk7rxjoaata6",desc:"CK/ACK主機胎壓（TPMS）接線方式說明，以及CK主機接BM用胎壓接收器改接方法。",keywords:"胎壓 TPMS 接線 胎壓接收器 BM 改接 胎壓顯示 偵測 胎壓計 輪胎壓力"}
-,{title:"大車鏡頭（帶座球型）安裝角度說明",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.e34shdtxeqaw",desc:"大車鏡頭（帶座球型）的安裝角度說明，以及大車鏡頭車側鎖桿使用方法。",keywords:"大車鏡頭 安裝角度 球型 鎖桿 側邊鏡頭 大車 鏡頭安裝 如何安裝 角度調整"}
-,{title:"ACK 360 Logo 更新流程",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.6837u7nnct67",desc:"ACK主機360環景Logo更新步驟說明，解決360 Logo異常問題。",keywords:"360 Logo 更新 Logo更新 環景logo 換logo 圖示更新 logo異常"}
-,{title:"導航王 – 混音設定無效（語音播報與音樂混音）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.uo2hecsuy4dc",desc:"當導航王在播放語音時，明明已設定混音卻還是無法混音時的解決方法。",keywords:"導航王 混音 語音 播報 無法混音 混音設定 語音沒聲音 導航聲音 混音失效"}
-,{title:"導航王 – 手寫功能無法使用",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.89qrokgw6ebk",desc:"導航王手寫輸入功能無法使用時的處理方式。",keywords:"導航王 手寫 手寫功能 無法使用 手寫輸入 手寫失效"}
-,{title:"導航王 – 更改「家」「公司」儲存地點",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.udqdihwik0jk",desc:"如何更改導航王內「家」或「公司」的儲存地點設定方法。",keywords:"導航王 家 公司 儲存地點 更改 設定 修改地址 收藏地址"}
-,{title:"導航王 – 聲控判斷不靈敏調整",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.o2r0x69yyy2m",desc:"當導航王聲控判斷不靈敏時可以調整的方法。",keywords:"導航王 聲控 不靈敏 語音控制 聲控失靈 聲音辨識 調整靈敏度"}
-,{title:"導航王 – 圖資更新顯示儲存空間不足",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.2xmqm6gvgzsj",desc:"導航王圖資更新出現儲存空間不足，但實際空間足夠時的解決方法。",keywords:"導航王 圖資更新 儲存空間不足 空間不足 更新失敗 圖資 地圖更新"}
-,{title:"導航王 – 大貨車模式支援",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.x17me3nqo30m",desc:"導航王可以支援大貨車模式的說明。",keywords:"導航王 大貨車 貨車模式 卡車 大車導航 大貨車設定"}
-,{title:"導航王 – 各版本差異說明",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.x93og4le24my",desc:"導航王各版本之間的差異對照說明。",keywords:"導航王 版本 差異 哪個版本 版本差別 版本比較 導航版本"}
-,{title:"iPhone熱點不穩定（舊款iPhone改善方法）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.9exwrj1ppavd",desc:"舊款iPhone熱點不穩定問題，可用小偏方嘗試改善的方法。",keywords:"iPhone 熱點 不穩定 熱點斷線 WiFi熱點 舊款iPhone 連線不穩 AP"}
-,{title:"Google帳號登入 – 一直停在「誰要使用這個裝置」",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.muap7pr5tyr",desc:"Google帳號登入時一直停在「誰要使用這個裝置？」畫面的解決方法。",keywords:"Google帳號 登入 誰要使用 裝置 登入卡住 帳號登入問題 Google登入"}
-,{title:"Google Play商店 – App無法使用或一直閃退",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.wxwb5vw2hufb",desc:"Google Play商店或其他App不能使用、一直閃退的解決方法。",keywords:"Google Play 閃退 不能使用 商店 app閃退 當機 Play Store"}
-,{title:"Android APP閃退或點不進去的原因",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.euo1omhv8ezt",desc:"安卓系統有時APP閃退或點不進去的原因說明。",keywords:"APP閃退 閃退 點不進去 安卓 Android app當機 打不開 無法開啟"}
-,{title:"Chrome / YouTube 解除更新方法",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.htj3iy54h62u",desc:"Chrome及YouTube App解除更新的操作方法，回復到舊版本。",keywords:"Chrome 解除更新 YouTube 降版 回復舊版 更新後不能用 解除 版本回復 Youtube更新"}
-,{title:"YouTube – 經常轉圈圈問題",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.nmziixfujh7z",desc:"YouTube經常轉圈圈（緩衝）的問題解決說明。",keywords:"YouTube 轉圈圈 緩衝 卡 一直轉 影片不順 載入慢"}
-,{title:"關閉Android自動更新（避免App更新出問題）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.ycjor8b546rg",desc:"2步驟關閉Android自動更新，避免手機App有災情。",keywords:"自動更新 關閉 Android 停止更新 禁止更新 不要自動更新 app更新"}
-,{title:"Google Map – 無法縮成子畫面",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.1n16w9rs3v0w",desc:"當遇到Google Map無法縮成子畫面時的解決方法。",keywords:"Google Map 子畫面 縮小 無法縮 畫中畫 小視窗 地圖縮小"}
-,{title:"Google Play – 安裝軟體一直停在「等待中」",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.xsp4sd91gz9",desc:"Google Play商店安裝軟體時一直停在等待中的解決方法。",keywords:"Google Play 等待中 安裝失敗 下載卡住 等待 安裝 Play Store 卡在等待"}
-,{title:"Wi-Fi常常自己關閉的原因",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.cjmpnbb565a",desc:"客人的Wi-Fi常常會自己關閉，可能原因說明。",keywords:"WiFi 自動關閉 Wi-Fi 自己關掉 無線網路 斷線 WiFi斷開"}
-,{title:"有線網路分享功能突然無法使用",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.w0moxlm93qj",desc:"有線網路分享功能本來可以使用，後來突然不能使用時的解決方法。",keywords:"有線網路 網路分享 不能使用 突然失效 USB網路 有線分享"}
-,{title:"Netflix – 出現異常畫面無法觀看",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.2zizl26rmkld",desc:"Netflix出現異常畫面無法觀看時的解決方法。",keywords:"Netflix 無法觀看 異常畫面 Netflix錯誤 無法播放 串流"}
-,{title:"行車記錄器/環景錄影不錄影或無法偵測記憶卡",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.fks53qq54kf3",desc:"行車記錄器或環景錄影出現不會錄影、無法偵測記憶卡/隨身碟的原因與解決方法。",keywords:"行車記錄器 不錄影 無法偵測 記憶卡 隨身碟 環景錄影 錄影失敗 DVR 記憶卡偵測"}
-,{title:"BM-2/BM-3/PN-203主機掃不到手機熱點",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.7lmupywnvxmb",desc:"BM-2、BM-3、PN-203主機當掃不到手機熱點時的原因說明。",keywords:"BM-2 BM-3 PN-203 掃不到熱點 熱點 找不到 WiFi AP 手機熱點 連不上"}
-,{title:"TOYOTA 豐田 車款主機升級資訊（查詢庫新增）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫",desc:"TOYOTA 豐田 升級安裝資訊：Camry 5代（2002–2006） TA-1469T、Camry 6代（2006–2011） TA-2062X、Camry 7代（2012–2014） TA-2063X、Camry 7.5代（2015–2017） TA-2064X、Camry 8代（2018–2020） TA-2065X等共40款，含框型號及CAN盒資訊。",keywords:"TOYOTA 豐田 Camry Altis RAV4 Sienta（16-18） Sienta（22+ Sienta（23/24款） Yaris GR Granvia Granvia（24款） Camry 5代 Camry 6代 Camry 7代 Camry 7.5代 Camry 8代 Camry 8.5代（尊爵/豪華） Camry 9代（汽油豪華 / 油電尊爵） Camry 旗艦版（9吋，18年款） Altis 9代 Altis 11代 Altis / Auris / Corolla Cross 12代 RAV4 3代 RAV4 4代 RAV4 5代 Sienta（16-18） TA-1469T TA-2062X TA-2063X TA-2064X TA-2065X TA-2066X TA"}
-,{title:"LEXUS 凌志 車款主機升級資訊（查詢庫新增）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫",desc:"LEXUS 凌志 升級安裝資訊：CT200h 低配 LS-9200IX、CT200h 中配 LS-9158IX、CT200h 高配 LS-9202IX、RX（03-09）上座（2003–2009） LS-9330IX、RX（10-15）低配（2010–2015） LS-3540IX等共22款，含框型號及CAN盒資訊。",keywords:"LEXUS 凌志 CT200h RX（03-09）上座 RX（10-15）低配 RX（10-15）中配 RX（10-15）高配 RX（16-19） RX RX（20-22） ES300 ES350 CT200h 低配 CT200h 中配 CT200h 高配 RX（03-09）上座 RX（10-15）低配 RX（10-15）中配 RX（10-15）高配 RX（16-19） RX 2018（原廠12.3吋螢幕） RX（20-22） ES300 ES350 / ES240（06-12）低配 ES350（10-12）高配 ES（13-17）低配 ES（13-17）高配 LS-9200IX LS-9200XII LS-9158IX LS-9202IX LS-9330IX LS-3540IX LS-35"}
-,{title:"HONDA 本田 車款主機升級資訊（查詢庫新增）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫",desc:"HONDA 本田 升級安裝資訊：CR-V 2代（2001–2006） HA-2070IX、HR-V 3代（2022–2025） HA-4158X、HR-V 2025 油電版（2025） VMHA-4158A、HR-V 3.5代（2026） HA-4162X、Odyssey（21+）（2021+） HA-8354X等共10款，含框型號及CAN盒資訊。",keywords:"HONDA 本田 CR-V HR-V Odyssey（21+） Civic Accord Fit CR-V 2代 HR-V 3代 HR-V 2025 油電版 HR-V 3.5代 Odyssey（21+） Civic 8代 K12 Civic 11代油電（2025小改） Accord 8代 K13 Fit 3代 Fit 4代 HA-2070IX HA-4158X HA-4156IX VMHA-4155R VMHA-4158 VMHA-4158A VMHA-4156 VMHA-4160H HA-4162X HA-4162XA 可以裝 可以換 能裝 主機升級 音響 飛鳥 查詢庫新增"}
-,{title:"NISSAN 日產 車款主機升級資訊（查詢庫新增）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫",desc:"NISSAN 日產 升級安裝資訊：Teana J31（2003–2007） NN-4845IX、Teana J32（有TOBE）（2008–2018） NN-9819IX、Teana J32（無TOBE，低配）（2008–2018） NN-2309X、Sentra B18（2020+） NN-1618X、Sentra B16（2016）等共15款，含框型號及CAN盒資訊。",keywords:"NISSAN 日產 Teana Sentra X-Trail X-Trail（20-23） X-Trail（2024+，低配無螢幕） Kicks（18+） Kicks Tiida（2006–2012，手動小框） Tiida（2012–2016，自動空調） Tiida（2016–2020，自動空調） Teana J31 Teana J32（有TOBE） Teana J32（無TOBE，低配） Sentra B18 Sentra B16 X-Trail J31 X-Trail（20-23） X-Trail（2024+，低配無螢幕） Kicks（18+） Kicks E-Power Tiida（2006–2012，手動小框） Tiida（2012–2016，自動空調） Tiida（2016–202"}
-,{title:"FORD 福特 車款主機升級資訊（查詢庫新增）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫",desc:"FORD 福特 升級安裝資訊：Focus MK2（2004–2012） FD-2303IX、Focus MK3 / MK3.5 低配（2012–2018） FD-2082IXA、Focus MK4（2019+） FD-2083X、Ranger（16-23）高配（2016–2023） FD-2553IX、Mondeo（08-10，銀色）（2008–2010） FD-2081XS等共11款，含框型號及CAN盒資訊。",keywords:"FORD 福特 Focus Ranger（16-23）高配 Mondeo（08-10，銀色） Mondeo Tourneo Kuga（13-18）低配 Kuga（13-18）高配 Kuga（13-18）12.3吋版 Kuga Focus MK2 Focus MK3 / MK3.5 低配 Focus MK4 Ranger（16-23）高配 Mondeo（08-10，銀色） Mondeo Tourneo Custom 旅行家 Kuga（13-18）低配 Kuga（13-18）高配 Kuga（13-18）12.3吋版 Kuga FD-2303IX FD-2082IXA FD-3035IXP FD-2083X FD-5519IX FD-5519XII FD-2553IX FD-2553IXB FD-"}
-,{title:"VW 福斯 車款主機升級資訊（查詢庫新增）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫",desc:"VW 福斯 升級安裝資訊：Golf 全系（2014+（高爾夫7））、Caddy（2016–2021） VW-2073X、Caddy（2022+） VW-7288IX、Polo（2010–2017） VW-6061IX、Polo（2020） VW-9018IX等共9款，含框型號及CAN盒資訊。",keywords:"VW 福斯 Golf Caddy Polo Tiguan（09-16） Tiguan（17+） Passat Caravelle Golf 全系 Caddy Caddy Polo Polo Tiguan（09-16） Tiguan（17+） Passat B8 Caravelle T6.1 VW-2073X VW-7288IX VW-7288IXP VW-6061IX VW-9018IX VW-7601IX VW-6046IXB VW-6047X VW-1071X 可以裝 可以換 能裝 主機升級 音響 飛鳥 查詢庫新增"}
-,{title:"SKODA 斯柯達 車款主機升級資訊（查詢庫新增）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫",desc:"SKODA 斯柯達 升級安裝資訊：Kamiq SK-3048X、Fabia（2017） SK-2074IX、Yeti / 野帝 SK-3060IX等共3款，含框型號及CAN盒資訊。",keywords:"SKODA 斯柯達 Kamiq Fabia Yeti Kamiq Fabia Yeti / 野帝 SK-3048X SK-2074IX SK-3060IX 可以裝 可以換 能裝 主機升級 音響 飛鳥 查詢庫新增"}
-,{title:"BMW 寶馬 車款主機升級資訊（查詢庫新增）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫",desc:"BMW 寶馬 升級安裝資訊：E39 / E46 BW-2330IX、4系 F36（2017）、M2 F87（2017）等共3款，含框型號及CAN盒資訊。",keywords:"BMW 寶馬 E39 4系 M2 E39 / E46 4系 F36 M2 F87 BW-2330IX 可以裝 可以換 能裝 主機升級 音響 飛鳥 查詢庫新增"}
-,{title:"HYUNDAI 現代 車款主機升級資訊（查詢庫新增）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫",desc:"HYUNDAI 現代 升級安裝資訊：Tucson（2016–2019） HY-7369IX、Tucson（2019+） HY-1237IX、Santa Fe（2019–2021） HY-2006X、Staria（2022） HY-7954X、Venue（2019+） HY-1210IX等共8款，含框型號及CAN盒資訊。",keywords:"HYUNDAI 現代 Tucson Santa Staria Venue Kona Veloster Porter Tucson Tucson Santa Fe Staria Venue Kona Veloster Porter / 小霸王 HY-7369IX HY-1237IX HY-1237X HY-1237XII IC-1006XT HY-2006X HY-2006XII HY-4507X HY-7954X HY-1210IX 可以裝 可以換 能裝 主機升級 音響 飛鳥 查詢庫新增"}
-,{title:"KIA 起亞 車款主機升級資訊（查詢庫新增）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫",desc:"KIA 起亞 升級安裝資訊：Stonic（2018+） KA-0501IX、Sportage（2019）、Picanto / Morning（2018–2020） KA-2304IX、Picanto / Morning（2021+） KA-2306IX、Ceed（2022+） KA-5605X等共6款，含框型號及CAN盒資訊。",keywords:"KIA 起亞 Stonic Sportage Picanto Ceed Kaon Stonic Sportage Picanto / Morning Picanto / Morning Ceed Kaon 卡旺 KA-0501IX IC-1006XT KA-2304IX KA-2306IX KA-5605X KA-2498IX 可以裝 可以換 能裝 主機升級 音響 飛鳥 查詢庫新增"}
-,{title:"MAZDA 馬自達 車款主機升級資訊（查詢庫新增）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫",desc:"MAZDA 馬自達 升級安裝資訊：Mazda 2（2015） MA-1032IX、Mazda 3（14-19，雙系統）（2014–2019） MA-7527IX、Mazda 5（2011–2016） MA-2543IX、CX-5（有旋鈕高配）（2018–2019） MA-5232IX等共4款，含框型號及CAN盒資訊。",keywords:"MAZDA 馬自達 Mazda CX-5（有旋鈕高配） Mazda 2 Mazda 3（14-19，雙系統） Mazda 5 CX-5（有旋鈕高配） MA-1032IX MA-7527IX MA-2543IX MA-5232IX 可以裝 可以換 能裝 主機升級 音響 飛鳥 查詢庫新增"}
-,{title:"SUBARU 速霸陸 車款主機升級資訊（查詢庫新增）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫",desc:"SUBARU 速霸陸 升級安裝資訊：Forester 4代（2013–2017） SU-8283IX、Forester（2018） SU-8283IX、Forester 5代 / 5.5代（天窗，無環景）（2022+） SU-8283IX、Forester 2023（有環景）（2023）、Impreza / Forester 5代 / XV（2017+） SU-2084IX等共6款，含框型號及CAN盒資訊。",keywords:"SUBARU 速霸陸 Forester Impreza WRX Forester 4代 Forester Forester 5代 / 5.5代（天窗，無環景） Forester 2023（有環景） Impreza / Forester 5代 / XV WRX SU-8283IX SU-2084IX 可以裝 可以換 能裝 主機升級 音響 飛鳥 查詢庫新增"}
-,{title:"MITSUBISHI 三菱 車款主機升級資訊（查詢庫新增）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫",desc:"MITSUBISHI 三菱 升級安裝資訊：Zinger（2005–2015） MI-9464IX、Zinger（2015–2022） MI-9465IX、Zinger（2023+） MI-9469X、Outlander（2007–2013） MI-2072IX、Outlander（2013+） MI-2316X等共11款，含框型號及CAN盒資訊。",keywords:"MITSUBISHI 三菱 Zinger Outlander Grand Delica Veryca J Eclipse Zinger Zinger Zinger Outlander Outlander Grand Lancer Grand Lancer Delica Veryca 菱利 A180 / A190 J Space（手折款） Eclipse Cross MI-9464IX MI-9465IX MI-9469X MI-2072IX MI-2316X MI-2073X MI-4410IX MI-8368IX MI-9190IX MI-9196X 可以裝 可以換 能裝 主機升級 音響 飛鳥 查詢庫新增"}
-,{title:"MERCEDES-BENZ 賓士 車款主機升級資訊（查詢庫新增）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫",desc:"MERCEDES-BENZ 賓士 升級安裝資訊：E-Class W211 / CLS-Class W219（2002–2009） MZ-2301IX、E-Class W212、R-Class W251（2006–2017） MZ-2053IX、C-Class / GLC（15-19）12.3吋（2015–2019） MZ-4205XII、ML / GLE（06-12）（2006–2012） MZ-2063IX等共11款，含框型號及CAN...",keywords:"MERCEDES-BENZ 賓士 E-Class R-Class C-Class ML SL V-Class（14+）12.3吋低配 Vito E-Class W211 / CLS-Class W219 E-Class W212 R-Class W251 C-Class / GLC（15-19）12.3吋 ML / GLE（06-12） ML / GLE（16-19）12.3吋 SL V-Class（14+）12.3吋低配 Vito Vito E-Class W210 MZ-2301IX MZ-2053IX MZ-4205XII MZ-2063IX MZ-2051IX MZ-2341XII 可以裝 可以換 能裝 主機升級 音響 飛鳥 查詢庫新增"}
-,{title:"VOLVO 富豪 車款主機升級資訊（查詢庫新增）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫",desc:"VOLVO 富豪 升級安裝資訊：XC60（2008–2014） VO-6060IX、XC70（2006） VO-3070IX、XC90（2002–2014） VO-2101IX等共3款，含框型號及CAN盒資訊。",keywords:"VOLVO 富豪 XC60 XC70 XC90 XC60 XC70 XC90 VO-6060IX VO-3070IX VO-2101IX VO-5904X 可以裝 可以換 能裝 主機升級 音響 飛鳥 查詢庫新增"}
-,{title:"SUZUKI 鈴木 車款主機升級資訊（查詢庫新增）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫",desc:"SUZUKI 鈴木 升級安裝資訊：Swift（2005–2010）、Swift（2024+） SZ-5148X、Jimny（2019+） SZ-9064IXB等共3款，含框型號及CAN盒資訊。",keywords:"SUZUKI 鈴木 Swift Jimny Swift Swift Jimny SZ-5148X SZ-9064IXB 可以裝 可以換 能裝 主機升級 音響 飛鳥 查詢庫新增"}
-,{title:"PEUGEOT 寶獅 車款主機升級資訊（查詢庫新增）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫",desc:"PEUGEOT 寶獅 升級安裝資訊：508（全系）等共1款，含框型號及CAN盒資訊。",keywords:"PEUGEOT 寶獅 508（全系） 508（全系）  可以裝 可以換 能裝 主機升級 音響 飛鳥 查詢庫新增"}
-,{title:"AUDI 奧迪 車款主機升級資訊（查詢庫新增）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫",desc:"AUDI 奧迪 升級安裝資訊：Q3（非2020年款）（（非2020款）） AU-5003、A3（2014）等共2款，含框型號及CAN盒資訊。",keywords:"AUDI 奧迪 Q3（非2020年款） A3 Q3（非2020年款） A3 AU-5003 可以裝 可以換 能裝 主機升級 音響 飛鳥 查詢庫新增"}
-,{title:'TOYOTA 豐田 車款升級資訊（查詢庫新增）',url:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫',desc:'TOYOTA 豐田各車款主機升級安裝資訊：Camry 5代（2002–2006）框TA-1469T、Camry 6代（2006–2011）框TA-2062X、Camry 7代（2012–2014）框TA-2063X、Camry 7.5代（2015–2017）框TA-2064X、Camry 8代（2018–2020）框TA-2065X / TA-2066X、Camry 8.5代（尊爵/豪華）（202',keywords:'TOYOTA 豐田 Camry 5代 Camry 6代 Camry 7代 Camry 7.5代 Camry 8代 Camry 8.5代（尊爵/豪華） Camry 9代（汽油豪華 / 油電尊爵） Camry 旗艦版（9吋，18年款） Altis 9代 Altis 11代 Altis / Auris / Corolla Cross 12代 RAV4 3代 RAV4 4代 RAV4 5代 Sienta（16-18） TA-8264IX TA-2063X TA-9300IX TA-2092X TA-2085X THN-9360 TA-2096X TA-2062X TA-9052IX TA-5655X 可以裝 可以換 能不能裝 主機升級 查詢'},{title:'LEXUS 凌志 車款升級資訊（查詢庫新增）',url:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫',desc:'LEXUS 凌志各車款主機升級安裝資訊：CT200h 低配（（年份待確認））框LS-9200IX / LS-9200XII、CT200h 中配（（年份待確認））框LS-9158IX、CT200h 高配（（年份待確認））框LS-9202IX、RX（03-09）上座（2003–2009）框LS-9330IX、RX（10-15）低配（2010–2015）框LS-3540IX / LS-3540XII、R',keywords:'LEXUS 凌志 CT200h 低配 CT200h 中配 CT200h 高配 RX（03-09）上座 RX（10-15）低配 RX（10-15）中配 RX（10-15）高配 RX（16-19） RX 2018（原廠12.3吋螢幕） RX（20-22） ES300 ES350 / ES240（06-12）低配 ES350（10-12）高配 ES（13-17）低配 ES（13-17）高配 LS-9202IX LS-2054IX LS-8164 LS-8165IX LS-9200IX LS-3544IX LS-9330IX LS-9460IX LS-8163IX LS-3542IX 可以裝 可以換 能不能裝 主機升級 查詢'},{title:'HONDA 本田 車款升級資訊（查詢庫新增）',url:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫',desc:'HONDA 本田各車款主機升級安裝資訊：CR-V 2代（2001–2006）框HA-2070IX、HR-V 3代（2022–2025）框HA-4158X / HA-4156IX、HR-V 2025 油電版（2025）、HR-V 3.5代（2026）框HA-4162X、Odyssey（21+）（2021+）框HA-8354X / HA-8354XII、Civic 8代 K12（2006–2011）框',keywords:'HONDA 本田 CR-V 2代 HR-V 3代 HR-V 2025 油電版 HR-V 3.5代 Odyssey（21+） Civic 8代 K12 Civic 11代油電（2025小改） Accord 8代 K13 Fit 3代 Fit 4代 VMHA-4160H VMHA-4158A HA-1811IX HA-2070IX HA-4162X HA-0813IX VMHA-4156 HA-1516X HA-2087X HA-5994IX 可以裝 可以換 能不能裝 主機升級 查詢'},{title:'NISSAN 日產 車款升級資訊（查詢庫新增）',url:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫',desc:'NISSAN 日產各車款主機升級安裝資訊：Teana J31（2003–2007）框NN-4845IX、Teana J32（有TOBE）（2008–2018）框NN-9819IX、Teana J32（無TOBE，低配）（2008–2018）框NN-2309X、Sentra B18（2020+）框NN-1618X / NN-1618XII、Sentra B16（2016）、X-Trail J31（2',keywords:'NISSAN 日產 Teana J31 Teana J32（有TOBE） Teana J32（無TOBE，低配） Sentra B18 Sentra B16 X-Trail J31 X-Trail（20-23） X-Trail（2024+，低配無螢幕） Kicks（18+） Kicks E-Power Tiida（2006–2012，手動小框） Tiida（2012–2016，自動空調） Tiida（2016–2020，自動空調） Tiida 350Z NN-5534IX NN-2003X NN-9014IX NN-4845IX NN-2309X NN-2337X NN-2002IX NN-5532X NN-9819IX NN-2317X 可以裝 可以換 能不能裝 主機升級 查詢'},{title:'FORD 福特 車款升級資訊（查詢庫新增）',url:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫',desc:'FORD 福特各車款主機升級安裝資訊：Focus MK2（2004–2012）框FD-2303IX、Focus MK3 / MK3.5 低配（2012–2018）框FD-2082IXA、Focus MK4（2019+）框FD-2083X、Ranger（16-23）高配（2016–2023）框FD-2553IX / FD-2553IXB、Mondeo（08-10，銀色）（2008–2010）框FD-',keywords:'FORD 福特 Focus MK2 Focus MK3 / MK3.5 低配 Focus MK4 Ranger（16-23）高配 Mondeo（08-10，銀色） Mondeo Tourneo Custom 旅行家 Kuga（13-18）低配 Kuga（13-18）高配 Kuga（13-18）12.3吋版 Kuga FD-2083X FD-2081XS FD-2342IX FD-4520XII FD-5519IX FD-8423X FD-3035IXP FD-2341IX FD-2303IX FD-5519XII 可以裝 可以換 能不能裝 主機升級 查詢'},{title:'VW 福斯 車款升級資訊（查詢庫新增）',url:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫',desc:'VW 福斯各車款主機升級安裝資訊：Golf 全系（2014+（高爾夫7））、Caddy（2016–2021）框VW-2073X，配 Golf 7 線組、Caddy（2022+）框VW-7288IX / VW-7288IXP、Polo（2010–2017）框VW-6061IX、Polo（2020）框VW-9018IX 或 VW-7601IX、Tiguan（09-16）（2009–2016）框VW-6',keywords:'VW 福斯 Golf 全系 Caddy Caddy Polo Polo Tiguan（09-16） Tiguan（17+） Passat B8 Caravelle T6.1 VW-7601IX VW-1071X VW-6061IX VW-7288IX VW-2073X VW-6046IXB VW-6047X VW-9018IX VW-7288IXP 可以裝 可以換 能不能裝 主機升級 查詢'},{title:'SKODA 斯柯達 車款升級資訊（查詢庫新增）',url:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫',desc:'SKODA 斯柯達各車款主機升級安裝資訊：Kamiq（（年份待確認））框SK-3048X、Fabia（2017）框SK-2074IX，需加 CAN、Yeti / 野帝（（年份待確認））框SK-3060IX等，含框型號及CAN盒選用說明。',keywords:'SKODA 斯柯達 Kamiq Fabia Yeti / 野帝 SK-3060IX SK-2074IX SK-3048X 可以裝 可以換 能不能裝 主機升級 查詢'},{title:'BMW 寶馬 車款升級資訊（查詢庫新增）',url:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫',desc:'BMW 寶馬各車款主機升級安裝資訊：E39 / E46（（年份待確認））框BW-2330IX、4系 F36（2017）、M2 F87（2017）等，含框型號及CAN盒選用說明。',keywords:'BMW 寶馬 E39 / E46 4系 F36 M2 F87 BW-2330IX 可以裝 可以換 能不能裝 主機升級 查詢'},{title:'HYUNDAI 現代 車款升級資訊（查詢庫新增）',url:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫',desc:'HYUNDAI 現代各車款主機升級安裝資訊：Tucson（2016–2019）框HY-7369IX、Tucson（2019+）框HY-1237IX / HY-1237X / HY-1237XII、Santa Fe（2019–2021）框HY-2006X / HY-2006XII 或 HY-4507X、Staria（2022）框HY-7954X、Venue（2019+）框HY-1210IX、Kona',keywords:'HYUNDAI 現代 Tucson Tucson Santa Fe Staria Venue Kona Veloster Porter / 小霸王 HY-4507X HY-1237XII HY-1237X HY-2330IX HY-7954X HY-1210IX HY-1177X HY-2006XII IC-1006XT HY-2006X 可以裝 可以換 能不能裝 主機升級 查詢'},{title:'KIA 起亞 車款升級資訊（查詢庫新增）',url:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫',desc:'KIA 起亞各車款主機升級安裝資訊：Stonic（2018+）框KA-0501IX、Sportage（2019）、Picanto / Morning（2018–2020）框KA-2304IX、Picanto / Morning（2021+）框KA-2306IX、Ceed（2022+）框KA-5605X、Kaon 卡旺（2003+）框KA-2498IX等，含框型號及CAN盒選用說明。',keywords:'KIA 起亞 Stonic Sportage Picanto / Morning Picanto / Morning Ceed Kaon 卡旺 KA-5605X KA-0501IX KA-2304IX IC-1006XT KA-2306IX KA-2498IX 可以裝 可以換 能不能裝 主機升級 查詢'},{title:'MAZDA 馬自達 車款升級資訊（查詢庫新增）',url:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫',desc:'MAZDA 馬自達各車款主機升級安裝資訊：Mazda 2（2015）框MA-1032IX、Mazda 3（14-19，雙系統）（2014–2019）框MA-7527IX、Mazda 5（2011–2016）框MA-2543IX、CX-5（有旋鈕高配）（2018–2019）框MA-5232IX等，含框型號及CAN盒選用說明。',keywords:'MAZDA 馬自達 Mazda 2 Mazda 3（14-19，雙系統） Mazda 5 CX-5（有旋鈕高配） MA-2543IX MA-5232IX MA-7527IX MA-1032IX 可以裝 可以換 能不能裝 主機升級 查詢'},{title:'SUBARU 速霸陸 車款升級資訊（查詢庫新增）',url:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫',desc:'SUBARU 速霸陸各車款主機升級安裝資訊：Forester 4代（2013–2017）框SU-8283IX、Forester（2018）、Forester 5代 / 5.5代（天窗，無環景）（2022+）、Forester 2023（有環景）（2023）、Impreza / Forester 5代 / XV（2017+）框SU-2084IX、WRX（2018）等，含框型號及CAN盒選用說明。',keywords:'SUBARU 速霸陸 Forester 4代 Forester Forester 5代 / 5.5代（天窗，無環景） Forester 2023（有環景） Impreza / Forester 5代 / XV WRX SU-8283IX SU-2084IX 可以裝 可以換 能不能裝 主機升級 查詢'},{title:'MITSUBISHI 三菱 車款升級資訊（查詢庫新增）',url:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫',desc:'MITSUBISHI 三菱各車款主機升級安裝資訊：Zinger（2005–2015）框MI-9464IX、Zinger（2015–2022）框MI-9465IX、Zinger（2023+）框MI-9469X、Outlander（2007–2013）框MI-2072IX、Outlander（2013+）框MI-2316X、Grand Lancer（2007–2016）框MI-2073X等，含框型號及',keywords:'MITSUBISHI 三菱 Zinger Zinger Zinger Outlander Outlander Grand Lancer Grand Lancer Delica Veryca 菱利 A180 / A190 J Space（手折款） Eclipse Cross MI-4410IX MI-9196X MI-2316X MI-2072IX MI-9465IX MI-9464IX MI-9469X MI-8368IX MI-9190IX MI-2073X 可以裝 可以換 能不能裝 主機升級 查詢'},{title:'MERCEDES-BENZ 賓士 車款升級資訊（查詢庫新增）',url:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫',desc:'MERCEDES-BENZ 賓士各車款主機升級安裝資訊：E-Class W211 / CLS-Class W219（2002–2009）框MZ-2301IX、E-Class W212（（年份待確認））、R-Class W251（2006–2017）框MZ-2053IX、C-Class / GLC（15-19）12.3吋（2015–2019）框MZ-4205XII、ML / GLE（06-12）（2',keywords:'MERCEDES-BENZ 賓士 E-Class W211 / CLS-Class W219 E-Class W212 R-Class W251 C-Class / GLC（15-19）12.3吋 ML / GLE（06-12） ML / GLE（16-19）12.3吋 SL V-Class（14+）12.3吋低配 Vito Vito E-Class W210 MZ-2051IX MZ-2053IX MZ-2301IX MZ-2063IX MZ-4205XII MZ-2341XII 可以裝 可以換 能不能裝 主機升級 查詢'},{title:'VOLVO 富豪 車款升級資訊（查詢庫新增）',url:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫',desc:'VOLVO 富豪各車款主機升級安裝資訊：XC60（2008–2014）框VO-6060IX、XC70（2006）框VO-3070IX、XC90（2002–2014）框VO-2101IX / VO-5904X等，含框型號及CAN盒選用說明。',keywords:'VOLVO 富豪 XC60 XC70 XC90 VO-6060IX VO-2101IX VO-3070IX VO-5904X 可以裝 可以換 能不能裝 主機升級 查詢'},{title:'SUZUKI 鈴木 車款升級資訊（查詢庫新增）',url:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫',desc:'SUZUKI 鈴木各車款主機升級安裝資訊：Swift（2005–2010）、Swift（2024+）框SZ-5148X、Jimny（2019+）框SZ-9064IXB等，含框型號及CAN盒選用說明。',keywords:'SUZUKI 鈴木 Swift Swift Jimny SZ-9064IXB SZ-5148X 可以裝 可以換 能不能裝 主機升級 查詢'},{title:'PEUGEOT 寶獅 車款升級資訊（查詢庫新增）',url:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫',desc:'PEUGEOT 寶獅各車款主機升級安裝資訊：508（全系）（（年份待確認））等，含框型號及CAN盒選用說明。',keywords:'PEUGEOT 寶獅 508（全系）  可以裝 可以換 能不能裝 主機升級 查詢'},{title:'AUDI 奧迪 車款升級資訊（查詢庫新增）',url:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫',desc:'AUDI 奧迪各車款主機升級安裝資訊：Q3（非2020年款）（（非2020款））、A3（2014）等，含框型號及CAN盒選用說明。',keywords:'AUDI 奧迪 Q3（非2020年款） A3 AU-5003 可以裝 可以換 能不能裝 主機升級 查詢'},{title:'2023年 Toyota 原廠環景鏡頭支援 & 強制檔下載',url:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車廠品牌分類/2023年toyota原廠環景鏡頭支援專頁',desc:'支援2023年Toyota環景一體機原廠鏡頭設定步驟。適用車種：23年Altis、Auris、CC、Hulix。設定路徑：使用手冊→CK/ACK使用手冊→密碼0310→客製設定→車型週邊支援→選23年台灣Toyota年式環景。ACK/APK各型號強制檔下載連結。',keywords:'強制檔 toyota 2023 環景 原廠環景 鏡頭 一體機 23年 Altis Auris CC Hulix ACK APK 強制更新 firmware 環景設定 倒車鏡像 顛倒 黑白畫面 環景畫面 原廠鏡頭接頭'},{title:"Youtube 解除更新方法",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.rwywlbarel7j",desc:"Youtube 更新後出現問題時，可將 Youtube 解除更新以恢復正常使用的步驟說明。",keywords:"Youtube 解除更新 回復舊版 版本問題 閃退 無法使用 YouTube"},{title:"常見問題 - 環景篇",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.muztmf6bjrwk",desc:"環景相關常見問題集，包含行車記錄器無法錄影、記憶卡偵測失敗等環景系統問題。",keywords:"環景 行車記錄器 錄影 記憶卡 隨身碟 偵測 環景篇 鏡頭 倒車"},{title:"其它問題 - 常見問題集",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.95kdgxi9rp7h",desc:"其它未分類的常見問題，如BM主機無法掃到熱點、CK-max 2K螢幕Youtube選項等。",keywords:"其它問題 雜項 BM-2 BM-3 PN-203 熱點 Wi-Fi 2K 螢幕 CK-max"},{title:"CK-max 2K螢幕 Youtube 無法選擇 2K 畫質問題",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.tfupb3t1k5v",desc:"說明 CK-max 雖為 2K 螢幕但 Youtube 無法選擇 2K 畫質的原因（與 iPhone 差異）。",keywords:"CK-max 2K 螢幕 Youtube 畫質 解析度 1080p iPhone Android 不能選 為什麼"},{title:"CK主機接BM用胎壓接收器改接方法",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.f41v689zi9f4",desc:"說明 CK 主機如何改接 BM 型胎壓接收器的配線方法與注意事項。",keywords:"CK 胎壓 BM 接收器 接線 改接 TPMS 配線方法 安裝"},{title:"CK/ACK主機改裝成1-DIN機身照",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.25esnki60wq9",desc:"CK/ACK 主機改裝成 1-DIN 規格後的實裝照片參考。",keywords:"CK ACK 1-DIN 改裝 機身 實裝照 窄版 單DIN 安裝"},{title:"大車鏡頭車側鎖桿使用方法",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.g9eyn5tnmngm",desc:"大車(貨車/廂型車)側邊鏡頭鎖桿的正確使用與固定方法說明。",keywords:"大車 鏡頭 側邊 鎖桿 貨車 廂型車 固定方式 安裝 使用方法"},{title:"車款升級資訊查詢庫 - 新增車款 AUDI Q3 / M.BENZ W164",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫#h.ruvr6gtzmt1h",desc:"新增 AUDI Q3 (2013-2018) 與 M.BENZ W164(ML) (2006-2012) 車款升級資訊。",keywords:"AUDI Q3 奧迪 BENZ W164 ML 賓士 車款 升級 更換 音響主機 可安裝 限制"}];
-
-/* ===== Fuse.js ===== */
+/* ============================================================
+   Fuse.js 模糊搜尋（用來取相關上下文給 AI）
+   ============================================================ */
 const fuse = new Fuse(KB, {
-  keys: [{name:"title",weight:0.4},{name:"keywords",weight:0.4},{name:"desc",weight:0.2}],
-  threshold: 0.7, minMatchCharLength: 2, includeScore: true,
-  ignoreLocation: true, distance: 200
+  keys: [
+    { name: "title",    weight: 0.4 },
+    { name: "keywords", weight: 0.4 },
+    { name: "desc",     weight: 0.2 }
+  ],
+  threshold: 0.55,
+  minMatchCharLength: 2,
+  includeScore: true,
+  useExtendedSearch: false,
+  ignoreLocation: true,
+  distance: 200
 });
 
-/* ===== API ===== */
-const FEEDBACK_API = 'https://script.google.com/macros/s/AKfycby7DtvaCSibzRmPYoGjBeVyVS5lXIJE1btBEX3hui_duuk9A9hPvXFMEgId0mIOK5Vm/exec';
+/* ============================================================
+   Gemini AI 呼叫
+   ============================================================ */
+async function callGeminiAI(question, topResults) {
+  const contextText = topResults.length > 0
+    ? topResults.map(r => `【${r.item.title}】\n說明：${r.item.desc}\n連結：${r.item.url}`).join('\n\n')
+    : '（知識庫中找不到明確相關內容）';
 
+  const prompt = `你是「飛鳥車用電子（ASUKA）」的技術客服AI助理。飛鳥是台灣車用電子品牌，產品包含車用主機（CK、ACK、PK、APK、LUX系列等）、環景攝影系統、後座螢幕等。
 
-/* ===== UI ===== */
+以下是與客戶問題最相關的知識庫內容：
+
+${contextText}
+
+客戶問題：${question}
+
+請用繁體中文直接回答。規則：
+- 直接切入重點，不需要說「根據知識庫」等前言
+- 有步驟的話請用數字條列（1. 2. 3.）
+- 回答簡潔，100～200字為宜
+- 若知識庫資訊不足，誠實說明並建議聯繫飛鳥FAE工程師`;
+
+  const resp = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.2, maxOutputTokens: 600 }
+      })
+    }
+  );
+
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(err.error?.message || `HTTP ${resp.status}`);
+  }
+  const data = await resp.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || '無法取得 AI 回答';
+}
+
+/* ============================================================
+   UI 邏輯
+   ============================================================ */
 const chatMessages = document.getElementById("chatMessages");
 const userInput    = document.getElementById("userInput");
-
-const DEFAULT_SUGGESTIONS = ["導航王沒有語音播報", "WiFi 連線但無法上網", "CarPlay 一直連不上", "行車記錄器不錄影"];
+const AI_ENABLED   = GEMINI_API_KEY && GEMINI_API_KEY !== 'YOUR_API_KEY_HERE';
 
 window.onload = () => {
-  appendBotMessage(`你好！我是飛鳥技術客服助手 👋\n\n請用口語描述你遇到的問題，我會幫你在客服平台找到最相關的說明頁面（最多3個結果）。`, DEFAULT_SUGGESTIONS);
-  loadTopQueries();
+  appendBotMessage(
+    AI_ENABLED
+      ? `你好！我是飛鳥技術客服 AI 助手 👋\n\n請直接描述你遇到的問題，我會用 AI 語意理解幫你找到精準答案。`
+      : `你好！我是飛鳥技術客服助手 👋\n\n請用口語描述你遇到的問題，我會幫你找到最相關的說明頁面。`,
+    ["導航王沒有語音播報", "WiFi 連線但無法上網", "CarPlay 一直連不上", "行車記錄器不錄影"]
+  );
 };
-
-// 從 Sheets 載入熱門查詢，更新建議按鈕（前4名）
-function loadTopQueries() {
-  fetch('https://script.google.com/macros/s/AKfycby7DtvaCSibzRmPYoGjBeVyVS5lXIJE1btBEX3hui_duuk9A9hPvXFMEgId0mIOK5Vm/exec', { method: 'GET' })
-    .then(r => r.json())
-    .then(data => {
-      if (data.topQueries && data.topQueries.length >= 2) {
-        const top = data.topQueries.slice(0, 4);
-        const suggestions = document.querySelectorAll('.suggestion-btn');
-        suggestions.forEach((btn, i) => {
-          if (top[i]) btn.textContent = top[i];
-        });
-      }
-    })
-    .catch(() => {/* 靜默失敗，保留預設 */});
-}
 
 function handleKey(e) {
   if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 }
+
 function autoResize(el) {
   el.style.height = "auto";
   el.style.height = Math.min(el.scrollHeight, 100) + "px";
 }
-function smartSearch(query) {
-  const q = query.toLowerCase();
-  const directMatches = [];
-  const seen = new Set();
 
-  KB.forEach(entry => {
-    const kws = entry.keywords.toLowerCase().split(/\s+/);
-    let totalScore = 0;
-    kws.forEach(kw => {
-      if (kw.length > 1 && q.includes(kw)) {
-        // 關鍵字越長（越具體）權重越高
-        if (kw.length >= 5) totalScore += 0.5;
-        else if (kw.length >= 4) totalScore += 0.4;
-        else if (kw.length >= 3) totalScore += 0.3;
-        else totalScore += 0.15;
-      }
-    });
-    if (totalScore > 0 && !seen.has(entry.url)) {
-      directMatches.push({ item: entry, score: Math.max(0, 1 - totalScore), _direct: true });
-      seen.add(entry.url);
-    }
-  });
-
-  // 分數越低排越前（totalScore 越高 → score 越低 → 排越前）
-  directMatches.sort((a, b) => a.score - b.score);
-
-  // Fuse 模糊搜尋補充
-  const fuseResults = fuse.search(query, { limit: 5 });
-  fuseResults.forEach(r => {
-    if (!seen.has(r.item.url)) {
-      directMatches.push(r);
-      seen.add(r.item.url);
-    }
-  });
-
-  return directMatches.slice(0, 3);
-}
-
-function sendMessage() {
+async function sendMessage() {
   const text = userInput.value.trim();
   if (!text) return;
+
   appendUserMessage(text);
-  userInput.value = ""; userInput.style.height = "auto";
-  // 記錄查詢（背景，不影響UX）
-  fetch('https://script.google.com/macros/s/AKfycby7DtvaCSibzRmPYoGjBeVyVS5lXIJE1btBEX3hui_duuk9A9hPvXFMEgId0mIOK5Vm/exec', {
-    method: 'POST', mode: 'no-cors',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({query: text})
-  }).catch(() => {});
+  userInput.value = "";
+  userInput.style.height = "auto";
+
   const typingEl = appendTyping();
-  setTimeout(() => {
-    typingEl.remove();
-    renderResults(smartSearch(text), text);
-    scrollToBottom();
-  }, 600);
+  const fuseResults = fuse.search(text, { limit: 5 });
+
+  if (AI_ENABLED) {
+    try {
+      const aiText = await callGeminiAI(text, fuseResults);
+      typingEl.remove();
+      renderAIResults(aiText, fuseResults.slice(0, 3));
+    } catch (err) {
+      console.error('Gemini error:', err);
+      typingEl.remove();
+      appendBotMessage(`⚠️ AI 暫時無法回應（${err.message}），改用關鍵字搜尋：`);
+      renderResults(fuseResults.slice(0, 3), text);
+    }
+  } else {
+    setTimeout(() => {
+      typingEl.remove();
+      renderResults(fuseResults.slice(0, 3), text);
+      scrollToBottom();
+    }, 600);
+  }
 }
+
+/* ---- AI 結果渲染 ---- */
+function renderAIResults(aiText, fuseResults) {
+  const div = document.createElement("div");
+  div.className = "msg bot";
+
+  // 格式化 AI 回答：換行 → 段落
+  const paragraphs = aiText.split(/\n\n+/).map(p => `<p>${escHtml(p).replace(/\n/g,'<br>')}</p>`).join('');
+
+  let html = `
+    <div class="ai-answer-wrap">
+      <div class="ai-answer-label">✨ AI 智能回答</div>
+      <div class="ai-answer-body">${paragraphs}</div>
+    </div>`;
+
+  if (fuseResults.length) {
+    const rankLabels = ["最相關", "次相關", "參考"];
+    html += `<div class="source-label">📖 參考說明頁面</div>`;
+    html += `<div class="results-list">` + fuseResults.map((r, i) => `
+      <a class="result-card" href="${escHtml(r.item.url)}" target="_blank" rel="noopener">
+        <div class="rank">${rankLabels[i] || "#"+(i+1)}</div>
+        <div class="title">${escHtml(r.item.title)}</div>
+        <div class="desc">${escHtml(r.item.desc)}</div>
+        <div class="link-hint">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+          點擊開啟頁面
+        </div>
+      </a>`).join("") + `</div>`;
+  }
+
+  div.innerHTML = html;
+  chatMessages.appendChild(div);
+  scrollToBottom();
+}
+
+/* ---- 傳統搜尋結果渲染（AI 未啟用或失敗時備用） ---- */
+function renderResults(results, query) {
+  const div = document.createElement("div");
+  div.className = "msg bot";
+
+  if (!results.length) {
+    div.innerHTML = `
+      <div class="bubble">找不到「${escHtml(query)}」的相關說明 😔<br><br>
+      建議換個關鍵字再試試，或直接聯絡 FAE 工程師協助。</div>
+      <div class="no-result">
+        💡 可以試試：<br>
+        • 描述具體症狀（例如「黑畫面」「無訊號」）<br>
+        • 使用功能名稱（例如「車速」「倒車」「方向盤」）<br>
+        • 使用型號或車款名稱
+      </div>`;
+  } else {
+    const rankLabels = ["最相關", "次相關", "參考"];
+    div.innerHTML = `
+      <div class="bubble">找到 ${results.length} 個相關說明，點擊連結查看：</div>
+      <div class="results-list">` +
+      results.map((r, i) => `
+        <a class="result-card" href="${escHtml(r.item.url)}" target="_blank" rel="noopener">
+          <div class="rank">${rankLabels[i] || "#"+(i+1)}</div>
+          <div class="title">${escHtml(r.item.title)}</div>
+          <div class="desc">${escHtml(r.item.desc)}</div>
+          <div class="link-hint">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            點擊開啟頁面
+          </div>
+        </a>`).join("") + `</div>`;
+  }
+  chatMessages.appendChild(div);
+  scrollToBottom();
+}
+
+/* ---- Helper 函數 ---- */
 function appendUserMessage(text) {
   const div = document.createElement("div");
   div.className = "msg user";
   div.innerHTML = `<div class="bubble">${escHtml(text)}</div>`;
-  chatMessages.appendChild(div); scrollToBottom();
+  chatMessages.appendChild(div);
+  scrollToBottom();
 }
+
 function appendBotMessage(text, suggestions = []) {
   const div = document.createElement("div");
   div.className = "msg bot";
-  let html = `<div class="bubble">${escHtml(text).replace(/\n/g,"<br>")}</div>`;
+  let html = `<div class="bubble">${escHtml(text).replace(/\n/g, "<br>")}</div>`;
   if (suggestions.length) {
     html += `<div class="suggestions">` +
       suggestions.map(s => `<button class="suggestion-btn" onclick="quickSend(this)">${escHtml(s)}</button>`).join("") +
     `</div>`;
   }
-  div.innerHTML = html; chatMessages.appendChild(div); scrollToBottom(); return div;
+  div.innerHTML = html;
+  chatMessages.appendChild(div);
+  scrollToBottom();
+  return div;
 }
+
 function appendTyping() {
   const div = document.createElement("div");
   div.className = "msg bot";
   div.innerHTML = `<div class="typing-dot"><span></span><span></span><span></span></div>`;
-  chatMessages.appendChild(div); scrollToBottom(); return div;
-}
-function renderResults(results, query) {
-  const div = document.createElement("div");
-  div.className = "msg bot";
-  if (!results.length) {
-    div.innerHTML = `
-      <div class="bubble">找不到「${escHtml(query)}」的相關說明 😔<br><br>建議換個關鍵字再試試，或直接聯絡 FAE 工程師協助。</div>
-      <div class="no-result">💡 可以試試：<br>• 描述具體症狀（例如「黑畫面」「無訊號」）<br>• 使用功能名稱（例如「車速」「倒車」「方向盤」）<br>• 使用型號或車款名稱</div>`;
-  } else {
-    const label = results.length === 1 ? "找到 1 個相關說明" : `找到 ${results.length} 個相關說明`;
-    const rankLabels = ["最相關", "次相關", "參考"];
-    let cards = results.map((r, i) => {
-      const item = r.item;
-      const isTraining = item.url === '__training__';
-      if (isTraining) {
-        const urlMatch = item.desc.match(/https?:\/\/[^\s]+/);
-        const extractedUrl = urlMatch ? urlMatch[0].replace(/[.,]$/, '') : null;
-        const cleanDesc = item.desc.replace(/https?:\/\/[^\s]+/g, '').trim();
-        const titleText = item.title.replace('📚 ', '');
-        if (extractedUrl) {
-          return `<a class="result-card training" href="${escHtml(extractedUrl)}" target="_blank" rel="noopener">
-            <div class="rank">${rankLabels[i]||"#"+(i+1)}</div>
-            <div class="title">${escHtml(titleText)}</div>
-            ${cleanDesc ? `<div class="desc">${escHtml(cleanDesc)}</div>` : ''}
-            <div class="link-hint"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>點擊開啟頁面（業務提供）</div>
-          </a>`;
-        } else {
-          return `<div class="result-card training">
-            <div class="rank">${rankLabels[i]||"#"+(i+1)}</div>
-            <div class="title">${escHtml(titleText)}</div>
-            <div class="desc">${escHtml(item.desc)}</div>
-            <div class="link-hint">📍 業務提交的說明</div>
-          </div>`;
-        }
-      }
-      return `<a class="result-card" href="${escHtml(item.url)}" target="_blank" rel="noopener">
-        <div class="rank">${rankLabels[i]||"#"+(i+1)}</div>
-        <div class="title">${escHtml(item.title)}</div>
-        <div class="desc">${escHtml(item.desc)}</div>
-        <div class="link-hint"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>點擊開啟頁面</div>
-      </a>`;
-    }).join("");
-    div.innerHTML = `<div class="bubble">${label}，點擊連結查看詳細說明：</div><div class="results-list">${cards}</div>`;
-  }
   chatMessages.appendChild(div);
+  scrollToBottom();
+  return div;
 }
+
 function quickSend(btn) { userInput.value = btn.textContent; sendMessage(); }
 function scrollToBottom() { chatMessages.scrollTop = chatMessages.scrollHeight; }
-function clearChat() {
-  chatMessages.innerHTML = '';
-  userInput.value = ''; userInput.style.height = 'auto';
-  appendBotMessage(`對話已清除 🗑️\n\n請繼續輸入你的問題。`, DEFAULT_SUGGESTIONS);
-  loadTopQueries();
-}
 function escHtml(str) {
   return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
+
+function clearChat() {
+  chatMessages.innerHTML = '';
+  userInput.value = '';
+  userInput.style.height = 'auto';
+  appendBotMessage(`對話已清除 🗑️\n\n請繼續輸入你的問題。`,
+    ["導航王沒有語音播報","WiFi 連線但無法上網","CarPlay 一直連不上","行車記錄器不錄影"]);
+}
+
+/* ── 訓練回饋功能 ── */
+const FEEDBACK_API = 'https://script.google.com/macros/s/AKfycby7DtvaCSibzRmPYoGjBeVyVS5lXIJE1btBEX3hui_duuk9A9hPvXFMEgId0mIOK5Vm/exec';
+
 function toggleFeedback() {
-  const body = document.getElementById('feedbackBody');
+  const body   = document.getElementById('feedbackBody');
   const toggle = document.getElementById('feedbackToggle');
   const isOpen = body.classList.contains('open');
   body.classList.toggle('open', !isOpen);
   toggle.classList.toggle('open', !isOpen);
 }
+
 function submitFeedback() {
   const q = document.getElementById('fbQuestion').value.trim();
   const a = document.getElementById('fbAnswer').value.trim();
   if (!q || !a) { alert('請填寫問題與答案位置'); return; }
-  const submitBtn = document.querySelector('.fb-submit-btn');
-  submitBtn.textContent = '提交中...'; submitBtn.disabled = true;
+  const btn = document.querySelector('.fb-submit-btn');
+  btn.textContent = '提交中...'; btn.disabled = true;
   fetch(FEEDBACK_API, {
     method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ question: q, answer: a })
-  })
-  .then(() => {
+  }).then(() => {
     document.getElementById('fbQuestion').value = '';
     document.getElementById('fbAnswer').value = '';
     const suc = document.getElementById('fbSuccess');
     suc.classList.add('show');
     setTimeout(() => suc.classList.remove('show'), 4000);
-    submitBtn.textContent = '提交訓練資料'; submitBtn.disabled = false;
-  })
-  .catch(() => {
+    btn.textContent = '提交訓練資料'; btn.disabled = false;
+  }).catch(() => {
     alert('提交失敗，請確認網路連線後再試');
-    submitBtn.textContent = '提交訓練資料'; submitBtn.disabled = false;
+    btn.textContent = '提交訓練資料'; btn.disabled = false;
   });
 }
 </script>
