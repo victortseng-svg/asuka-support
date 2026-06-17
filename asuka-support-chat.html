@@ -298,7 +298,7 @@ function cardHtml(r, i) {
   return '<a class="result-card" href="' + esc(item.url) + '" target="_blank" rel="noopener">' +
     '<div class="rank">' + (labels[i]||("#"+(i+1))) + '</div>' +
     '<div class="title">' + esc(item.title) + '</div>' +
-    '<div class="desc">' + esc(item.desc) + '</div>' +
+    '<div class="desc">' + esc(item.desc).replace('（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）', '<span style="color:#1e293b;font-weight:600;">（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）</span>') + '</div>' +
     '<div class="link-hint"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>\u9EDE\u64CA\u958B\u555F\u9801\u9762</div>' +
     '</a>';
 }
