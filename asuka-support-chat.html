@@ -4,7 +4,27 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Asuka 技術客服助手</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/7.0.0/fuse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/7.0.0/fuse.min.js">function multiSearch(query) {
+  var results = fuse.search(query, {limit: 3});
+  if (results.length < 1) {
+    var tokens = query.split(/[\s\u3000\uff0c\u3002\uff1f\uff01\u3001\uff0c]+/).filter(function(t){ return t.length >= 2 && t.length <= 10; });
+    var seen = {};
+    results.forEach(function(r){ seen[r.item.title] = true; });
+    tokens.forEach(function(token) {
+      if (results.length >= 3) return;
+      var tr = fuse.search(token, {limit: 3});
+      tr.forEach(function(r) {
+        if (!seen[r.item.title] && results.length < 3) {
+          seen[r.item.title] = true;
+          results.push(r);
+        }
+      });
+    });
+  }
+  return results.slice(0, 3);
+}
+
+</script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont,h "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif; background: #f0f2f5; display: flex; align-items: flex-start; justify-content: center; min-height: 100vh; padding: 16px; overflow-y: auto; }
@@ -409,23 +429,3 @@ function submitFeedback() {
 </script>
 </body>
 </html>
-function multiSearch(query) {
-  var results = fuse.search(query, {limit: 3});
-  if (results.length < 1) {
-    var tokens = query.split(/[\s\u3000\uff0c\u3002\uff1f\uff01\u3001\uff0c]+/).filter(function(t){ return t.length >= 2 && t.length <= 10; });
-    var seen = {};
-    results.forEach(function(r){ seen[r.item.title] = true; });
-    tokens.forEach(function(token) {
-      if (results.length >= 3) return;
-      var tr = fuse.search(token, {limit: 3});
-      tr.forEach(function(r) {
-        if (!seen[r.item.title] && results.length < 3) {
-          seen[r.item.title] = true;
-          results.push(r);
-        }
-      });
-    });
-  }
-  return results.slice(0, 3);
-}
-
