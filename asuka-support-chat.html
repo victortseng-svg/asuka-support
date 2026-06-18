@@ -1,232 +1,214 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Asuka 技術客服助手</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/7.0.0/fuse.min.js">function multiSearch(query) {
-  var results = fuse.search(query, {limit: 3});
-  if (results.length < 1) {
-    var tokens = query.split(/[\s\u3000\uff0c\u3002\uff1f\uff01\u3001\uff0c]+/).filter(function(t){ return t.length >= 2 && t.length <= 10; });
-    var seen = {};
-    results.forEach(function(r){ seen[r.item.title] = true; });
-    tokens.forEach(function(token) {
-      if (results.length >= 3) return;
-      var tr = fuse.search(token, {limit: 3});
-      tr.forEach(function(r) {
-        if (!seen[r.item.title] && results.length < 3) {
-          seen[r.item.title] = true;
-          results.push(r);
-        }
-      });
-    });
-  }
-  return results.slice(0, 3);
-}
-
-</script>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont,h "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif; background: #f0f2f5; display: flex; align-items: flex-start; justify-content: center; min-height: 100vh; padding: 16px; overflow-y: auto; }
-    .chat-container { width: 100%; max-width: 680px; background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.10); display: flex; flex-direction: column; overflow: hidden; }
-    .chat-header { background: linear-gradient(135deg, #1a56db, #1e429f); color: #fff; padding: 14px 18px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
-    .chat-header .icon { width: 38px; height: 38px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
-    .chat-header .header-text { flex: 1; min-width: 0; }
-    .chat-header h1 { font-size: 15px; font-weight: 700; }
-    .chat-header p { font-size: 11px; opacity: 0.8; margin-top: 2px; }
-    .clear-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; color: #fff; cursor: pointer; padding: 6px 10px; font-size: 12px; display: flex; align-items: center; gap: 4px; flex-shrink: 0; transition: background 0.15s; white-space: nowrap; }
-    .clear-btn:hover { background: rgba(255,255,255,0.25); }
-    .clear-btn svg { width: 13px; height: 13px; fill: #fff; }
-    .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; -webkit-overflow-scrolling: touch; min-height: 260px; max-height: 420px; }
-    .msg { display: flex; flex-direction: column; max-width: 92%; }
-    .msg.bot { align-self: flex-start; }
-    .msg.user { align-self: flex-end; }
-    .msg .bubble { padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.6; }
-    .msg.bot .bubble { background: #f1f5ff; color: #1e293b; border-bottom-left-radius: 4px; }
-    .msg.user .bubble { background: #1a56db; color: #fff; border-bottom-right-radius: 4px; }
-    .results-list { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
-    .result-card { background: #fff; border: 1px solid #dde4f5; border-radius: 10px; padding: 12px 14px; text-decoration: none; display: block; transition: box-shadow 0.2s, border-color 0.2s; color: inherit; }
-    .result-card:hover { box-shadow: 0 2px 12px rgba(26,86,219,0.12); border-color: #1a56db; }
-    .result-card .rank { display: inline-block; background: #1a56db; color: #fff; font-size: 10px; font-weight: 700; border-radius: 4px; padding: 1px 6px; margin-bottom: 6px; }
-    .result-card .title { font-size: 14px; font-weight: 600; color: #1a56db; margin-bottom: 4px; }
-    .result-card .desc { font-size: 12px; color: #64748b; line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-    .result-card .link-hint { font-size: 11px; color: #94a3b8; margin-top: 6px; display: flex; align-items: center; gap: 4px; }
-    .result-card-dual { cursor: default; }
-    .dual-links { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
-    .dual-link { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: #1a56db; background: #f0f4ff; border: 1px solid #c7d7fa; border-radius: 5px; padding: 3px 8px; text-decoration: none; font-weight: 600; transition: background 0.15s; }
-    .dual-link:hover { background: #dce8ff; }
-    .dual-link2 { color: #0f766e; background: #f0fdfb; border-color: #99e6dc; }
-    .dual-link2:hover { background: #ccfbf5; }
-    .no-result { background: #fff8f0; border: 1px solid #ffd6a0; border-radius: 10px; padding: 12px 14px; font-size: 13px; color: #92400e; }
-    .suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-    .suggestion-btn { background: #f1f5ff; border: 1px solid #c7d7f8; border-radius: 20px; padding: 6px 14px; font-size: 12px; color: #1a56db; cursor: pointer; transition: background 0.15s; }
-    .suggestion-btn:hover { background: #dbeafe; }
-    .chat-input-area { border-top: 1px solid #e9edf5; padding: 14px 16px; background: #fff; }
-    .input-row { display: flex; gap: 10px; align-items: flex-end; }
-    .input-row textarea { flex: 1; border: 1px solid #d1d9f0; border-radius: 10px; padding: 10px 14px; font-size: 14px; font-family: inherit; resize: none; outline: none; line-height: 1.5; max-height: 100px; transition: border-color 0.2s; }
-    .input-row textarea:focus { border-color: #1a56db; }
-    .input-row textarea::placeholder { color: #aab4cc; }
-    .send-btn { width: 42px; height: 42px; background: #1a56db; border: none; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.15s, transform 0.1s; }
-    .send-btn:hover { background: #1e429f; }
-    .send-btn:active { transform: scale(0.95); }
-    .send-btn svg { width: 18px; height: 18px; fill: #fff; }
-    .hint-text { font-size: 11px; color: #aab4cc; margin-top: 6px; text-align: center; }
-    .typing-dot { display: inline-flex; align-items: center; gap: 4px; padding: 10px 14px; background: #f1f5ff; border-radius: 12px; border-bottom-left-radius: 4px; }
-    .typing-dot span { width: 7px; height: 7px; background: #93acd8; border-radius: 50%; animation: bounce 1.2s infinite; }
-    .typing-dot span:nth-child(2) { animation-delay: 0.2s; }
-    .typing-dot span:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes bounce { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-6px); } }
-    @media (max-width: 600px) { body { padding: 0; } .chat-container { border-radius: 0; } .chat-messages { padding: 12px; min-height: 220px; max-height: 340px; } .chat-header { padding: 12px 14px; } .hint-text { display: none; } }
-    .feedback-panel { border-top: 2px solid #f0f2f5; background: #fff; flex-shrink: 0; }
-    .feedback-header { background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
-    .feedback-header:hover { background: #f1f5f9; }
-    .feedback-header-left { display: flex; align-items: center; gap: 10px; }
-    .feedback-header-icon { width: 34px; height: 34px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
-    .feedback-header h2 { font-size: 14px; font-weight: 700; color: #1e293b; }
-    .feedback-header p { font-size: 11px; color: #64748b; margin-top: 2px; }
-    .feedback-toggle { width: 28px; height: 28px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; flex-shrink: 0; }
-    .feedback-toggle svg { width: 14px; height: 14px; fill: #64748b; }
-    .feedback-toggle.open { transform: rotate(180deg); }
-    .feedback-body { padding: 16px 18px; display: none; }
-    .feedback-body.open { display: block; }
-    .fb-label { font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 5px; }
-    .fb-input { width: 100%; border: 1px solid #d1d9f0; border-radius: 8px; padding: 9px 12px; font-size: 13px; font-family: inherit; outline: none; resize: vertical; transition: border-color 0.2s; min-height: 40px; }
-    .fb-input:focus { border-color: #f59e0b; }
-    .fb-row { margin-bottom: 12px; }
-    .fb-submit-btn { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border: none; border-radius: 8px; padding: 9px 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; font-family: inherit; }
-    .fb-submit-btn:hover { opacity: 0.9; }
-    .fb-success { display: none; background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #166534; margin-top: 10px; }
-    .fb-success.show { display: block; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asuka 技術客服助手</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/7.0.0/fuse.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont,h "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif; background: #f0f2f5; display: flex; align-items: flex-start; justify-content: center; min-height: 100vh; padding: 16px; overflow-y: auto; }
+.chat-container { width: 100%; max-width: 680px; background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.10); display: flex; flex-direction: column; overflow: hidden; }
+.chat-header { background: linear-gradient(135deg, #1a56db, #1e429f); color: #fff; padding: 14px 18px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.chat-header .icon { width: 38px; height: 38px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.chat-header .header-text { flex: 1; min-width: 0; }
+.chat-header h1 { font-size: 15px; font-weight: 700; }
+.chat-header p { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+.clear-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; color: #fff; cursor: pointer; padding: 6px 10px; font-size: 12px; display: flex; align-items: center; gap: 4px; flex-shrink: 0; transition: background 0.15s; white-space: nowrap; }
+.clear-btn:hover { background: rgba(255,255,255,0.25); }
+.clear-btn svg { width: 13px; height: 13px; fill: #fff; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; -webkit-overflow-scrolling: touch; min-height: 260px; max-height: 420px; }
+.msg { display: flex; flex-direction: column; max-width: 92%; }
+.msg.bot { align-self: flex-start; }
+.msg.user { align-self: flex-end; }
+.msg .bubble { padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.6; }
+.msg.bot .bubble { background: #f1f5ff; color: #1e293b; border-bottom-left-radius: 4px; }
+.msg.user .bubble { background: #1a56db; color: #fff; border-bottom-right-radius: 4px; }
+.results-list { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+.result-card { background: #fff; border: 1px solid #dde4f5; border-radius: 10px; padding: 12px 14px; text-decoration: none; display: block; transition: box-shadow 0.2s, border-color 0.2s; color: inherit; }
+.result-card:hover { box-shadow: 0 2px 12px rgba(26,86,219,0.12); border-color: #1a56db; }
+.result-card .rank { display: inline-block; background: #1a56db; color: #fff; font-size: 10px; font-weight: 700; border-radius: 4px; padding: 1px 6px; margin-bottom: 6px; }
+.result-card .title { font-size: 14px; font-weight: 600; color: #1a56db; margin-bottom: 4px; }
+.result-card .desc { font-size: 12px; color: #64748b; line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.result-card .link-hint { font-size: 11px; color: #94a3b8; margin-top: 6px; display: flex; align-items: center; gap: 4px; }
+.result-card-dual { cursor: default; }
+.dual-links { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.dual-link { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: #1a56db; background: #f0f4ff; border: 1px solid #c7d7fa; border-radius: 5px; padding: 3px 8px; text-decoration: none; font-weight: 600; transition: background 0.15s; }
+.dual-link:hover { background: #dce8ff; }
+.dual-link2 { color: #0f766e; background: #f0fdfb; border-color: #99e6dc; }
+.dual-link2:hover { background: #ccfbf5; }
+.no-result { background: #fff8f0; border: 1px solid #ffd6a0; border-radius: 10px; padding: 12px 14px; font-size: 13px; color: #92400e; }
+.suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.suggestion-btn { background: #f1f5ff; border: 1px solid #c7d7f8; border-radius: 20px; padding: 6px 14px; font-size: 12px; color: #1a56db; cursor: pointer; transition: background 0.15s; }
+.suggestion-btn:hover { background: #dbeafe; }
+.chat-input-area { border-top: 1px solid #e9edf5; padding: 14px 16px; background: #fff; }
+.input-row { display: flex; gap: 10px; align-items: flex-end; }
+.input-row textarea { flex: 1; border: 1px solid #d1d9f0; border-radius: 10px; padding: 10px 14px; font-size: 14px; font-family: inherit; resize: none; outline: none; line-height: 1.5; max-height: 100px; transition: border-color 0.2s; }
+.input-row textarea:focus { border-color: #1a56db; }
+.input-row textarea::placeholder { color: #aab4cc; }
+.send-btn { width: 42px; height: 42px; background: #1a56db; border: none; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.15s, transform 0.1s; }
+.send-btn:hover { background: #1e429f; }
+.send-btn:active { transform: scale(0.95); }
+.send-btn svg { width: 18px; height: 18px; fill: #fff; }
+.hint-text { font-size: 11px; color: #aab4cc; margin-top: 6px; text-align: center; }
+.typing-dot { display: inline-flex; align-items: center; gap: 4px; padding: 10px 14px; background: #f1f5ff; border-radius: 12px; border-bottom-left-radius: 4px; }
+.typing-dot span { width: 7px; height: 7px; background: #93acd8; border-radius: 50%; animation: bounce 1.2s infinite; }
+.typing-dot span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-6px); } }
+@media (max-width: 600px) { body { padding: 0; } .chat-container { border-radius: 0; } .chat-messages { padding: 12px; min-height: 220px; max-height: 340px; } .chat-header { padding: 12px 14px; } .hint-text { display: none; } }
+.feedback-panel { border-top: 2px solid #f0f2f5; background: #fff; flex-shrink: 0; }
+.feedback-header { background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
+.feedback-header:hover { background: #f1f5f9; }
+.feedback-header-left { display: flex; align-items: center; gap: 10px; }
+.feedback-header-icon { width: 34px; height: 34px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.feedback-header h2 { font-size: 14px; font-weight: 700; color: #1e293b; }
+.feedback-header p { font-size: 11px; color: #64748b; margin-top: 2px; }
+.feedback-toggle { width: 28px; height: 28px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; flex-shrink: 0; }
+.feedback-toggle svg { width: 14px; height: 14px; fill: #64748b; }
+.feedback-toggle.open { transform: rotate(180deg); }
+.feedback-body { padding: 16px 18px; display: none; }
+.feedback-body.open { display: block; }
+.fb-label { font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 5px; }
+.fb-input { width: 100%; border: 1px solid #d1d9f0; border-radius: 8px; padding: 9px 12px; font-size: 13px; font-family: inherit; outline: none; resize: vertical; transition: border-color 0.2s; min-height: 40px; }
+.fb-input:focus { border-color: #f59e0b; }
+.fb-row { margin-bottom: 12px; }
+.fb-submit-btn { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border: none; border-radius: 8px; padding: 9px 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; font-family: inherit; }
+.fb-submit-btn:hover { opacity: 0.9; }
+.fb-success { display: none; background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #166534; margin-top: 10px; }
+.fb-success.show { display: block; }
+</style>
 </head>
 <body>
 <div class="chat-container">
-  <div class="chat-header">
-    <div class="icon">&#x1F527;</div>
-    <div class="header-text">
-      <h1>Asuka &#x6280;&#x8853;&#x5BA2;&#x670D;&#x52A9;&#x624B;</h1>
-      <p>AI &#x667A;&#x80FD;&#x56DE;&#x7B54; + &#x77E5;&#x8B58;&#x5EAB;&#x641C;&#x5C0B;</p>
-    </div>
-    <button class="clear-btn" onclick="clearChat()" title="&#x6E05;&#x9664;&#x5C0D;&#x8A71;">
-      <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-      &#x6E05;&#x9664;
-    </button>
-  </div>
-  <div class="chat-messages" id="chatMessages"></div>
-  <div class="chat-input-area">
-    <div class="input-row">
-      <textarea id="userInput" rows="1" placeholder="&#x8ACB;&#x8F38;&#x5165;&#x4F60;&#x7684;&#x554F;&#x984C;&#xFF0C;&#x4F8B;&#x5982;&#xFF1A;CAN bus &#x8A0A;&#x865F;&#x6C92;&#x6709;&#x53CD;&#x61C9;&#x600E;&#x9EBC;&#x8FA6;&#xFF1F;" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-      <button class="send-btn" onclick="sendMessage()" title="&#x9001;&#x51FA;">
-        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-      </button>
-    </div>
-    <p class="hint-text">&#x6309; Enter &#x9001;&#x51FA;&#xFF0C;Shift+Enter &#x63DB;&#x884C;</p>
-  </div>
-  <div class="feedback-panel">
-    <div class="feedback-header" onclick="toggleFeedback()">
-      <div class="feedback-header-left">
-        <div class="feedback-header-icon">&#x1F4DD;</div>
-        <div>
-          <h2>&#x627E;&#x4E0D;&#x5230;&#x7B54;&#x6848;&#xFF1F;&#x5E6B;&#x52A9;&#x6211;&#x5B78;&#x7FD2;</h2>
-          <p>&#x586B;&#x5BEB;&#x554F;&#x984C;&#x8207;&#x7B54;&#x6848;&#x4F4D;&#x7F6E;&#xFF0C;&#x8B93;&#x7BA1;&#x7406;&#x54E1;&#x66F4;&#x65B0;&#x77E5;&#x8B58;&#x5EAB;</p>
-        </div>
-      </div>
-      <div class="feedback-toggle" id="feedbackToggle">
-        <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
-      </div>
-    </div>
-    <div class="feedback-body" id="feedbackBody">
-      <div class="fb-row">
-        <div class="fb-label">&#x1F4CC; &#x4F60;&#x7684;&#x554F;&#x984C;</div>
-        <textarea class="fb-input" id="fbQuestion" rows="2" placeholder="&#x4F8B;&#x5982;&#xFF1A;Ford Kuga 2016&#x5E74;&#x53EF;&#x4EE5;&#x5B89;&#x88DD;&#x55CE;&#xFF1F;"></textarea>
-      </div>
-      <div class="fb-row">
-        <div class="fb-label">&#x1F517; &#x7B54;&#x6848;&#x5728;&#x54EA;&#x88E1;&#xFF1F;</div>
-        <textarea class="fb-input" id="fbAnswer" rows="2" placeholder="&#x4F8B;&#x5982;&#xFF1A;&#x8ECA;&#x6B3E;&#x5347;&#x7D1A;&#x8CC7;&#x8A0A;&#x67E5;&#x8A62;&#x5EAB; &rarr; FORD &rarr; KUGA"></textarea>
-      </div>
-      <button class="fb-submit-btn" onclick="submitFeedback()">&#x63D0;&#x4EA4;&#x8A13;&#x7DF4;&#x8CC7;&#x6599;</button>
-      <div class="fb-success" id="fbSuccess">&#x2705; &#x5DF2;&#x8A18;&#x9304;&#xFF01;&#x611F;&#x8B1D;&#x4F60;&#x7684;&#x8CA2;&#x737B;&#xFF0C;&#x7BA1;&#x7406;&#x54E1;&#x6703;&#x5B9A;&#x671F;&#x66F4;&#x65B0;&#x77E5;&#x8B58;&#x5EAB;&#x3002;</div>
-      <div style="font-size:11px;color:#94a3b8;margin-top:10px;text-align:center;">&#x63D0;&#x4EA4;&#x5F8C;&#x6703;&#x81EA;&#x52D5;&#x8A18;&#x9304;&#x5230;&#x7BA1;&#x7406;&#x54E1;&#x7684; Google &#x8A66;&#x7B97;&#x8868; &#x1F4CA;</div>
-    </div>
-  </div>
+<div class="chat-header">
+<div class="icon">&#x1F527;</div>
+<div class="header-text">
+<h1>Asuka &#x6280;&#x8853;&#x5BA2;&#x670D;&#x52A9;&#x624B;</h1>
+<p>AI &#x667A;&#x80FD;&#x56DE;&#x7B54; + &#x77E5;&#x8B58;&#x5EAB;&#x641C;&#x5C0B;</p>
+</div>
+<button class="clear-btn" onclick="clearChat()" title="&#x6E05;&#x9664;&#x5C0D;&#x8A71;">
+<svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+&#x6E05;&#x9664;
+</button>
+</div>
+<div class="chat-messages" id="chatMessages"></div>
+<div class="chat-input-area">
+<div class="input-row">
+<textarea id="userInput" rows="1" placeholder="&#x8ACB;&#x8F38;&#x5165;&#x4F60;&#x7684;&#x554F;&#x984C;&#xFF0C;&#x4F8B;&#x5982;&#xFF1A;CAN bus &#x8A0A;&#x865F;&#x6C92;&#x6709;&#x53CD;&#x61C9;&#x600E;&#x9EBC;&#x8FA6;&#xFF1F;" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+<button class="send-btn" onclick="sendMessage()" title="&#x9001;&#x51FA;">
+<svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+</button>
+</div>
+<p class="hint-text">&#x6309; Enter &#x9001;&#x51FA;&#xFF0C;Shift+Enter &#x63DB;&#x884C;</p>
+</div>
+<div class="feedback-panel">
+<div class="feedback-header" onclick="toggleFeedback()">
+<div class="feedback-header-left">
+<div class="feedback-header-icon">&#x1F4DD;</div>
+<div>
+<h2>&#x627E;&#x4E0D;&#x5230;&#x7B54;&#x6848;&#xFF1F;&#x5E6B;&#x52A9;&#x6211;&#x5B78;&#x7FD2;</h2>
+<p>&#x586B;&#x5BEB;&#x554F;&#x984C;&#x8207;&#x7B54;&#x6848;&#x4F4D;&#x7F6E;&#xFF0C;&#x8B93;&#x7BA1;&#x7406;&#x54E1;&#x66F4;&#x65B0;&#x77E5;&#x8B58;&#x5EAB;</p>
+</div>
+</div>
+<div class="feedback-toggle" id="feedbackToggle">
+<svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+</div>
+</div>
+<div class="feedback-body" id="feedbackBody">
+<div class="fb-row">
+<div class="fb-label">&#x1F4CC; &#x4F60;&#x7684;&#x554F;&#x984C;</div>
+<textarea class="fb-input" id="fbQuestion" rows="2" placeholder="&#x4F8B;&#x5982;&#xFF1A;Ford Kuga 2016&#x5E74;&#x53EF;&#x4EE5;&#x5B89;&#x88DD;&#x55CE;&#xFF1F;"></textarea>
+</div>
+<div class="fb-row">
+<div class="fb-label">&#x1F517; &#x7B54;&#x6848;&#x5728;&#x54EA;&#x88E1;&#xFF1F;</div>
+<textarea class="fb-input" id="fbAnswer" rows="2" placeholder="&#x4F8B;&#x5982;&#xFF1A;&#x8ECA;&#x6B3E;&#x5347;&#x7D1A;&#x8CC7;&#x8A0A;&#x67E5;&#x8A62;&#x5EAB; &rarr; FORD &rarr; KUGA"></textarea>
+</div>
+<button class="fb-submit-btn" onclick="submitFeedback()">&#x63D0;&#x4EA4;&#x8A13;&#x7DF4;&#x8CC7;&#x6599;</button>
+<div class="fb-success" id="fbSuccess">&#x2705; &#x5DF2;&#x8A18;&#x9304;&#xFF01;&#x611F;&#x8B1D;&#x4F60;&#x7684;&#x8CA2;&#x737B;&#xFF0C;&#x7BA1;&#x7406;&#x54E1;&#x6703;&#x5B9A;&#x671F;&#x66F4;&#x65B0;&#x77E5;&#x8B58;&#x5EAB;&#x3002;</div>
+<div style="font-size:11px;color:#94a3b8;margin-top:10px;text-align:center;">&#x63D0;&#x4EA4;&#x5F8C;&#x6703;&#x81EA;&#x52D5;&#x8A18;&#x9304;&#x5230;&#x7BA1;&#x7406;&#x54E1;&#x7684; Google &#x8A66;&#x7B97;&#x8868; &#x1F4CA;</div>
+</div>
+</div>
 </div>
 <script>
 var KB = [
-  {title:"\u98DB\u9CE5\u5BA2\u6236\u670D\u52D9\u4E2D\u5FC3 \u9996\u9801",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u9996\u9801",desc:"\u98DB\u9CE5\u4E3B\u6A5F\u9500\u552E\u53CA\u5B89\u88DD\u8CC7\u8A0A\u670D\u52D9\u5E73\u53F0\u9996\u9801",keywords:"\u9996\u9801 \u98DB\u9CE5 \u4E3B\u6A5F \u5B89\u88DD \u8CC7\u8A0A \u670D\u52D9 \u5165\u53E3"},
-  {title:"\u5C0E\u822A\u738B\u6C92\u6709\u8A9E\u97F3\u64AD\u5831",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.6k2ysmcjzk44",desc:"\u4F9D\u5E8F\u78BA\u8A8D\uFF1A1.\u8ECA\u6A5F\u5C0E\u822A\u6DF7\u97F3\u662F\u5426\u958B\u555F 2.\u5C0E\u822A\u662F\u5426\u975C\u97F3 3.\u8A9E\u97F3\u8A2D\u5B9A\u5C0E\u822A\u97F3\u91CF\u662F\u5426\u958B\u555F 4.\u66F4\u65B0\u5230\u6700\u65B0\u7248\u672C\u4E26\u6062\u5FA9\u5C0E\u822A\u9810\u8A2D\u5024\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"\u5C0E\u822A\u738B \u8A9E\u97F3 \u64AD\u5831 \u975C\u97F3 \u6DF7\u97F3 \u97F3\u91CF \u6C92\u6709\u8072\u97F3 \u7121\u8072"},
-  {title:"\u5C0E\u822A\u738B\u8F38\u5165\u5730\u5740\u6642\u6C92\u6709\u7E23\u5E02\u53EF\u9078",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.gl8wowml92ws",desc:"\u89E3\u6CD5\uFF1A\u5148\u96E2\u958B\u5C0E\u822A\u738B\uFF0C\u5230\u6A94\u6848\u7E3D\u7BA1\u5220\u9664\u6307\u5B9ANavikingMap\u8CC7\u6599\u593E\uFF0C\u518D\u91CD\u65B0\u6253\u958B\u5C0E\u822A\u738B\u9023\u7DB2\u4E0B\u8F09\u5716\u8CC7\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"\u5C0E\u822A\u738B \u5730\u5740 \u7E23\u5E02 \u9078\u4E0D\u5230 \u5716\u8CC7 \u4E0B\u8F09 NavikingMap"},
-  {title:"iPhone \u71B1\u9EDE\u4E0D\u7A69\u5B9A\u5982\u4F55\u6539\u5584\uFF1F",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.mm0iihsxuolt",desc:"iPhone 12\u5F8C\u6A5F\u578B\uFF1A\u958B\u555F\u71B1\u9EDE\u6700\u5927\u76F8\u5BB9\u6027\u8A2D\u5B9A\u3002\u820A\u6B3EiPhone\u53E6\u6709\u6539\u5584\u504F\u65B9\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"iPhone \u71B1\u9EDE \u4E0D\u7A69\u5B9A \u6700\u5927\u76F8\u5BB9\u6027 \u9023\u7DDA \u65B7\u7DDA WiFi"},
-  {title:"WiFi\u9023\u7DDA\u5F8C\u4ECD\u7136\u7121\u6CD5\u4E0A\u7DB2",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.lqehnf99apmn",desc:"\u53EF\u80FD\u539F\u56E0\u662F\u88DD\u7F6E\u7CFB\u7D71\u6642\u9593\u8207\u5BE6\u969B\u6642\u9593\u5DEE\u8DDD\u592A\u5927\uFF0C\u8ACB\u5230\u8A2D\u5B9A\u624B\u52D5\u5C07\u7CFB\u7D71\u6642\u9593\u8ABF\u6574\u5230\u6B63\u78BA\u6642\u9593\u518D\u8A66\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"WiFi \u4E0A\u7DB2 \u7121\u6CD5 \u7CFB\u7D71\u6642\u9593 \u9023\u7DDA \u7DB2\u8DEF \u986F\u793A\u9023\u7DDA\u4F46\u4E0D\u80FD\u7528"},
-  {title:"\u8ECA\u6A5F\u627E\u4E0D\u5230\u624B\u6A5F\u71B1\u9EDE\uFF08\u983B\u6BB5\u554F\u984C\uFF09",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.o40s1oubpml9",desc:"\u8ECA\u6A5F\u627E\u4E0D\u5230\u624B\u6A5F\u71B1\u9EDE\uFF0C\u8ACB\u78BA\u8A8D\u624B\u6A5F\u71B1\u9EDE\u983B\u6BB5\uFF0C\u8A2D\u5B9A\u70BA2.4GHz\u6216\u96D9\u983B\u3002BM-2\u3001BM-3\u4E3B\u6A5F\u4E0D\u652F\u63F85.0GHz\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"\u71B1\u9EDE \u627E\u4E0D\u5230 \u983B\u6BB5 5GHz 2.4GHz \u96D9\u983B BM-2 BM-3"},
-  {title:"WiFi\u5E38\u5E38\u81EA\u52D5\u95DC\u9589\u7684\u539F\u56E0\uFF08ACK/LUX\uFF09",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.nekvcphox0q5",desc:"ACK\u3001LUX\u7CFBWiFi\u81EA\u52D5\u95DC\u9589\uFF0C\u53EF\u80FD\u662FCarlink\u81EA\u52D5\u9023\u63A5\u958B\u555F\uFF0C\u85CD\u7259\u4E00\u958B\u5C31\u555F\u52D5\u7121\u7DDA CarPlay\u5C0E\u81F4WiFi\u95DC\u9589\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"WiFi \u81EA\u52D5\u95DC\u9589 Carlink \u85CD\u7259 CarPlay ACK LUX"},
-  {title:"\u63D2\u5165SIM\u5361\u5F8C\u7121\u6CD5\u4E0A\u7DB2",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.8k68u3o75s56",desc:"SIM\u5361\u6709\u8B80\u5230\u4F46\u7121\u6CD5\u4E0A\u7DB2\uFF0C\u8ACB\u78BA\u8A8DSIM\u5361\u662F\u5426\u8A2D\u5B9A\u4E86PIN\u78BC\u3002\u9700\u5148\u7528\u624B\u6A5F\u95DC\u9589SIM PIN\u5F8C\u518D\u63D2\u5165\u8ECA\u6A5F\u4F7F\u7528\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"SIM\u5361 \u4E0A\u7DB2 \u7121\u6CD5 PIN\u78BC PIN \u63D2\u5361 4G"},
-  {title:"APP\u4E00\u76F4\u9583\u9000\u600E\u9EBC\u8FA6\uFF1F",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.q6yjn1xqbtuj",desc:"APP\u4E0D\u65B7\u9583\u9000\uFF1A\u6E05\u9664Google Play\u670D\u52D9\u5FEB\u53D6\u8207\u8CC7\u6599\u3002\u4E5F\u53EF\u80FD\u662FAPP\u6B63\u5728\u80CC\u666F\u66F4\u65B0\uFF0C\u7A0D\u7B49\u5E7E\u5206\u9418\u518D\u8A66\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"APP \u9583\u9000 Play\u670D\u52D9 \u5FEB\u53D6 \u6E05\u9664 \u7576\u6A5F \u4E0D\u80FD\u7528"},
-  {title:"\u7121\u7DDA CarPlay\u4E00\u76F4\u7121\u6CD5\u9023\u7D50\u6210\u529F",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.mh8arxm49cw",desc:"\u7121\u7DDDTV CarPlay\u5361\u5728\u8A8D\u8B49\u756B\u9762\uFF1A1.\u5220\u9664\u5DF2\u9023\u7D50\u4E14\u6C92\u7528\u7684CarPlay\u88DD\u7F6E\u8A18\u9304\uFF1B2.\u91CD\u7F6EiPhone\u7DB2\u8DEF\u72C0\u614B\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"CarPlay \u7121\u7DDD \u9023\u7D50 \u8A8D\u8B49 \u914D\u5C0D iPhone \u9023\u4E0D\u4E0A"},
-  {title:"iPhone\u85CD\u7259\u901A\u8A71\u8072\u97F3\u5F9E\u624B\u6A5F\u8A71\u7B52\u51FA\u8072",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.qabwhe6ucnb",desc:"iPhone\u8A2D\u5B9A\u8DEF\u5F91\uFF1A\u8A2D\u5B9A > \u8F14\u52A9\u4F7F\u7528 > \u89F8\u63A7 > \u4F86\u96FB\u8A9E\u97F3\u50B3\u9001 > \u9078\u300C\u85CD\u8A61\u8033\u9EA5\u300D\uFF0C\u901A\u8A71\u8072\u97F3\u5C31\u6703\u5F9E\u8ECA\u6A5F\u5589\u53ED\u51FA\u8072\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"iPhone \u85CD\u7259 \u901A\u8A71 \u8072\u97F3 \u5589\u53ED \u624B\u6A5F\u8A71\u7B52 \u4F86\u96FB \u85CD\u8A61\u8033\u9EA5"},
-  {title:"YouTube\u4E0D\u65B7\u8F49\u5708\u5708\u7121\u6CD5\u89C0\u770B",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.1999soc4s3dv",desc:"\u89E3\u6C7A\uFF1A1.\u78BA\u8A8D\u767B\u5165Gmail\u5E33\u865F\uFF1B2.Play Store\u66F4\u65B0\u6700\u65B0\u7248\u3002\u53E6\u53EF\u5617\u8A66\u89E3\u9664\u66F4\u65B0YouTube\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"YouTube \u8F49\u5708 \u7121\u6CD5\u770B \u7DE9\u885D \u5361\u4F4F \u64AD\u653E Gmail \u66F4\u65B0"},
-  {title:"\u4E3B\u6A5F\u4E00\u76F4\u4E82\u8DF3\u6A21\u5F0F\uFF08\u5C0F\u8297\u8A9E\u97F3\u52A9\u7406\u8AA4\u89F8\uFF09",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.5soewvdp0ds2",desc:"ACK/APK\u4E3B\u6A5F\u4E09\u4E0D\u4E94\u6642\u4E82\u8DF3\u6A21\u5F0F\uFF0C\u901A\u5E38\u662F\u5C0F\u8297\u8A9E\u97F3\u52A9\u7406\u80CC\u666F\u6536\u97F3\u8AA4\u5224\u3002\u89E3\u6CD5\uFF1A\u505C\u7528\u5C0F\u8297\u52A9\u7406\uFF08\u9577\u6309\u9996\u9801\u6A19\u984C\u8F38\u51650310\u95DC\u9589\uFF09\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"\u4E82\u8DF3 \u6A21\u5F0F \u5C0F\u8297 \u8A9E\u97F3\u52A9\u7406 \u8AA4\u89F8 ACK APK \u81EA\u52D5\u5207\u63DB \u5E72\u64FE"},
-  {title:"CK/ACK \u96B1\u85CF\u529F\u80FD & \u5DE5\u5EE0\u5BC6\u78BC",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F#h.jn0wetwndtf2",desc:"ACK/CK\u4E3B\u6A5F\u96B1\u85CF\u529F\u80FD\u5217\u8868\uFF0C\u5DE5\u5EE0\u5BC6\u78BC0310\uFF08\u9577\u6309\u9996\u9801\u6A19\u984C\u8F38\u5165\uFF09\uFF0C\u96B1\u85CFAPP\u7684\u958B\u555F\u65B9\u6CD5\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"\u96B1\u85CF\u529F\u80FD \u5DE5\u5EE0\u5BC6\u78BC \u5BC6\u78BC 0310 ACK CK \u9032\u968E\u8A2D\u5B9A \u96B1\u85CFAPP \u89E3\u9396"},
-  {title:"CK/ACK \u6700\u65B0\u8EDF\u9AD4 & \u5716\u8CC7\u4E0B\u8F09",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F#h.bgrdsai0o7vp",desc:"ACK/CK\u4E3B\u6A5F\u6700\u65B0\u7248\u4E3B\u7A0B\u5F0F\u8EDF\u9AD4\u4E0B\u8F09\u9023\u7D50\u3001\u7279\u5225\u8EDF\u9AD4\uFF08OTA\u3001\u5C0F\u8297\u8A9E\u97F3\u52A9\u7406\u914D\u7F6E\u6A94\uFF09\u4E0B\u8F09\u5340\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"\u8EDF\u9AD4 \u4E0B\u8F09 \u66F4\u65B0 \u4E3B\u7A0B\u5F0F OTA \u5716\u8CC7 \u7248\u672C ACK CK \u6700\u65B0"},
-  {title:"CK/ACK \u4E3B\u8EDF\u9AD4\u66F4\u65B0\u6D41\u7A0B",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F#h.aysjlpwfq9ig",desc:"ACK/CK\u4E3B\u6A5F\u4E3B\u7A0B\u5F0F\u66F4\u65B0\u6B65\u9A5F\uFF1A\u4E0B\u8F09\u89E3\u58D3\u7E2E\u2192\u8907\u88FD\u5230USB\u6839\u76EE\u9304\u2192\u63D2\u5165\u4E3B\u6A5F\u2192\u81EA\u52D5\u8DF3\u51FA\u5347\u7D1A\u5305\u2192\u6309\u958B\u59CB\u66F4\u65B0\u2192\u5B8C\u6210\u5F8C\u91CD\u958B\u6A5F\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"\u8EDF\u9AD4\u66F4\u65B0 \u4E3B\u7A0B\u5F0F \u66F4\u65B0\u6D41\u7A0B USB \u5347\u7D1A OTA ACK CK \u5237\u6A5F \u7248\u672C \u600E\u9EBC\u66F4\u65B0"},
-  {title:"CK/ACK CAN\u76D2\u8A2D\u5B9A\u53CA\u652F\u63F4\u8ECA\u578B\u6E05\u55AE",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F#h.8l6pqmiqufge",desc:"ACK/CK\u4E3B\u6A5FCAN\u76D2\u9078\u64C7\u6E05\u55AE\uFF0C\u5217\u51FA\u5404\u652F\u63F4\u8ECA\u6B3E\u8207\u5C0D\u61C9CAN\u76D2\u578B\u865F\uFF0C\u53EF\u67E5\u8A62\u7279\u5B9A\u8ECA\u578B\u61C9\u9078\u7528\u54EA\u500BCAN\u76D2\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"CAN\u76D2 \u652F\u63F4\u8ECA\u578B \u9078\u64C7\u6E05\u55AE ACK CK \u76F8\u5BB9 \u8ECA\u6B3E \u5C0D\u61C9 \u54EA\u500B"},
-  {title:"CK/ACK \u74B0\u666F\u5B89\u88DD\u3001\u6821\u6B63\u554F\u984C",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F#h.yp63ac25mtor",desc:"ACK/CK\u74B0\u666F\u93E1\u982D\u5E38\u898B\u554F\u984C\uFF1A\u6821\u6B63\u5F8C\u6578\u64DA\u672A\u4FDD\u5B58\u3001\u93E1\u982D\u6C92\u6709\u756B\u9762\uFF084\u9853\u9700\u5168\u9023\uFF09\u3001\u5012\u8ECA\u74B0\u666F\u6162\u51FA\u73FE\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"\u74B0\u666F \u6821\u6B63 \u93E1\u982D \u6C92\u6709\u756B\u9762 \u900F\u660E \u8ECA\u6A21 ACK CK 360 \u5012\u8ECA"},
-  {title:"CK/ACK \u521D\u6B21\u5B89\u88DD\u8207\u552E\u670D\u6CE8\u610F\u4E8B\u9805",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F#h.8ahkhnidwifz",desc:"\u9996\u6B21\u5B89\u88DDCK\u4E3B\u6A5F\u6CE8\u610F\u4E8B\u9805\uFF1A\u5F8C\u65B9\u6563\u71B1\u98A8\u6247\u4E00\u5B9A\u8981\u63A5\u3001\u80CE\u58D3\u63A5\u6536\u5668\u8207BM\u4E0D\u5171\u7528\u3001DVR\u8981\u7528CKVR\u578B\u865F\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"\u521D\u6B21\u5B89\u88DD \u6CE8\u610F \u98A8\u6247 \u80CE\u58D3 \u63A5\u6536\u5668 CKVR DVR CarPlay \u885D\u7A81 ACK CK \u65B0\u88DD"},
-  {title:"LUX-A \u5E02\u552E\u9AD8\u968E\u4E3B\u6A5F\u76F8\u95DC\u8CC7\u8A0A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/lux-a-\u4E3B\u6A5F\u76F8\u95DC",desc:"LUX-A\u5E02\u552E\u9AD8\u968E\u8ECA\u7528\u4E3B\u6A5F\u7522\u54C1\u4ECB\u7D39\u3002",keywords:"LUX-A LUX \u4E3B\u6A5F \u9AD8\u968E \u7522\u54C1 \u4ECB\u7D39 \u898F\u683C"},
-  {title:"HONDA \u672C\u7530 \u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u8ECA\u5EE0\u54C1\u724C\u5206\u985E/honda",desc:"HONDA\u672C\u7530\u5404\u8ECA\u6B3E\u7279\u6B8A\u5B89\u88DD\u8CC7\u8A0A\uFF0C\u5305\u542BHR-V\u3001CR-V\u3001Fit\u3001City\u3001Civic\u3001Accord\u3001Odyssey\u7B49\u8ECA\u578B\u3002",keywords:"Honda \u672C\u7530 HR-V HRV CR-V CRV Fit City Civic Accord Odyssey BR-V ZR-V \u8ECA\u6B3E \u5B89\u88DD \u53EF\u4EE5\u88DD"},
-  {title:"TOYOTA \u8C50\u7530 \u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u8ECA\u5EE0\u54C1\u724C\u5206\u985E/toyota",desc:"TOYOTA\u8C50\u7530\u5404\u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A\uFF0C\u5305\u542BRAV-4\u3001Altis\u3001Camry\u3001Yaris\u3001Cross\u3001Sienta\u7B49\u8ECA\u578B\u3002",keywords:"Toyota \u8C50\u7530 RAV4 RAV-4 Altis Camry Yaris Cross Sienta Wish Noah Vios \u8ECA\u6B3E \u5B89\u88DD \u53EF\u4EE5\u88DD"},
-  {title:"NISSAN \u65E5\u7522 \u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u8ECA\u5EE0\u54C1\u724C\u5206\u985E/nissan",desc:"NISSAN\u65E5\u7522\u5404\u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A\uFF0C\u5305\u542BX-Trail\u3001Kicks\u3001Tiida\u3001Sentra\u3001March\u3001Livina\u7B49\u8ECA\u578B\u3002",keywords:"Nissan \u65E5\u7522 X-Trail XTrail Kicks Tiida Sentra March Terra Livina \u8ECA\u6B3E \u5B89\u88DD \u53EF\u4EE5\u88DD"},
-  {title:"FORD \u798F\u7279 \u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/ford",desc:"FORD\u798F\u7279\u5404\u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A\uFF0C\u5305\u542BKuga\u3001Focus\uFF083.5\u4EE3\uFF09\u3001Mondeo\u3001EcoSport\u3001Ranger\u3001Puma\u7B49\u8ECA\u578B\u3002",keywords:"Ford \u798F\u7279 Kuga Focus 3.5\u4EE3 Mondeo EcoSport Explorer Ranger Puma Escape \u8ECA\u6B3E \u5B89\u88DD \u53EF\u4EE5\u88DD \u76F8\u5BB9"},
-  {title:"MAZDA \u99AC\u81EA\u9054 \u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/mazda",desc:"MAZDA\u99AC\u81EA\u9054\u5404\u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A\uFF0C\u5305\u542BCX-5\u3001CX-3\u3001CX-30\u3001Mazda3\u3001Mazda6\u7B49\u8ECA\u578B\u3002",keywords:"Mazda \u99AC\u81EA\u9054 CX-5 CX5 CX-3 CX3 CX-30 CX30 Mazda3 Mazda6 MX-30 \u8ECA\u6B3E \u5B89\u88DD \u53EF\u4EE5\u88DD"},
-  {title:"SUBARU \u901F\u9738\u9678 \u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u8ECA\u5EE0\u54C1\u724C\u5206\u985E/subaru",desc:"SUBARU\u901F\u9738\u9678\u5404\u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A\uFF0C\u5305\u542BForester\u3001Outback\u3001Levorg\u3001XV\u3001Crosstrek\u7B49\u8ECA\u578B\u3002",keywords:"Subaru \u901F\u9738\u9678 Forester Outback Levorg Legacy XV Crosstrek \u8ECA\u6B3E \u5B89\u88DD \u53EF\u4EE5\u88DD"},  {title:"LEXUS 凌志 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.mjhq8g8yqpes",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.4bgwzx67kj68",desc:"LEXUS凌志各車款安裝資訊，包含NX、RX、ES、IS、UX、CT等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"Lexus 凌志 NX RX ES IS UX CT nx200 nx300 rx450 es300 is250 ux200 lx gx ls 車款 安裝 可以裝 支援 能裝嗎"},
-  {title:"MITSUBISHI 三菱 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.cmdii32t910m",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.odogicuvbnc2",desc:"MITSUBISHI三菱各車款安裝資訊，包含Outlander、Eclipse Cross、Galant Fortis等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"Mitsubishi 三菱 Outlander outlander Eclipse Cross eclipsecross asx lancer pajero 車款 安裝 可以裝 支援 能裝嗎"},
-  {title:"HYUNDAI 現代 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.fb5ykcdgeson",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.5mwuxmov4kqc",desc:"HYUNDAI現代各車款安裝資訊，包含Tucson、Santa Fe、Elantra、Sonata等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"Hyundai 現代 Tucson tucson santafe santa fe Elantra Sonata ioniq kona i30 venue 車款 安裝 可以裝 支援 能裝嗎"},
-  {title:"KIA 起亞 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.bifcm48noxlf",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.vgoqb0hl13t8",desc:"KIA起亞各車款安裝資訊，包含Sportage、Sorento、Stinger等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"Kia 起亞 Sportage sportage Sorento sorento Stinger carnival niro ev6 seltos picanto 車款 安裝 可以裝 支援 能裝嗎"},
-  {title:"SUZUKI 鈴木 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.jkm1gc6q9r2i",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.w8qke81pg7ge",desc:"SUZUKI鈴木各車款安裝資訊，包含Swift、Vitara、SX4、Ignis等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"Suzuki 鈴木 Swift swift Vitara vitara sx4 ignis jimny baleno 車款 安裝 可以裝 支援 能裝嗎"},
-  {title:"BMW 寶馬 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.go1y8j9v8uiv",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.e8t502gqs9gy",desc:"BMW寶馬各車款安裝資訊，包含3系列、5系列、X1、X3、X5等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"BMW 寶馬 3系列 5系列 x1 x2 x3 x4 x5 x6 320 520 330 530 118 218 ix m3 m5 車款 安裝 可以裝 支援 能裝嗎"},
-  {title:"MERCEDES-BENZ 賓士 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.to2g51nqg732",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.ir9fseb9cued",desc:"MERCEDES-BENZ賓士各車款安裝資訊，包含C-Class、E-Class、GLC、GLA、GLB等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"Mercedes Benz 賓士 c-class e-class glc gla glb gle c200 e200 c300 a-class cla 車款 安裝 可以裝 支援 能裝嗎"},
+{title:"\u98DB\u9CE5\u5BA2\u6236\u670D\u52D9\u4E2D\u5FC3 \u9996\u9801",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u9996\u9801",desc:"\u98DB\u9CE5\u4E3B\u6A5F\u9500\u552E\u53CA\u5B89\u88DD\u8CC7\u8A0A\u670D\u52D9\u5E73\u53F0\u9996\u9801",keywords:"\u9996\u9801 \u98DB\u9CE5 \u4E3B\u6A5F \u5B89\u88DD \u8CC7\u8A0A \u670D\u52D9 \u5165\u53E3"},
+{title:"\u5C0E\u822A\u738B\u6C92\u6709\u8A9E\u97F3\u64AD\u5831",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.6k2ysmcjzk44",desc:"\u4F9D\u5E8F\u78BA\u8A8D\uFF1A1.\u8ECA\u6A5F\u5C0E\u822A\u6DF7\u97F3\u662F\u5426\u958B\u555F 2.\u5C0E\u822A\u662F\u5426\u975C\u97F3 3.\u8A9E\u97F3\u8A2D\u5B9A\u5C0E\u822A\u97F3\u91CF\u662F\u5426\u958B\u555F 4.\u66F4\u65B0\u5230\u6700\u65B0\u7248\u672C\u4E26\u6062\u5FA9\u5C0E\u822A\u9810\u8A2D\u5024\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"\u5C0E\u822A\u738B \u8A9E\u97F3 \u64AD\u5831 \u975C\u97F3 \u6DF7\u97F3 \u97F3\u91CF \u6C92\u6709\u8072\u97F3 \u7121\u8072"},
+{title:"\u5C0E\u822A\u738B\u8F38\u5165\u5730\u5740\u6642\u6C92\u6709\u7E23\u5E02\u53EF\u9078",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.gl8wowml92ws",desc:"\u89E3\u6CD5\uFF1A\u5148\u96E2\u958B\u5C0E\u822A\u738B\uFF0C\u5230\u6A94\u6848\u7E3D\u7BA1\u5220\u9664\u6307\u5B9ANavikingMap\u8CC7\u6599\u593E\uFF0C\u518D\u91CD\u65B0\u6253\u958B\u5C0E\u822A\u738B\u9023\u7DB2\u4E0B\u8F09\u5716\u8CC7\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"\u5C0E\u822A\u738B \u5730\u5740 \u7E23\u5E02 \u9078\u4E0D\u5230 \u5716\u8CC7 \u4E0B\u8F09 NavikingMap"},
+{title:"iPhone \u71B1\u9EDE\u4E0D\u7A69\u5B9A\u5982\u4F55\u6539\u5584\uFF1F",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.mm0iihsxuolt",desc:"iPhone 12\u5F8C\u6A5F\u578B\uFF1A\u958B\u555F\u71B1\u9EDE\u6700\u5927\u76F8\u5BB9\u6027\u8A2D\u5B9A\u3002\u820A\u6B3EiPhone\u53E6\u6709\u6539\u5584\u504F\u65B9\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"iPhone \u71B1\u9EDE \u4E0D\u7A69\u5B9A \u6700\u5927\u76F8\u5BB9\u6027 \u9023\u7DDA \u65B7\u7DDA WiFi"},
+{title:"WiFi\u9023\u7DDA\u5F8C\u4ECD\u7136\u7121\u6CD5\u4E0A\u7DB2",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.lqehnf99apmn",desc:"\u53EF\u80FD\u539F\u56E0\u662F\u88DD\u7F6E\u7CFB\u7D71\u6642\u9593\u8207\u5BE6\u969B\u6642\u9593\u5DEE\u8DDD\u592A\u5927\uFF0C\u8ACB\u5230\u8A2D\u5B9A\u624B\u52D5\u5C07\u7CFB\u7D71\u6642\u9593\u8ABF\u6574\u5230\u6B63\u78BA\u6642\u9593\u518D\u8A66\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"WiFi \u4E0A\u7DB2 \u7121\u6CD5 \u7CFB\u7D71\u6642\u9593 \u9023\u7DDA \u7DB2\u8DEF \u986F\u793A\u9023\u7DDA\u4F46\u4E0D\u80FD\u7528"},
+{title:"\u8ECA\u6A5F\u627E\u4E0D\u5230\u624B\u6A5F\u71B1\u9EDE\uFF08\u983B\u6BB5\u554F\u984C\uFF09",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.o40s1oubpml9",desc:"\u8ECA\u6A5F\u627E\u4E0D\u5230\u624B\u6A5F\u71B1\u9EDE\uFF0C\u8ACB\u78BA\u8A8D\u624B\u6A5F\u71B1\u9EDE\u983B\u6BB5\uFF0C\u8A2D\u5B9A\u70BA2.4GHz\u6216\u96D9\u983B\u3002BM-2\u3001BM-3\u4E3B\u6A5F\u4E0D\u652F\u63F85.0GHz\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"\u71B1\u9EDE \u627E\u4E0D\u5230 \u983B\u6BB5 5GHz 2.4GHz \u96D9\u983B BM-2 BM-3"},
+{title:"WiFi\u5E38\u5E38\u81EA\u52D5\u95DC\u9589\u7684\u539F\u56E0\uFF08ACK/LUX\uFF09",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.nekvcphox0q5",desc:"ACK\u3001LUX\u7CFBWiFi\u81EA\u52D5\u95DC\u9589\uFF0C\u53EF\u80FD\u662FCarlink\u81EA\u52D5\u9023\u63A5\u958B\u555F\uFF0C\u85CD\u7259\u4E00\u958B\u5C31\u555F\u52D5\u7121\u7DDA CarPlay\u5C0E\u81F4WiFi\u95DC\u9589\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"WiFi \u81EA\u52D5\u95DC\u9589 Carlink \u85CD\u7259 CarPlay ACK LUX"},
+{title:"\u63D2\u5165SIM\u5361\u5F8C\u7121\u6CD5\u4E0A\u7DB2",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.8k68u3o75s56",desc:"SIM\u5361\u6709\u8B80\u5230\u4F46\u7121\u6CD5\u4E0A\u7DB2\uFF0C\u8ACB\u78BA\u8A8DSIM\u5361\u662F\u5426\u8A2D\u5B9A\u4E86PIN\u78BC\u3002\u9700\u5148\u7528\u624B\u6A5F\u95DC\u9589SIM PIN\u5F8C\u518D\u63D2\u5165\u8ECA\u6A5F\u4F7F\u7528\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"SIM\u5361 \u4E0A\u7DB2 \u7121\u6CD5 PIN\u78BC PIN \u63D2\u5361 4G"},
+{title:"APP\u4E00\u76F4\u9583\u9000\u600E\u9EBC\u8FA6\uFF1F",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.q6yjn1xqbtuj",desc:"APP\u4E0D\u65B7\u9583\u9000\uFF1A\u6E05\u9664Google Play\u670D\u52D9\u5FEB\u53D6\u8207\u8CC7\u6599\u3002\u4E5F\u53EF\u80FD\u662FAPP\u6B63\u5728\u80CC\u666F\u66F4\u65B0\uFF0C\u7A0D\u7B49\u5E7E\u5206\u9418\u518D\u8A66\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"APP \u9583\u9000 Play\u670D\u52D9 \u5FEB\u53D6 \u6E05\u9664 \u7576\u6A5F \u4E0D\u80FD\u7528"},
+{title:"\u7121\u7DDA CarPlay\u4E00\u76F4\u7121\u6CD5\u9023\u7D50\u6210\u529F",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.mh8arxm49cw",desc:"\u7121\u7DDDTV CarPlay\u5361\u5728\u8A8D\u8B49\u756B\u9762\uFF1A1.\u5220\u9664\u5DF2\u9023\u7D50\u4E14\u6C92\u7528\u7684CarPlay\u88DD\u7F6E\u8A18\u9304\uFF1B2.\u91CD\u7F6EiPhone\u7DB2\u8DEF\u72C0\u614B\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"CarPlay \u7121\u7DDD \u9023\u7D50 \u8A8D\u8B49 \u914D\u5C0D iPhone \u9023\u4E0D\u4E0A"},
+{title:"iPhone\u85CD\u7259\u901A\u8A71\u8072\u97F3\u5F9E\u624B\u6A5F\u8A71\u7B52\u51FA\u8072",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.qabwhe6ucnb",desc:"iPhone\u8A2D\u5B9A\u8DEF\u5F91\uFF1A\u8A2D\u5B9A > \u8F14\u52A9\u4F7F\u7528 > \u89F8\u63A7 > \u4F86\u96FB\u8A9E\u97F3\u50B3\u9001 > \u9078\u300C\u85CD\u8A61\u8033\u9EA5\u300D\uFF0C\u901A\u8A71\u8072\u97F3\u5C31\u6703\u5F9E\u8ECA\u6A5F\u5589\u53ED\u51FA\u8072\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"iPhone \u85CD\u7259 \u901A\u8A71 \u8072\u97F3 \u5589\u53ED \u624B\u6A5F\u8A71\u7B52 \u4F86\u96FB \u85CD\u8A61\u8033\u9EA5"},
+{title:"YouTube\u4E0D\u65B7\u8F49\u5708\u5708\u7121\u6CD5\u89C0\u770B",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.1999soc4s3dv",desc:"\u89E3\u6C7A\uFF1A1.\u78BA\u8A8D\u767B\u5165Gmail\u5E33\u865F\uFF1B2.Play Store\u66F4\u65B0\u6700\u65B0\u7248\u3002\u53E6\u53EF\u5617\u8A66\u89E3\u9664\u66F4\u65B0YouTube\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"YouTube \u8F49\u5708 \u7121\u6CD5\u770B \u7DE9\u885D \u5361\u4F4F \u64AD\u653E Gmail \u66F4\u65B0"},
+{title:"\u4E3B\u6A5F\u4E00\u76F4\u4E82\u8DF3\u6A21\u5F0F\uFF08\u5C0F\u8297\u8A9E\u97F3\u52A9\u7406\u8AA4\u89F8\uFF09",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.5soewvdp0ds2",desc:"ACK/APK\u4E3B\u6A5F\u4E09\u4E0D\u4E94\u6642\u4E82\u8DF3\u6A21\u5F0F\uFF0C\u901A\u5E38\u662F\u5C0F\u8297\u8A9E\u97F3\u52A9\u7406\u80CC\u666F\u6536\u97F3\u8AA4\u5224\u3002\u89E3\u6CD5\uFF1A\u505C\u7528\u5C0F\u8297\u52A9\u7406\uFF08\u9577\u6309\u9996\u9801\u6A19\u984C\u8F38\u51650310\u95DC\u9589\uFF09\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"\u4E82\u8DF3 \u6A21\u5F0F \u5C0F\u8297 \u8A9E\u97F3\u52A9\u7406 \u8AA4\u89F8 ACK APK \u81EA\u52D5\u5207\u63DB \u5E72\u64FE"},
+{title:"CK/ACK \u96B1\u85CF\u529F\u80FD & \u5DE5\u5EE0\u5BC6\u78BC",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F#h.jn0wetwndtf2",desc:"ACK/CK\u4E3B\u6A5F\u96B1\u85CF\u529F\u80FD\u5217\u8868\uFF0C\u5DE5\u5EE0\u5BC6\u78BC0310\uFF08\u9577\u6309\u9996\u9801\u6A19\u984C\u8F38\u5165\uFF09\uFF0C\u96B1\u85CFAPP\u7684\u958B\u555F\u65B9\u6CD5\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"\u96B1\u85CF\u529F\u80FD \u5DE5\u5EE0\u5BC6\u78BC \u5BC6\u78BC 0310 ACK CK \u9032\u968E\u8A2D\u5B9A \u96B1\u85CFAPP \u89E3\u9396"},
+{title:"CK/ACK \u6700\u65B0\u8EDF\u9AD4 & \u5716\u8CC7\u4E0B\u8F09",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F#h.bgrdsai0o7vp",desc:"ACK/CK\u4E3B\u6A5F\u6700\u65B0\u7248\u4E3B\u7A0B\u5F0F\u8EDF\u9AD4\u4E0B\u8F09\u9023\u7D50\u3001\u7279\u5225\u8EDF\u9AD4\uFF08OTA\u3001\u5C0F\u8297\u8A9E\u97F3\u52A9\u7406\u914D\u7F6E\u6A94\uFF09\u4E0B\u8F09\u5340\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"\u8EDF\u9AD4 \u4E0B\u8F09 \u66F4\u65B0 \u4E3B\u7A0B\u5F0F OTA \u5716\u8CC7 \u7248\u672C ACK CK \u6700\u65B0"},
+{title:"CK/ACK \u4E3B\u8EDF\u9AD4\u66F4\u65B0\u6D41\u7A0B",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F#h.aysjlpwfq9ig",desc:"ACK/CK\u4E3B\u6A5F\u4E3B\u7A0B\u5F0F\u66F4\u65B0\u6B65\u9A5F\uFF1A\u4E0B\u8F09\u89E3\u58D3\u7E2E\u2192\u8907\u88FD\u5230USB\u6839\u76EE\u9304\u2192\u63D2\u5165\u4E3B\u6A5F\u2192\u81EA\u52D5\u8DF3\u51FA\u5347\u7D1A\u5305\u2192\u6309\u958B\u59CB\u66F4\u65B0\u2192\u5B8C\u6210\u5F8C\u91CD\u958B\u6A5F\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"\u8EDF\u9AD4\u66F4\u65B0 \u4E3B\u7A0B\u5F0F \u66F4\u65B0\u6D41\u7A0B USB \u5347\u7D1A OTA ACK CK \u5237\u6A5F \u7248\u672C \u600E\u9EBC\u66F4\u65B0"},
+{title:"CK/ACK CAN\u76D2\u8A2D\u5B9A\u53CA\u652F\u63F4\u8ECA\u578B\u6E05\u55AE",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F#h.8l6pqmiqufge",desc:"ACK/CK\u4E3B\u6A5FCAN\u76D2\u9078\u64C7\u6E05\u55AE\uFF0C\u5217\u51FA\u5404\u652F\u63F4\u8ECA\u6B3E\u8207\u5C0D\u61C9CAN\u76D2\u578B\u865F\uFF0C\u53EF\u67E5\u8A62\u7279\u5B9A\u8ECA\u578B\u61C9\u9078\u7528\u54EA\u500BCAN\u76D2\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"CAN\u76D2 \u652F\u63F4\u8ECA\u578B \u9078\u64C7\u6E05\u55AE ACK CK \u76F8\u5BB9 \u8ECA\u6B3E \u5C0D\u61C9 \u54EA\u500B"},
+{title:"CK/ACK \u74B0\u666F\u5B89\u88DD\u3001\u6821\u6B63\u554F\u984C",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F#h.yp63ac25mtor",desc:"ACK/CK\u74B0\u666F\u93E1\u982D\u5E38\u898B\u554F\u984C\uFF1A\u6821\u6B63\u5F8C\u6578\u64DA\u672A\u4FDD\u5B58\u3001\u93E1\u982D\u6C92\u6709\u756B\u9762\uFF084\u9853\u9700\u5168\u9023\uFF09\u3001\u5012\u8ECA\u74B0\u666F\u6162\u51FA\u73FE\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"\u74B0\u666F \u6821\u6B63 \u93E1\u982D \u6C92\u6709\u756B\u9762 \u900F\u660E \u8ECA\u6A21 ACK CK 360 \u5012\u8ECA"},
+{title:"CK/ACK \u521D\u6B21\u5B89\u88DD\u8207\u552E\u670D\u6CE8\u610F\u4E8B\u9805",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F#h.8ahkhnidwifz",desc:"\u9996\u6B21\u5B89\u88DDCK\u4E3B\u6A5F\u6CE8\u610F\u4E8B\u9805\uFF1A\u5F8C\u65B9\u6563\u71B1\u98A8\u6247\u4E00\u5B9A\u8981\u63A5\u3001\u80CE\u58D3\u63A5\u6536\u5668\u8207BM\u4E0D\u5171\u7528\u3001DVR\u8981\u7528CKVR\u578B\u865F\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"\u521D\u6B21\u5B89\u88DD \u6CE8\u610F \u98A8\u6247 \u80CE\u58D3 \u63A5\u6536\u5668 CKVR DVR CarPlay \u885D\u7A81 ACK CK \u65B0\u88DD"},
+{title:"LUX-A \u5E02\u552E\u9AD8\u968E\u4E3B\u6A5F\u76F8\u95DC\u8CC7\u8A0A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/lux-a-\u4E3B\u6A5F\u76F8\u95DC",desc:"LUX-A\u5E02\u552E\u9AD8\u968E\u8ECA\u7528\u4E3B\u6A5F\u7522\u54C1\u4ECB\u7D39\u3002",keywords:"LUX-A LUX \u4E3B\u6A5F \u9AD8\u968E \u7522\u54C1 \u4ECB\u7D39 \u898F\u683C"},
+{title:"HONDA \u672C\u7530 \u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u8ECA\u5EE0\u54C1\u724C\u5206\u985E/honda",desc:"HONDA\u672C\u7530\u5404\u8ECA\u6B3E\u7279\u6B8A\u5B89\u88DD\u8CC7\u8A0A\uFF0C\u5305\u542BHR-V\u3001CR-V\u3001Fit\u3001City\u3001Civic\u3001Accord\u3001Odyssey\u7B49\u8ECA\u578B\u3002",keywords:"Honda \u672C\u7530 HR-V HRV CR-V CRV Fit City Civic Accord Odyssey BR-V ZR-V \u8ECA\u6B3E \u5B89\u88DD \u53EF\u4EE5\u88DD"},
+{title:"TOYOTA \u8C50\u7530 \u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u8ECA\u5EE0\u54C1\u724C\u5206\u985E/toyota",desc:"TOYOTA\u8C50\u7530\u5404\u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A\uFF0C\u5305\u542BRAV-4\u3001Altis\u3001Camry\u3001Yaris\u3001Cross\u3001Sienta\u7B49\u8ECA\u578B\u3002",keywords:"Toyota \u8C50\u7530 RAV4 RAV-4 Altis Camry Yaris Cross Sienta Wish Noah Vios \u8ECA\u6B3E \u5B89\u88DD \u53EF\u4EE5\u88DD"},
+{title:"NISSAN \u65E5\u7522 \u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u8ECA\u5EE0\u54C1\u724C\u5206\u985E/nissan",desc:"NISSAN\u65E5\u7522\u5404\u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A\uFF0C\u5305\u542BX-Trail\u3001Kicks\u3001Tiida\u3001Sentra\u3001March\u3001Livina\u7B49\u8ECA\u578B\u3002",keywords:"Nissan \u65E5\u7522 X-Trail XTrail Kicks Tiida Sentra March Terra Livina \u8ECA\u6B3E \u5B89\u88DD \u53EF\u4EE5\u88DD"},
+{title:"FORD \u798F\u7279 \u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/ford",desc:"FORD\u798F\u7279\u5404\u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A\uFF0C\u5305\u542BKuga\u3001Focus\uFF083.5\u4EE3\uFF09\u3001Mondeo\u3001EcoSport\u3001Ranger\u3001Puma\u7B49\u8ECA\u578B\u3002",keywords:"Ford \u798F\u7279 Kuga Focus 3.5\u4EE3 Mondeo EcoSport Explorer Ranger Puma Escape \u8ECA\u6B3E \u5B89\u88DD \u53EF\u4EE5\u88DD \u76F8\u5BB9"},
+{title:"MAZDA \u99AC\u81EA\u9054 \u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/mazda",desc:"MAZDA\u99AC\u81EA\u9054\u5404\u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A\uFF0C\u5305\u542BCX-5\u3001CX-3\u3001CX-30\u3001Mazda3\u3001Mazda6\u7B49\u8ECA\u578B\u3002",keywords:"Mazda \u99AC\u81EA\u9054 CX-5 CX5 CX-3 CX3 CX-30 CX30 Mazda3 Mazda6 MX-30 \u8ECA\u6B3E \u5B89\u88DD \u53EF\u4EE5\u88DD"},
+{title:"SUBARU \u901F\u9738\u9678 \u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u8ECA\u5EE0\u54C1\u724C\u5206\u985E/subaru",desc:"SUBARU\u901F\u9738\u9678\u5404\u8ECA\u6B3E\u5B89\u88DD\u8CC7\u8A0A\uFF0C\u5305\u542BForester\u3001Outback\u3001Levorg\u3001XV\u3001Crosstrek\u7B49\u8ECA\u578B\u3002",keywords:"Subaru \u901F\u9738\u9678 Forester Outback Levorg Legacy XV Crosstrek \u8ECA\u6B3E \u5B89\u88DD \u53EF\u4EE5\u88DD"}, {title:"LEXUS 凌志 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.mjhq8g8yqpes",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.4bgwzx67kj68",desc:"LEXUS凌志各車款安裝資訊，包含NX、RX、ES、IS、UX、CT等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"Lexus 凌志 NX RX ES IS UX CT nx200 nx300 rx450 es300 is250 ux200 lx gx ls 車款 安裝 可以裝 支援 能裝嗎"},
+{title:"MITSUBISHI 三菱 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.cmdii32t910m",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.odogicuvbnc2",desc:"MITSUBISHI三菱各車款安裝資訊，包含Outlander、Eclipse Cross、Galant Fortis等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"Mitsubishi 三菱 Outlander outlander Eclipse Cross eclipsecross asx lancer pajero 車款 安裝 可以裝 支援 能裝嗎"},
+{title:"HYUNDAI 現代 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.fb5ykcdgeson",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.5mwuxmov4kqc",desc:"HYUNDAI現代各車款安裝資訊，包含Tucson、Santa Fe、Elantra、Sonata等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"Hyundai 現代 Tucson tucson santafe santa fe Elantra Sonata ioniq kona i30 venue 車款 安裝 可以裝 支援 能裝嗎"},
+{title:"KIA 起亞 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.bifcm48noxlf",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.vgoqb0hl13t8",desc:"KIA起亞各車款安裝資訊，包含Sportage、Sorento、Stinger等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"Kia 起亞 Sportage sportage Sorento sorento Stinger carnival niro ev6 seltos picanto 車款 安裝 可以裝 支援 能裝嗎"},
+{title:"SUZUKI 鈴木 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.jkm1gc6q9r2i",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.w8qke81pg7ge",desc:"SUZUKI鈴木各車款安裝資訊，包含Swift、Vitara、SX4、Ignis等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"Suzuki 鈴木 Swift swift Vitara vitara sx4 ignis jimny baleno 車款 安裝 可以裝 支援 能裝嗎"},
+{title:"BMW 寶馬 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.go1y8j9v8uiv",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.e8t502gqs9gy",desc:"BMW寶馬各車款安裝資訊，包含3系列、5系列、X1、X3、X5等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"BMW 寶馬 3系列 5系列 x1 x2 x3 x4 x5 x6 320 520 330 530 118 218 ix m3 m5 車款 安裝 可以裝 支援 能裝嗎"},
+{title:"MERCEDES-BENZ 賓士 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.to2g51nqg732",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.ir9fseb9cued",desc:"MERCEDES-BENZ賓士各車款安裝資訊，包含C-Class、E-Class、GLC、GLA、GLB等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"Mercedes Benz 賓士 c-class e-class glc gla glb gle c200 e200 c300 a-class cla 車款 安裝 可以裝 支援 能裝嗎"},
 
-  {title:"\u8ECA\u6B3E\u5347\u7D1A\u8CC7\u8A0A\u67E5\u8A62\u5EAB\uFF08\u5404\u8ECA\u6B3E\u53EF\u4EE5\u5B89\u88DD\u55CE\uFF1F\uFF09",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u8ECA\u6B3E\u5347\u7D1A\u8CC7\u8A0A\u67E5\u8A62\u5EAB",desc:"\u67E5\u8A62\u5404\u8ECA\u6B3E\u662F\u5426\u53EF\u4EE5\u5B89\u88DD\u98DB\u9CE5\u4E3B\u6A5F\u7684\u5B8C\u6574\u5C0D\u7167\u8868\uFF0C\u5305\u542B\u53EF\u66F4\u63DB\u3001\u6709\u689D\u4EF6\u9650\u5236\u3001\u4E0D\u5EFA\u8B70\u7B49\u8A73\u7D30\u8AAA\u660E\u3002",keywords:"\u53EF\u4EE5\u5B89\u88DD \u80FD\u4E0D\u80FD\u88DD \u652F\u63F4 \u8ECA\u6B3E\u67E5\u8A62 \u5347\u7D1A \u54EA\u6B3E \u9069\u5408 \u67E5\u8A62\u5EAB Kuga Focus CR-V RAV4 Altis Camry X-Trail CX-5 Forester Golf Tucson IS"},
-  {title:"\u7121\u6CD5\u6539\u88C5\u4E3B\u6A5F\u7684\u8ECA\u578B",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u7121\u6CD5\u6539\u4E3B\u6A5F\u7684\u8ECA\u578B",desc:"\u8AAA\u660E\u54EA\u4E9B\u8ECA\u578B\u56E0\u539F\u5EE0\u8A2D\u8A08\u9650\u5236\u7121\u6CD5\u5B89\u88DD\u98DB\u9CE5\u4E3B\u6A5F\u3002",keywords:"\u7121\u6CD5\u6539\u88C5 \u4E0D\u652F\u63F4 \u76F8\u5BB9\u6027 \u8ECA\u578B \u9650\u5236 \u4E0D\u80FD\u63DB"},
-  {title:"TPMS \u80CE\u58D3\u76E3\u6E2C\u7CFB\u7D71\u8A2D\u5B9A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/tpms\u76F8\u95DC\u8A2D\u5B9A",desc:"TPMS\u80CE\u58D3\u76E3\u6E2C\u7CFB\u7D71\u8A2D\u5B9A\u8AAA\u660E\uFF0C\u5305\u542B\u611F\u6E2C\u5668\u5B78\u7FD2\u3001\u986F\u793A\u8A2D\u5B9A\u8207\u80CE\u58D3\u8B66\u793A\u76F8\u95DC\u8A2D\u5B9A\u3002",keywords:"TPMS \u80CE\u58D3 \u76E3\u6E2C \u8A2D\u5B9A \u611F\u6E2C\u5668 \u8F2A\u80CE \u8B66\u793A"},
+{title:"\u8ECA\u6B3E\u5347\u7D1A\u8CC7\u8A0A\u67E5\u8A62\u5EAB\uFF08\u5404\u8ECA\u6B3E\u53EF\u4EE5\u5B89\u88DD\u55CE\uFF1F\uFF09",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u8ECA\u6B3E\u5347\u7D1A\u8CC7\u8A0A\u67E5\u8A62\u5EAB",desc:"\u67E5\u8A62\u5404\u8ECA\u6B3E\u662F\u5426\u53EF\u4EE5\u5B89\u88DD\u98DB\u9CE5\u4E3B\u6A5F\u7684\u5B8C\u6574\u5C0D\u7167\u8868\uFF0C\u5305\u542B\u53EF\u66F4\u63DB\u3001\u6709\u689D\u4EF6\u9650\u5236\u3001\u4E0D\u5EFA\u8B70\u7B49\u8A73\u7D30\u8AAA\u660E\u3002",keywords:"\u53EF\u4EE5\u5B89\u88DD \u80FD\u4E0D\u80FD\u88DD \u652F\u63F4 \u8ECA\u6B3E\u67E5\u8A62 \u5347\u7D1A \u54EA\u6B3E \u9069\u5408 \u67E5\u8A62\u5EAB Kuga Focus CR-V RAV4 Altis Camry X-Trail CX-5 Forester Golf Tucson IS"},
+{title:"\u7121\u6CD5\u6539\u88C5\u4E3B\u6A5F\u7684\u8ECA\u578B",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u7121\u6CD5\u6539\u4E3B\u6A5F\u7684\u8ECA\u578B",desc:"\u8AAA\u660E\u54EA\u4E9B\u8ECA\u578B\u56E0\u539F\u5EE0\u8A2D\u8A08\u9650\u5236\u7121\u6CD5\u5B89\u88DD\u98DB\u9CE5\u4E3B\u6A5F\u3002",keywords:"\u7121\u6CD5\u6539\u88C5 \u4E0D\u652F\u63F4 \u76F8\u5BB9\u6027 \u8ECA\u578B \u9650\u5236 \u4E0D\u80FD\u63DB"},
+{title:"TPMS \u80CE\u58D3\u76E3\u6E2C\u7CFB\u7D71\u8A2D\u5B9A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/tpms\u76F8\u95DC\u8A2D\u5B9A",desc:"TPMS\u80CE\u58D3\u76E3\u6E2C\u7CFB\u7D71\u8A2D\u5B9A\u8AAA\u660E\uFF0C\u5305\u542B\u611F\u6E2C\u5668\u5B78\u7FD2\u3001\u986F\u793A\u8A2D\u5B9A\u8207\u80CE\u58D3\u8B66\u793A\u76F8\u95DC\u8A2D\u5B9A\u3002",keywords:"TPMS \u80CE\u58D3 \u76E3\u6E2C \u8A2D\u5B9A \u611F\u6E2C\u5668 \u8F2A\u80CE \u8B66\u793A"},
 
-  {title:"Ford Kuga \u8ECA\u6B3E\u5347\u7D1A\u8CC7\u8A0A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u8ECA\u6B3E\u5347\u7D1A\u8CC7\u8A0A\u67E5\u8A62\u5EAB#h.thiecunpv68",desc:"Ford Kuga \u53EF\u4EE5\u5B89\u88DD\u98DB\u9CE5\u4E3B\u6A5F\uFF0C\u8A73\u7D30\u8CC7\u8A0A\u8ACB\u67E5\u95B1\u8ECA\u6B3E\u5347\u7D1A\u8CC7\u8A0A\u67E5\u8A62\u5EAB（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"Ford Kuga \u80FD\u88DD\u55CE \u53EF\u4EE5\u88DD \u798F\u7279 kuga \u76F8\u5BB9"},
-  {title:"TOYOTA Prius \u8ECA\u6B3E\u5347\u7D1A\u8CC7\u8A0A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u8ECA\u6B3E\u5347\u7D1A\u8CC7\u8A0A\u67E5\u8A62\u5EAB",desc:"TOYOTA Prius 3\u4EE3/\u03B1/PHV 2009~2012\u5E74\u53EF\u66F4\u63DB\u97F3\u97FF\u4E3B\u6A5F\uFF0C\u5207\u63DB\u5E74\u662F2012\u5E74\uFF0C\u4E0D\u9700\u7528\u5354\u8B70\u76D2",keywords:"Toyota Prius \u666E\u9510\u65AF 3\u4EE3 \u53EF\u4EE5\u88DD \u80FD\u88DD\u55CE \u76F8\u5BB9 \u5354\u8B70\u76D2"},
-  {title:"APP \u4E0B\u8F09\u9023\u7D50\uFF08\u5C0E\u822A\u738B\u3001NaviKing \u7B49\uFF09",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/app\u4E0B\u8F09\u9023\u7D50",desc:"\u5E38\u7528APP\u4E0B\u8F09\u9023\u7D50\uFF0C\u5305\u542B3D\u5C0E\u822A\u738BAPK\u3001NaviKing\u7B49\u5404\u5F0F\u61C9\u7528\u7A0B\u5F0F\u4E0B\u8F09",keywords:"\u5C0E\u822A\u738B APK \u4E0B\u8F09 NaviKing 3D \u61C9\u7528\u7A0B\u5F0F app \u5B89\u88DD"},
-  {title:"HONDA CR-V \u5EE3\u64AD/\u6536\u97F3\u6A5F\u554F\u984C",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u8ECA\u5EE0\u54C1\u724C\u5206\u985E/honda/crv#h.bwqrzfrqo896",desc:"CR-V 5\u4EE3\u5EE3\u64AD\u6536\u4E0D\u5230\u7684\u89E3\u6C7A\u65B9\u5F0F\uFF0C\u5305\u542BCAN\u8A0A\u865F\u76F8\u95DC\u8A2D\u5B9A\u8AAA\u660E（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"CRV CR-V \u5EE3\u64AD \u6536\u97F3\u6A5F \u6536\u4E0D\u5230 Honda 5\u4EE3"},
-  {title:"LUX-A \u539F\u8ECA\u756B\u9762\u7121\u6CD5\u986F\u793A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/lux-a-\u4E3B\u6A5F\u76F8\u95DC#h.6pszqe8jcawm",desc:"LUX-A \u4E3B\u6A5F\u539F\u8ECA\u756B\u9762\u51FA\u4E0D\u4F86\u7684\u89E3\u6C7A\u65B9\u5F0F\u8207\u8A2D\u5B9A\u8AAA\u660E（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"LUX-A \u539F\u8ECA\u756B\u9762 \u51FA\u4E0D\u4F86 \u7121\u6CD5\u986F\u793A \u9ED1\u756B\u9762 LUX"},
-  {title:"OTA \u529F\u80FD\u4F7F\u7528\u65B9\u6CD5",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F",desc:"ACK/CK \u4E3B\u6A5F OTA \u7A7A\u4E2D\u66F4\u65B0\u529F\u80FD\u4F7F\u7528\u65B9\u6CD5\uFF0C\u9069\u7528\u7D93\u9500\u5E97\u5BB6\u7248\u8AAA\u660E",keywords:"OTA \u600E\u9EBC\u7528 \u66F4\u65B0 \u7A7A\u4E2D\u4E0B\u8F09 \u97CC\u9AD4 \u9060\u7AEF\u66F4\u65B0 ACK CK \u7121\u7DDA\u66F4\u65B0 \u600E\u9EBC\u66F4\u65B0\u97CC\u9AD4"},
-  {title:"\u74B0\u666F\u5012\u8ECA/\u65B9\u5411\u71C8\u756B\u9762\u51FA\u73FE\u5F88\u6162",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F#h.1iryz17hiyeh",desc:"ACK\u6253\u5012\u8ECA\u6216\u5207\u65B9\u5411\u71C8\u6642\u74B0\u666F\u756B\u9762\u5F88\u6162\u51FA\u73FE\uFF0C\u53EF\u80FD\u662F4\u9853\u93E1\u982D\u5C11\u5075\u6E2C\u5230\u5176\u4E2D\u4E00\u9853\u9020\u6210\u3002\u8ACB\u6AA2\u67E5/\u66F4\u63DB\u93E1\u982D\u8207\u9023\u63A5\u7DDA\u7D44（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"\u74B0\u666F \u5012\u8ECA \u51FA\u73FE\u5F88\u6162 \u65B9\u5411\u71C8 \u6162 \u5EF6\u9072 \u93E1\u982D ACK CK 360 \u5012\u8ECA\u5F88\u6EAF\u51FA\u4F86"},
-  {title:"\u89F8\u63A7\u6309\u9375\u5931\u6548/\u4E0D\u6E96\uFF0C\u91CD\u65B0\u8A2D\u5B9A\u65B9\u6CD5",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F#h.rqpim1q1a09i",desc:"\u5DE6\u5074\u89F8\u63A7\u6309\u9375\u5931\u6548\u6216\u4E0D\u6E96\u78BA\uFF0C\u9700\u91CD\u65B0\u8A2D\u5B9A\uFF1A\u8A2D\u5B9A(\u9F52\u8F2A\u9375)=>\u5DE5\u5EE0\u8A2D\u5B9A=>\u5BC6\u78BC0310=>\u89F8\u6478\u5C4F\u6309\u9375\u5B78\u7FD2（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"\u89F8\u63A7 \u6309\u9375 \u5931\u6548 \u4E0D\u6E96 \u4E0D\u80FD\u89F8\u63A7 \u5DE5\u5EE0\u8A2D\u5B9A 0310 \u89F8\u6478\u5C4F\u6309\u9375\u5B78\u7FD2"},
-  {title:"\u85CD\u7259\u901A\u8A71 MIC \u97F3\u91CF\u592A\u5C0F\uFF08\u5C0D\u65B9\u807D\u4E0D\u6E05\u695A\uFF09",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F#h.rqpim1q1a09i",desc:"\u85CD\u7259\u901A\u8A71\u6642\u5C0D\u65B9\u89BA\u5F97\u8ECA\u5167\u8072\u97F3\u592A\u5C0F\uFF0C\u89E3\u6CD5\uFF1A\u8A2D\u5B9A=>\u8A2D\u5099\u8A2D\u7F6E=>MIC\u589E\u76CA\u62C9\u9AD8（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"\u85CD\u7259 \u901A\u8A71 \u5C0F\u8072 MIC \u589E\u76CA \u5C0D\u65B9\u807D\u4E0D\u5230 \u9EA5\u514B\u98A8 \u97F3\u91CF \u85CD\u8A61"},
-  {title:"Toyota \u539F\u5EE0\u74B0\u666F\u93E1\u982D\u652F\u63F4\uFF082023/2024\u5E74\uFF09",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u8ECA\u5EE0\u54C1\u724C\u5206\u985E/2023\u5E74toyota\u539F\u5EE0\u74B0\u666F\u93E1\u982D\u652F\u63F4\u5C08\u9801",desc:"ACK\u914D2023/2024\u5E74Toyota\u539F\u5EE0\u74B0\u666F\u93E1\u982D\u5F8C\u93E1\u982D\u756B\u9762\u984D\u5012\u3001\u9ED1\u767D\u6216\u7121\u756B\u9762\u7684\u89E3\u6C7A\u65B9\u5F0F\uFF0C\u4E5F\u5305\u542B\u5F37\u5236\u6A94\u8A2D\u5B9A\u8AAA\u660E",keywords:"Toyota \u539F\u5EE0\u74B0\u666F \u93E1\u982D \u984D\u5012 \u9ED1\u767D \u7121\u756B\u9762 2023 2024 CC Camry Cross \u5F37\u5236\u6A94 RAV4"},
-  {title:"\u70BA\u4EC0\u9EBC AVM \u74B0\u666F\u756B\u9762\u6700\u5916\u5074\u6703\u51FA\u73FE\u9ED1\u5F71\uFF1F",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.nroc83vvssfe",desc:"\u6B64\u73FE\u8C61\u662F\u56E0\u5DE6\u53F3\u5074\u93E1\u982D\u5B89\u88DD\u89D2\u5EA6\u904E\u65BC\u9760\u8FD1\u8ECA\u8EAB\u6240\u9020\u6210\u3002\u8ACB\u8ABF\u6574\u5DE6\u53F3\u5074\u74B0\u666F\u93E1\u982D\u89D2\u5EA6\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"\u74B0\u666F \u9ED1\u5F71 AVM \u9ED1\u8272 \u9670\u5F71 \u6700\u5916\u5074 \u93E1\u982D\u89D2\u5EA6 \u5DE6\u53F3\u5074 360"},
-  {title:"\u5404\u7522\u54C1\u898F\u683C\u8868\uFF08CK\u3001ACK\u3001LUX \u7B49\uFF09",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5404\u7522\u54C1\u898F\u683C",desc:"\u98DB\u9CE5\u5404\u4E3B\u6A5F\u578B\u865F\u7684\u8A73\u7D30\u7522\u54C1\u898F\u683C\uFF0C\u5305\u542BCK\u3001ACK\u3001LUX-A\u7B49\u578B\u865F\u898F\u683C\u67E5\u8A62",keywords:"\u898F\u683C \u7522\u54C1\u898F\u683C CK\u898F\u683C ACK\u898F\u683C LUX\u898F\u683C \u898F\u683C\u8868 \u53C3\u6570 \u786C\u9AD4\u898F\u683C"},
-  {title:"\u98DB\u9CE5\u7522\u54C1\u8AAA\u660E\u66F8",url:"https://www.asuka-tw.com/Docs/Index/267",desc:"\u98DB\u9CE5\u5404\u4E3B\u6A5F\u578B\u865F\u7684\u8A73\u7D30\u64CD\u4F5C\u8AAA\u660E\u66F8\u4E0B\u8F09\u3002",keywords:"\u8AAA\u660E\u66F8 \u624B\u518A \u64CD\u4F5C \u6587\u4EF6 \u4F7F\u7528 \u7522\u54C1 PDF \u4E0B\u8F09"},
-  {title:"CarPlay 連接方法（有線/無線）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E4%B8%BB%E6%A9%9F%E5%88%86%E9%A1%9E/ckack%E4%B8%BB%E6%A9%9F/ack%E7%9B%B8%E9%97%9C%E5%BD%B1%E7%89%87?authuser=0#h.bz5lmy22uq5j",desc:"如何連接有線或無線CarPlay？請參考ACK相關影片教學說明。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"CarPlay 有線 無線 怎麼連 連接方法 設定 ACK CK car play connect"},
-  {title:"主機按鍵相反 / 音量相反 設定",url:"",desc:"主機按鍵或音量相反時：進入工廠模式 → 原車協議選項內有音量相反的設定可調整。",keywords:"按鍵相反 音量相反 工廠模式 原車協議 設定 反向 左右相反"},
-  {title:"強制檔（強制橫向）設定",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E5%BB%A0%E5%93%81%E7%89%8C%E5%88%86%E9%A1%9E/2023%E5%B9%B4toyota%E5%8E%9F%E5%BB%A0%E7%92%B0%E6%99%AF%E9%8F%A1%E9%A0%AD%E6%94%AF%E6%8F%B4%E5%B0%88%E9%A0%81?authuser=0#h.c7he8fxf1sv",desc:"強制橫向模式（強制檔）設定說明，請參考對應車款環景鏡頭支援專頁。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"強制檔 強制橫向 強制模式 設定 橫向 鎖定"},
-  {title:"CK 腳位定義 / 接線規格",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E4%B8%BB%E6%A9%9F%E5%88%86%E9%A1%9E/ckack%E4%B8%BB%E6%A9%9F?authuser=0#h.25px1nm22j0u",desc:"CK 腳位定義與接線規格，請參考 CK&ACK 主機規格問卷。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"腳位 接線 CK 規格 定義 線組 接頭 腳位定義"},
-  {title:"ACK 配 2024 CC 原廠環景後鏡頭顛倒 / 黑白 / 無畫面",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E5%BB%A0%E5%93%81%E7%89%8C%E5%88%86%E9%A1%9E/2023%E5%B9%B4toyota%E5%8E%9F%E5%BB%A0%E7%92%B0%E6%99%AF%E9%8F%A1%E9%A0%AD%E6%94%AF%E6%8F%B4%E5%B0%88%E9%A0%81?authuser=0",desc:"ACK 配 2024 CC 原廠環景鏡頭，後鏡頭畫面顛倒、黑白畫面或無畫面的處理方式。",keywords:"ACK 環景 顛倒 黑白 無畫面 2024 CC 後鏡頭 鏡頭顛倒 環景異常"},
-  {title:"環景校正SOP（ACK主機3D全拼布）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E4%B8%BB%E6%A9%9F%E5%88%86%E9%A1%9E/ckack%E4%B8%BB%E6%A9%9F?authuser=0#h.25px1nm22j0u",desc:"飛鳥ACK主機環景校正說明（3D全拼布），校正SOP操作步驟。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"環景校正 SOP 校正步驟 3D全拼布 ACK 環景設定 校正方法"},
-  {title:"環景畫面延遲（倒車/方向燈出現很慢）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E4%B8%BB%E6%A9%9F%E5%88%86%E9%A1%9E/ckack%E4%B8%BB%E6%A9%9F?authuser=0#h.1iryz17hiyeh",desc:"環景打倒車出現很慢、環景打左右方向燈出現很慢的處理方式。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"環景 慢 延遲 倒車 方向燈 出現慢 ACK CK 環景延遲"},
-  {title:"左側觸控按鍵失效 / 不能觸控 / 不準",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E4%B8%BB%E6%A9%9F%E5%88%86%E9%A1%9E/ckack%E4%B8%BB%E6%A9%9F?authuser=0#h.rqpim1q1a09i",desc:"左側觸控按鍵失效或不準：設定(齒輪鍵)⇒工廠設定⇒密碼0310⇒觸摸屏按鍵學習。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"觸控 按鍵 失效 不準 左側 觸摸屏 按鍵學習 工廠設定"},
-  {title:"藍牙通話對方聽車內聲音太小",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E4%B8%BB%E6%A9%9F%E5%88%86%E9%A1%9E/ckack%E4%B8%BB%E6%A9%9F?authuser=0#h.rqpim1q1a09i",desc:"藍牙通話時對方聽車內聲音太小：設定⇒設備設置⇒MIC增益拉高。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"藍牙 通話 聲音小 MIC 增益 對方聽不到 bluetooth 麥克風"},
-  {title:"環景有黑影",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E5%85%B6%E4%BB%96%E5%88%86%E9%A1%9E/%E5%B8%B8%E8%A6%8B%E5%95%8F%E9%A1%8C#h.nroc83vvssfe",desc:"環景畫面出現黑影的原因與處理方式。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"環景 黑影 黑色 畫面異常 環景黑影 鏡頭黑影"},
-  {title:"方控按鍵相反（音量鍵相反 / 上下曲相反）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E4%B8%BB%E6%A9%9F%E5%88%86%E9%A1%9E/ckack%E4%B8%BB%E6%A9%9F?authuser=0#h.rqpim1q1a09i",desc:"方向盤方控按鍵相反（音量鍵相反、上下曲相反）的調整設定方式。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"方控 方向盤 上下曲 上下曲相反 上下首 上下首相反 音量相反 音量鍵相反 按鍵相反 方控按鍵 方控音量 換曲 換曲相反 換首 選曲 曲目相反"},
-  {title:"TOYOTA 豐田 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.f802u3jlwxlf",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.47o2gft3jku0",desc:"TOYOTA豐田各車款安裝資訊，包含RAV4、Camry、Corolla、Cross、Altis、Yaris、CHR、Vios、Prius等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"Toyota 豐田 rav4 RAV4 camry Camry corolla Corolla cross Cross altis Altis yaris Yaris chr CHR c-hr vios Vios prius Prius sienna aqua bz4x innova 車款 安裝 可以裝 支援 能裝嗎"},
-  {title:"HONDA 本田 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.9xc8r3s6o81e",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.6rn0xv8o5mpx",desc:"HONDA本田各車款安裝資訊，包含CR-V、Civic、Accord、HR-V、Fit、Jazz、Freed、Odyssey等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"Honda 本田 crv CR-V hrv HR-V civic Civic accord Accord fit Fit jazz freed odyssey brv 車款 安裝 可以裝 支援 能裝嗎"},
-  {title:"NISSAN 日產 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.jdwalgy5u609",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.bmwbs03dvjgv",desc:"NISSAN日產各車款安裝資訊，包含X-Trail、Kicks、Sentra、March、Serena等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"Nissan 日產 xtrail x-trail kicks Kicks sentra Sentra march March serena tiida livina qashqai murano 車款 安裝 可以裝 支援 能裝嗎"},
-  {title:"MAZDA 馬自達 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.bk5ubu8clwvm",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.ak5k31ln9rdg",desc:"MAZDA馬自達各車款安裝資訊，包含CX-5、CX-30、CX-3、Mazda3、Mazda6、MX-5等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"Mazda 馬自達 cx5 CX-5 cx30 CX-30 cx3 CX-3 mazda3 Mazda3 mazda6 mx5 MX-5 cx8 cx9 車款 安裝 可以裝 支援 能裝嗎"},
-  {title:"FORD 福特 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.thiecunpv68",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.re2ocr6uq9w9",desc:"FORD福特各車款安裝資訊，包含Focus、Kuga、Mondeo、Puma、EcoSport、Explorer、Ranger等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"Ford 福特 focus Focus kuga Kuga mondeo puma ecosport explorer mustang ranger escape 車款 安裝 可以裝 支援 能裝嗎"},
-  {title:"VW 福斯 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.cjeixwcyn7dt",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.o3yg2mk0gw70",desc:"VW福斯各車款安裝資訊，包含Golf、Tiguan、Passat、Polo、T-Cross等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"VW Volkswagen 福斯 golf Golf tiguan Tiguan passat Passat polo Polo tcross t-cross id4 id3 arteon 車款 安裝 可以裝 支援 能裝嗎"},
-  {title:"SUBARU 速霸陸 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.vuiea7etpnr7",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.6kz3iprqquf0",desc:"SUBARU速霸陸各車款安裝資訊，包含Forester、Outback、XV、Crosstrek、Legacy等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"Subaru 速霸陸 forester Forester outback Outback xv XV crosstrek legacy impreza brz wrx 車款 安裝 可以裝 支援 能裝嗎"},
-  {title:"SKODA 斯柯達 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.bjjje8n886j5",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.uzib0wx88sk0",desc:"SKODA斯柯達各車款安裝資訊，包含Kodiaq、Octavia、Karoq、Kamiq等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"Skoda 斯柯達 kodiaq Kodiaq octavia Octavia karoq kamiq superb fabia 車款 安裝 可以裝 支援 能裝嗎"}
+{title:"Ford Kuga \u8ECA\u6B3E\u5347\u7D1A\u8CC7\u8A0A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u8ECA\u6B3E\u5347\u7D1A\u8CC7\u8A0A\u67E5\u8A62\u5EAB#h.thiecunpv68",desc:"Ford Kuga \u53EF\u4EE5\u5B89\u88DD\u98DB\u9CE5\u4E3B\u6A5F\uFF0C\u8A73\u7D30\u8CC7\u8A0A\u8ACB\u67E5\u95B1\u8ECA\u6B3E\u5347\u7D1A\u8CC7\u8A0A\u67E5\u8A62\u5EAB（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"Ford Kuga \u80FD\u88DD\u55CE \u53EF\u4EE5\u88DD \u798F\u7279 kuga \u76F8\u5BB9"},
+{title:"TOYOTA Prius \u8ECA\u6B3E\u5347\u7D1A\u8CC7\u8A0A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u8ECA\u6B3E\u5347\u7D1A\u8CC7\u8A0A\u67E5\u8A62\u5EAB",desc:"TOYOTA Prius 3\u4EE3/\u03B1/PHV 2009~2012\u5E74\u53EF\u66F4\u63DB\u97F3\u97FF\u4E3B\u6A5F\uFF0C\u5207\u63DB\u5E74\u662F2012\u5E74\uFF0C\u4E0D\u9700\u7528\u5354\u8B70\u76D2",keywords:"Toyota Prius \u666E\u9510\u65AF 3\u4EE3 \u53EF\u4EE5\u88DD \u80FD\u88DD\u55CE \u76F8\u5BB9 \u5354\u8B70\u76D2"},
+{title:"APP \u4E0B\u8F09\u9023\u7D50\uFF08\u5C0E\u822A\u738B\u3001NaviKing \u7B49\uFF09",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/app\u4E0B\u8F09\u9023\u7D50",desc:"\u5E38\u7528APP\u4E0B\u8F09\u9023\u7D50\uFF0C\u5305\u542B3D\u5C0E\u822A\u738BAPK\u3001NaviKing\u7B49\u5404\u5F0F\u61C9\u7528\u7A0B\u5F0F\u4E0B\u8F09",keywords:"\u5C0E\u822A\u738B APK \u4E0B\u8F09 NaviKing 3D \u61C9\u7528\u7A0B\u5F0F app \u5B89\u88DD"},
+{title:"HONDA CR-V \u5EE3\u64AD/\u6536\u97F3\u6A5F\u554F\u984C",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u8ECA\u5EE0\u54C1\u724C\u5206\u985E/honda/crv#h.bwqrzfrqo896",desc:"CR-V 5\u4EE3\u5EE3\u64AD\u6536\u4E0D\u5230\u7684\u89E3\u6C7A\u65B9\u5F0F\uFF0C\u5305\u542BCAN\u8A0A\u865F\u76F8\u95DC\u8A2D\u5B9A\u8AAA\u660E（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"CRV CR-V \u5EE3\u64AD \u6536\u97F3\u6A5F \u6536\u4E0D\u5230 Honda 5\u4EE3"},
+{title:"LUX-A \u539F\u8ECA\u756B\u9762\u7121\u6CD5\u986F\u793A",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/lux-a-\u4E3B\u6A5F\u76F8\u95DC#h.6pszqe8jcawm",desc:"LUX-A \u4E3B\u6A5F\u539F\u8ECA\u756B\u9762\u51FA\u4E0D\u4F86\u7684\u89E3\u6C7A\u65B9\u5F0F\u8207\u8A2D\u5B9A\u8AAA\u660E（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"LUX-A \u539F\u8ECA\u756B\u9762 \u51FA\u4E0D\u4F86 \u7121\u6CD5\u986F\u793A \u9ED1\u756B\u9762 LUX"},
+{title:"OTA \u529F\u80FD\u4F7F\u7528\u65B9\u6CD5",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F",desc:"ACK/CK \u4E3B\u6A5F OTA \u7A7A\u4E2D\u66F4\u65B0\u529F\u80FD\u4F7F\u7528\u65B9\u6CD5\uFF0C\u9069\u7528\u7D93\u9500\u5E97\u5BB6\u7248\u8AAA\u660E",keywords:"OTA \u600E\u9EBC\u7528 \u66F4\u65B0 \u7A7A\u4E2D\u4E0B\u8F09 \u97CC\u9AD4 \u9060\u7AEF\u66F4\u65B0 ACK CK \u7121\u7DDA\u66F4\u65B0 \u600E\u9EBC\u66F4\u65B0\u97CC\u9AD4"},
+{title:"\u74B0\u666F\u5012\u8ECA/\u65B9\u5411\u71C8\u756B\u9762\u51FA\u73FE\u5F88\u6162",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F#h.1iryz17hiyeh",desc:"ACK\u6253\u5012\u8ECA\u6216\u5207\u65B9\u5411\u71C8\u6642\u74B0\u666F\u756B\u9762\u5F88\u6162\u51FA\u73FE\uFF0C\u53EF\u80FD\u662F4\u9853\u93E1\u982D\u5C11\u5075\u6E2C\u5230\u5176\u4E2D\u4E00\u9853\u9020\u6210\u3002\u8ACB\u6AA2\u67E5/\u66F4\u63DB\u93E1\u982D\u8207\u9023\u63A5\u7DDA\u7D44（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"\u74B0\u666F \u5012\u8ECA \u51FA\u73FE\u5F88\u6162 \u65B9\u5411\u71C8 \u6162 \u5EF6\u9072 \u93E1\u982D ACK CK 360 \u5012\u8ECA\u5F88\u6EAF\u51FA\u4F86"},
+{title:"\u89F8\u63A7\u6309\u9375\u5931\u6548/\u4E0D\u6E96\uFF0C\u91CD\u65B0\u8A2D\u5B9A\u65B9\u6CD5",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F#h.rqpim1q1a09i",desc:"\u5DE6\u5074\u89F8\u63A7\u6309\u9375\u5931\u6548\u6216\u4E0D\u6E96\u78BA\uFF0C\u9700\u91CD\u65B0\u8A2D\u5B9A\uFF1A\u8A2D\u5B9A(\u9F52\u8F2A\u9375)=>\u5DE5\u5EE0\u8A2D\u5B9A=>\u5BC6\u78BC0310=>\u89F8\u6478\u5C4F\u6309\u9375\u5B78\u7FD2（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"\u89F8\u63A7 \u6309\u9375 \u5931\u6548 \u4E0D\u6E96 \u4E0D\u80FD\u89F8\u63A7 \u5DE5\u5EE0\u8A2D\u5B9A 0310 \u89F8\u6478\u5C4F\u6309\u9375\u5B78\u7FD2"},
+{title:"\u85CD\u7259\u901A\u8A71 MIC \u97F3\u91CF\u592A\u5C0F\uFF08\u5C0D\u65B9\u807D\u4E0D\u6E05\u695A\uFF09",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u4E3B\u6A5F\u5206\u985E/ckack\u4E3B\u6A5F#h.rqpim1q1a09i",desc:"\u85CD\u7259\u901A\u8A71\u6642\u5C0D\u65B9\u89BA\u5F97\u8ECA\u5167\u8072\u97F3\u592A\u5C0F\uFF0C\u89E3\u6CD5\uFF1A\u8A2D\u5B9A=>\u8A2D\u5099\u8A2D\u7F6E=>MIC\u589E\u76CA\u62C9\u9AD8（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"\u85CD\u7259 \u901A\u8A71 \u5C0F\u8072 MIC \u589E\u76CA \u5C0D\u65B9\u807D\u4E0D\u5230 \u9EA5\u514B\u98A8 \u97F3\u91CF \u85CD\u8A61"},
+{title:"Toyota \u539F\u5EE0\u74B0\u666F\u93E1\u982D\u652F\u63F4\uFF082023/2024\u5E74\uFF09",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u8ECA\u5EE0\u54C1\u724C\u5206\u985E/2023\u5E74toyota\u539F\u5EE0\u74B0\u666F\u93E1\u982D\u652F\u63F4\u5C08\u9801",desc:"ACK\u914D2023/2024\u5E74Toyota\u539F\u5EE0\u74B0\u666F\u93E1\u982D\u5F8C\u93E1\u982D\u756B\u9762\u984D\u5012\u3001\u9ED1\u767D\u6216\u7121\u756B\u9762\u7684\u89E3\u6C7A\u65B9\u5F0F\uFF0C\u4E5F\u5305\u542B\u5F37\u5236\u6A94\u8A2D\u5B9A\u8AAA\u660E",keywords:"Toyota \u539F\u5EE0\u74B0\u666F \u93E1\u982D \u984D\u5012 \u9ED1\u767D \u7121\u756B\u9762 2023 2024 CC Camry Cross \u5F37\u5236\u6A94 RAV4"},
+{title:"\u70BA\u4EC0\u9EBC AVM \u74B0\u666F\u756B\u9762\u6700\u5916\u5074\u6703\u51FA\u73FE\u9ED1\u5F71\uFF1F",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5176\u4ED6\u5206\u985E/\u5E38\u898B\u554F\u984C#h.nroc83vvssfe",desc:"\u6B64\u73FE\u8C61\u662F\u56E0\u5DE6\u53F3\u5074\u93E1\u982D\u5B89\u88DD\u89D2\u5EA6\u904E\u65BC\u9760\u8FD1\u8ECA\u8EAB\u6240\u9020\u6210\u3002\u8ACB\u8ABF\u6574\u5DE6\u53F3\u5074\u74B0\u666F\u93E1\u982D\u89D2\u5EA6\u3002（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"\u74B0\u666F \u9ED1\u5F71 AVM \u9ED1\u8272 \u9670\u5F71 \u6700\u5916\u5074 \u93E1\u982D\u89D2\u5EA6 \u5DE6\u53F3\u5074 360"},
+{title:"\u5404\u7522\u54C1\u898F\u683C\u8868\uFF08CK\u3001ACK\u3001LUX \u7B49\uFF09",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/\u5404\u7522\u54C1\u898F\u683C",desc:"\u98DB\u9CE5\u5404\u4E3B\u6A5F\u578B\u865F\u7684\u8A73\u7D30\u7522\u54C1\u898F\u683C\uFF0C\u5305\u542BCK\u3001ACK\u3001LUX-A\u7B49\u578B\u865F\u898F\u683C\u67E5\u8A62",keywords:"\u898F\u683C \u7522\u54C1\u898F\u683C CK\u898F\u683C ACK\u898F\u683C LUX\u898F\u683C \u898F\u683C\u8868 \u53C3\u6570 \u786C\u9AD4\u898F\u683C"},
+{title:"\u98DB\u9CE5\u7522\u54C1\u8AAA\u660E\u66F8",url:"https://www.asuka-tw.com/Docs/Index/267",desc:"\u98DB\u9CE5\u5404\u4E3B\u6A5F\u578B\u865F\u7684\u8A73\u7D30\u64CD\u4F5C\u8AAA\u660E\u66F8\u4E0B\u8F09\u3002",keywords:"\u8AAA\u660E\u66F8 \u624B\u518A \u64CD\u4F5C \u6587\u4EF6 \u4F7F\u7528 \u7522\u54C1 PDF \u4E0B\u8F09"},
+{title:"CarPlay 連接方法（有線/無線）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E4%B8%BB%E6%A9%9F%E5%88%86%E9%A1%9E/ckack%E4%B8%BB%E6%A9%9F/ack%E7%9B%B8%E9%97%9C%E5%BD%B1%E7%89%87?authuser=0#h.bz5lmy22uq5j",desc:"如何連接有線或無線CarPlay？請參考ACK相關影片教學說明。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"CarPlay 有線 無線 怎麼連 連接方法 設定 ACK CK car play connect"},
+{title:"主機按鍵相反 / 音量相反 設定",url:"",desc:"主機按鍵或音量相反時：進入工廠模式 → 原車協議選項內有音量相反的設定可調整。",keywords:"按鍵相反 音量相反 工廠模式 原車協議 設定 反向 左右相反"},
+{title:"強制檔（強制橫向）設定",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E5%BB%A0%E5%93%81%E7%89%8C%E5%88%86%E9%A1%9E/2023%E5%B9%B4toyota%E5%8E%9F%E5%BB%A0%E7%92%B0%E6%99%AF%E9%8F%A1%E9%A0%AD%E6%94%AF%E6%8F%B4%E5%B0%88%E9%A0%81?authuser=0#h.c7he8fxf1sv",desc:"強制橫向模式（強制檔）設定說明，請參考對應車款環景鏡頭支援專頁。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"強制檔 強制橫向 強制模式 設定 橫向 鎖定"},
+{title:"CK 腳位定義 / 接線規格",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E4%B8%BB%E6%A9%9F%E5%88%86%E9%A1%9E/ckack%E4%B8%BB%E6%A9%9F?authuser=0#h.25px1nm22j0u",desc:"CK 腳位定義與接線規格，請參考 CK&ACK 主機規格問卷。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"腳位 接線 CK 規格 定義 線組 接頭 腳位定義"},
+{title:"ACK 配 2024 CC 原廠環景後鏡頭顛倒 / 黑白 / 無畫面",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E5%BB%A0%E5%93%81%E7%89%8C%E5%88%86%E9%A1%9E/2023%E5%B9%B4toyota%E5%8E%9F%E5%BB%A0%E7%92%B0%E6%99%AF%E9%8F%A1%E9%A0%AD%E6%94%AF%E6%8F%B4%E5%B0%88%E9%A0%81?authuser=0",desc:"ACK 配 2024 CC 原廠環景鏡頭，後鏡頭畫面顛倒、黑白畫面或無畫面的處理方式。",keywords:"ACK 環景 顛倒 黑白 無畫面 2024 CC 後鏡頭 鏡頭顛倒 環景異常"},
+{title:"環景校正SOP（ACK主機3D全拼布）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E4%B8%BB%E6%A9%9F%E5%88%86%E9%A1%9E/ckack%E4%B8%BB%E6%A9%9F?authuser=0#h.25px1nm22j0u",desc:"飛鳥ACK主機環景校正說明（3D全拼布），校正SOP操作步驟。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"環景校正 SOP 校正步驟 3D全拼布 ACK 環景設定 校正方法"},
+{title:"環景畫面延遲（倒車/方向燈出現很慢）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E4%B8%BB%E6%A9%9F%E5%88%86%E9%A1%9E/ckack%E4%B8%BB%E6%A9%9F?authuser=0#h.1iryz17hiyeh",desc:"環景打倒車出現很慢、環景打左右方向燈出現很慢的處理方式。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"環景 慢 延遲 倒車 方向燈 出現慢 ACK CK 環景延遲"},
+{title:"左側觸控按鍵失效 / 不能觸控 / 不準",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E4%B8%BB%E6%A9%9F%E5%88%86%E9%A1%9E/ckack%E4%B8%BB%E6%A9%9F?authuser=0#h.rqpim1q1a09i",desc:"左側觸控按鍵失效或不準：設定(齒輪鍵)⇒工廠設定⇒密碼0310⇒觸摸屏按鍵學習。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"觸控 按鍵 失效 不準 左側 觸摸屏 按鍵學習 工廠設定"},
+{title:"藍牙通話對方聽車內聲音太小",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E4%B8%BB%E6%A9%9F%E5%88%86%E9%A1%9E/ckack%E4%B8%BB%E6%A9%9F?authuser=0#h.rqpim1q1a09i",desc:"藍牙通話時對方聽車內聲音太小：設定⇒設備設置⇒MIC增益拉高。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"藍牙 通話 聲音小 MIC 增益 對方聽不到 bluetooth 麥克風"},
+{title:"環景有黑影",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E5%85%B6%E4%BB%96%E5%88%86%E9%A1%9E/%E5%B8%B8%E8%A6%8B%E5%95%8F%E9%A1%8C#h.nroc83vvssfe",desc:"環景畫面出現黑影的原因與處理方式。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"環景 黑影 黑色 畫面異常 環景黑影 鏡頭黑影"},
+{title:"方控按鍵相反（音量鍵相反 / 上下曲相反）",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E4%B8%BB%E6%A9%9F%E5%88%86%E9%A1%9E/ckack%E4%B8%BB%E6%A9%9F?authuser=0#h.rqpim1q1a09i",desc:"方向盤方控按鍵相反（音量鍵相反、上下曲相反）的調整設定方式。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"方控 方向盤 上下曲 上下曲相反 上下首 上下首相反 音量相反 音量鍵相反 按鍵相反 方控按鍵 方控音量 換曲 換曲相反 換首 選曲 曲目相反"},
+{title:"TOYOTA 豐田 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.f802u3jlwxlf",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.47o2gft3jku0",desc:"TOYOTA豐田各車款安裝資訊，包含RAV4、Camry、Corolla、Cross、Altis、Yaris、CHR、Vios、Prius等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"Toyota 豐田 rav4 RAV4 camry Camry corolla Corolla cross Cross altis Altis yaris Yaris chr CHR c-hr vios Vios prius Prius sienna aqua bz4x innova 車款 安裝 可以裝 支援 能裝嗎"},
+{title:"HONDA 本田 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.9xc8r3s6o81e",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.6rn0xv8o5mpx",desc:"HONDA本田各車款安裝資訊，包含CR-V、Civic、Accord、HR-V、Fit、Jazz、Freed、Odyssey等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"Honda 本田 crv CR-V hrv HR-V civic Civic accord Accord fit Fit jazz freed odyssey brv 車款 安裝 可以裝 支援 能裝嗎"},
+{title:"NISSAN 日產 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.jdwalgy5u609",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.bmwbs03dvjgv",desc:"NISSAN日產各車款安裝資訊，包含X-Trail、Kicks、Sentra、March、Serena等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"Nissan 日產 xtrail x-trail kicks Kicks sentra Sentra march March serena tiida livina qashqai murano 車款 安裝 可以裝 支援 能裝嗎"},
+{title:"MAZDA 馬自達 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.bk5ubu8clwvm",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.ak5k31ln9rdg",desc:"MAZDA馬自達各車款安裝資訊，包含CX-5、CX-30、CX-3、Mazda3、Mazda6、MX-5等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"Mazda 馬自達 cx5 CX-5 cx30 CX-30 cx3 CX-3 mazda3 Mazda3 mazda6 mx5 MX-5 cx8 cx9 車款 安裝 可以裝 支援 能裝嗎"},
+{title:"FORD 福特 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.thiecunpv68",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.re2ocr6uq9w9",desc:"FORD福特各車款安裝資訊，包含Focus、Kuga、Mondeo、Puma、EcoSport、Explorer、Ranger等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"Ford 福特 focus Focus kuga Kuga mondeo puma ecosport explorer mustang ranger escape 車款 安裝 可以裝 支援 能裝嗎"},
+{title:"VW 福斯 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.cjeixwcyn7dt",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.o3yg2mk0gw70",desc:"VW福斯各車款安裝資訊，包含Golf、Tiguan、Passat、Polo、T-Cross等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"VW Volkswagen 福斯 golf Golf tiguan Tiguan passat Passat polo Polo tcross t-cross id4 id3 arteon 車款 安裝 可以裝 支援 能裝嗎"},
+{title:"SUBARU 速霸陸 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.vuiea7etpnr7",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.6kz3iprqquf0",desc:"SUBARU速霸陸各車款安裝資訊，包含Forester、Outback、XV、Crosstrek、Legacy等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"Subaru 速霸陸 forester Forester outback Outback xv XV crosstrek legacy impreza brz wrx 車款 安裝 可以裝 支援 能裝嗎"},
+{title:"SKODA 斯柯達 車款安裝資訊",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.bjjje8n886j5",url2:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB#h.uzib0wx88sk0",desc:"SKODA斯柯達各車款安裝資訊，包含Kodiaq、Octavia、Karoq、Kamiq等車型。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"Skoda 斯柯達 kodiaq Kodiaq octavia Octavia karoq kamiq superb fabia 車款 安裝 可以裝 支援 能裝嗎"},
+{title:"環景鏡頭參數設定",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E4%B8%BB%E6%A9%9F%E5%88%86%E9%A1%9E/ckack%E4%B8%BB%E6%A9%9F?authuser=0#h.jjmi0kf01ows",desc:"ACK/CK 主機環景鏡頭參數設定說明，包含鏡頭角度、亮度、對比等參數調整。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"環景鏡頭 參數 設定 鏡頭設定 環景設定 ACK CK 鏡頭參數 角度調整 環景參數"},
+{title:"ACK 360環景切換為一般倒車模式",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E4%B8%BB%E6%A9%9F%E5%88%86%E9%A1%9E/ckack%E4%B8%BB%E6%A9%9F?authuser=0#h.rqpim1q1a09i",desc:"ACK主機切換倒車鏡頭模式：工廠設置 => 密碼:0310 => 切換倒車攝像頭 => 默認 => 按返回鍵 => 重啟系統，即可變成一般倒車模式。此功能僅限ACK/APK（22年8月後）主程式。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"360 關掉 一般倒車 切換 倒車鏡頭 倒車模式 ACK 環景一體機 360功能 倒車攝像頭 360改成倒車 關閉360"}
 ];
 
 var fuse = new Fuse(KB, {isCaseSensitive: false,
-  keys: [{name:"title",weight:0.4},{name:"keywords",weight:0.4},{name:"desc",weight:0.2}],
-  threshold: 0.55, minMatchCharLength: 2, includeScore: true,
-  useExtendedSearch: false, ignoreLocation: true, distance: 200
+keys: [{name:"title",weight:0.4},{name:"keywords",weight:0.4},{name:"desc",weight:0.2}],
+threshold: 0.55, minMatchCharLength: 2, includeScore: true,
+useExtendedSearch: false, ignoreLocation: true, distance: 200
 });
 
 /* GAS Proxy -> Groq API */
@@ -236,151 +218,150 @@ var MAX_HISTORY = 10;
 var AI_SYSTEM_PROMPT = '\u4f60\u662f\u98db\u9ce5(Asuka)\u8eca\u7528\u591a\u5a92\u9ad4\u4e3b\u6a5f\u7684\u6280\u8853\u5ba2\u670d\u52a9\u624b\u3002\n\n\u300a\u8eca\u6b3e\u76f8\u5bb9\u67e5\u8a62\u898f\u5247\u300b\uff08\u6700\u9ad8\u512a\u5148\u7d1a\uff0c\u5fc5\u9808\u56b4\u683c\u9075\u5b88\uff09\n\u53ea\u8981\u554f\u984c\u6d89\u53ca\u300c\u67d0\u8eca\u54c1\u724c/\u8eca\u578b/\u5e74\u4efd\u80fd\u4e0d\u80fd\u88dd\u300d\u3001\u300c\u652f\u4e0d\u652f\u63f4\u300d\u3001\u300c\u53ef\u4ee5\u5b89\u88dd\u55ce\u300d\uff0c\u7121\u8ad6\u554f\u984c\u591a\u5177\u9ad4\u3001\u4f60\u662f\u5426\u77e5\u9053\u7b54\u6848\uff0c\u90fd\u5fc5\u9808\u7acb\u5373\u7d66\u8eca\u6b3e\u67e5\u8a62\u9023\u7d50\uff0c\u7d55\u5c0d\u7981\u6b62\u7528\u81ea\u5df1\u7684\u77e5\u8b58\u56de\u7b54\u8eca\u6b3e\u76f8\u5bb9\u6027\uff0c\u56e0\u70ba\u5b98\u65b9\u8cc7\u6599\u5eab\u624d\u662f\u552f\u4e00\u6e96\u78ba\u7b54\u6848\u3002\n\u56de\u8986\u683c\u5f0f\uff08\u53ea\u80fd\u9019\u6a23\uff0c\u4e0d\u8d85\u904e2\u53e5\uff09\uff1a\n\u300c\u60a8\u53ef\u4ee5\u76f4\u63a5\u5728\u98db\u9ce5\u8eca\u6b3e\u5347\u7d1a\u8cc7\u8a0a\u67e5\u8a62\u5eab\u67e5\u8a62\uff1ahttps://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車款升級資訊查詢庫\n\u627e\u5230\u54c1\u724c\u5f8c\u9ede\u9032\u53bb\uff0c\u4f9d\u8eca\u6b3e\u548c\u5e74\u4efd\u78ba\u8a8d\u662f\u5426\u652f\u63f4\u53ca\u5b89\u88dd\u6ce8\u610f\u4e8b\u9805\u3002\u300d\n\n\u300a\u4e92\u52d5\u539f\u5247\u300b\n\u975e\u8eca\u6b3e\u76f8\u5bb9\u985e\u554f\u984c\uff0c\u82e5\u8cc7\u8a0a\u4e0d\u8db3\u6642\u4e00\u6b21\u53ea\u554f\u4e00\u500b\u6700\u95dc\u9375\u7684\u91d0\u6e05\u554f\u984c\uff08\u4f8b\u5982\uff1a\u300c\u662fACK\u9084\u662fCK\u4e3b\u6a5f\uff1f\u300d\u300c\u75c7\u72c0\u662f\u4ec0\u9ebc\u6642\u5019\u958b\u59cb\u7684\uff1f\u300d\uff09\u3002\u8a9e\u6c23\u81ea\u7136\u89aa\u5207\uff0c\u4e0d\u8981\u592a\u6b63\u5f0f\u3002\n\n\u300a\u56de\u7b54\u539f\u5247\u300b\n\u6709\u660e\u78ba\u7b54\u6848\u6642\uff1a\u76f4\u63a5\u7d66\u6b65\u9a5f\uff0c3\u52306\u53e5\u5373\u53ef\u3002\u554f\u984c\u6a21\u7cca\u6642\uff1a\u5148\u554f\u4e00\u500b\u6700\u91cd\u8981\u7684\u91d0\u6e05\u554f\u984c\uff0c\u4e0d\u8981\u4e00\u6b21\u554f\u5f88\u591a\u3002\u8d85\u51fa\u98db\u9ce5\u7522\u54c1\u7bc4\u570d\u6642\uff1a\u79ae\u8c8c\u8aaa\u660e\u4e26\u5efa\u8b70\u806f\u7d61\u98db\u9ce5FAE\u5de5\u7a0b\u5e2b\u3002\n\n\u8acb\u7528\u7e41\u9ad4\u4e2d\u6587\u56de\u7b54\u3002';
 
 async function callAI(question) {
-  var messages = [{role: 'system', content: AI_SYSTEM_PROMPT}];
-  var histSlice = chatHistory.slice(-MAX_HISTORY);
-  histSlice.forEach(function(m){ messages.push(m); });
-  messages.push({role: 'user', content: question});
-  var resp = await fetch(GAS_PROXY_URL, {
-    method: 'POST',
-    headers: {'Content-Type': 'text/plain'},
-    body: JSON.stringify({messages: messages})
-  });
-  var data = await resp.json();
-  if (data.candidates && data.candidates[0] && data.candidates[0].content &&
-      data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
-    return data.candidates[0].content.parts[0].text;
-  }
-  return '\u6292\u6B49\uFF0CAI \u66AB\u6642\u7121\u6CD5\u56DE\u61C9\uFF0C\u8ACB\u53C3\u8003\u4E0B\u65B9\u77E5\u8B58\u5EAB\u641C\u5C0B\u7D50\u679C\u3002';
+var messages = [{role: 'system', content: AI_SYSTEM_PROMPT}];
+var histSlice = chatHistory.slice(-MAX_HISTORY);
+histSlice.forEach(function(m){ messages.push(m); });
+messages.push({role: 'user', content: question});
+var resp = await fetch(GAS_PROXY_URL, {
+method: 'POST',
+headers: {'Content-Type': 'text/plain'},
+body: JSON.stringify({messages: messages})
+});
+var data = await resp.json();
+if (data.candidates && data.candidates[0] && data.candidates[0].content &&
+data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
+return data.candidates[0].content.parts[0].text;
+}
+return '\u6292\u6B49\uFF0CAI \u66AB\u6642\u7121\u6CD5\u56DE\u61C9\uFF0C\u8ACB\u53C3\u8003\u4E0B\u65B9\u77E5\u8B58\u5EAB\u641C\u5C0B\u7D50\u679C\u3002';
 }
 
 var chatMessages = document.getElementById("chatMessages");
-var userInput    = document.getElementById("userInput");
+var userInput = document.getElementById("userInput");
 
 window.onload = function() {
-  appendBotMsg('\u4F60\u597D\uFF01\u6211\u662F\u98DB\u9CE5\u6280\u8853\u5BA2\u670D\u52A9\u624B \uD83D\uDEE0\uFE0F\n\n\u8ACB\u7528\u53E3\u8A9E\u63CF\u8FF0\u4F60\u9047\u5230\u7684\u554F\u984C\uFF0C\u6211\u6703\u7528 AI \u5E6B\u4F60\u56DE\u7B54\uFF0C\u4E26\u627E\u5230\u6700\u76F8\u95DC\u7684\u8AAA\u660E\u9801\u9762\u3002',
-    ['\u5F37\u5236\u6A94\u600E\u9EBC\u8A2D\u5B9A\uFF1F','\u74B0\u666F\u756B\u9762\u6709\u9ED1\u5F71','\u5C0E\u822A\u738BAPK\u4E0B\u8F09','OTA\u600E\u9EBC\u7528\uFF1F']);
+appendBotMsg('\u4F60\u597D\uFF01\u6211\u662F\u98DB\u9CE5\u6280\u8853\u5BA2\u670D\u52A9\u624B \uD83D\uDEE0\uFE0F\n\n\u8ACB\u7528\u53E3\u8A9E\u63CF\u8FF0\u4F60\u9047\u5230\u7684\u554F\u984C\uFF0C\u6211\u6703\u7528 AI \u5E6B\u4F60\u56DE\u7B54\uFF0C\u4E26\u627E\u5230\u6700\u76F8\u95DC\u7684\u8AAA\u660E\u9801\u9762\u3002',
+['\u5F37\u5236\u6A94\u600E\u9EBC\u8A2D\u5B9A\uFF1F','\u74B0\u666F\u756B\u9762\u6709\u9ED1\u5F71','\u5C0E\u822A\u738BAPK\u4E0B\u8F09','OTA\u600E\u9EBC\u7528\uFF1F']);
 };
 
 function handleKey(e) {
-  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 }
 
 function autoResize(el) {
-  el.style.height = "auto";
-  el.style.height = Math.min(el.scrollHeight, 100) + "px";
+el.style.height = "auto";
+el.style.height = Math.min(el.scrollHeight, 100) + "px";
 }
 
 async function sendMessage() {
-  var text = userInput.value.trim();
-  if (!text) return;
-  appendUserMsg(text);
-  userInput.value = "";
-  userInput.style.height = "auto";
-  chatHistory.push({role: 'user', content: text});
-  var typingEl = appendTyping();
-  var kbResults = multiSearch(text);
-  try {
-    var aiAnswer = await callAI(text);
-    typingEl.remove();
-    chatHistory.push({role: 'assistant', content: aiAnswer});
-    if (chatHistory.length > MAX_HISTORY * 2) chatHistory = chatHistory.slice(-MAX_HISTORY);
-    renderAI(aiAnswer, kbResults);
-  } catch(err) {
-    console.error('AI error:', err);
-    chatHistory.pop();
-    typingEl.remove();
-    renderKB(kbResults, text);
-  }
-  scrollBot();
+var text = userInput.value.trim();
+if (!text) return;
+appendUserMsg(text);
+userInput.value = "";
+userInput.style.height = "auto";
+chatHistory.push({role: 'user', content: text});
+var typingEl = appendTyping();
+var kbResults = multiSearch(text);
+try {
+var aiAnswer = await callAI(text);
+typingEl.remove();
+chatHistory.push({role: 'assistant', content: aiAnswer});
+if (chatHistory.length > MAX_HISTORY * 2) chatHistory = chatHistory.slice(-MAX_HISTORY);
+renderAI(aiAnswer, kbResults);
+} catch(err) {
+console.error('AI error:', err);
+chatHistory.pop();
+typingEl.remove();
+renderKB(kbResults, text);
+}
+scrollBot();
 }
 
 function appendUserMsg(text) {
-  var div = document.createElement("div");
-  div.className = "msg user";
-  div.innerHTML = '<div class="bubble">' + esc(text) + '</div>';
-  chatMessages.appendChild(div);
-  scrollBot();
+var div = document.createElement("div");
+div.className = "msg user";
+div.innerHTML = '<div class="bubble">' + esc(text) + '</div>';
+chatMessages.appendChild(div);
+scrollBot();
 }
 
 function appendBotMsg(text, suggestions) {
-  suggestions = suggestions || [];
-  var div = document.createElement("div");
-  div.className = "msg bot";
-  var html = '<div class="bubble">' + esc(text).replace(/\n/g,"<br>") + '</div>';
-  if (suggestions.length) {
-    html += '<div class="suggestions">' + suggestions.map(function(s){
-      return '<button class="suggestion-btn" onclick="quickSend(this)">' + esc(s) + '</button>';
-    }).join("") + '</div>';
-  }
-  div.innerHTML = html;
-  chatMessages.appendChild(div);
-  scrollBot();
-  return div;
+suggestions = suggestions || [];
+var div = document.createElement("div");
+div.className = "msg bot";
+var html = '<div class="bubble">' + esc(text).replace(/\n/g,"<br>") + '</div>';
+if (suggestions.length) {
+html += '<div class="suggestions">' + suggestions.map(function(s){
+return '<button class="suggestion-btn" onclick="quickSend(this)">' + esc(s) + '</button>';
+}).join("") + '</div>';
+}
+div.innerHTML = html;
+chatMessages.appendChild(div);
+scrollBot();
+return div;
 }
 
 function appendTyping() {
-  var div = document.createElement("div");
-  div.className = "msg bot";
-  div.innerHTML = '<div class="typing-dot"><span></span><span></span><span></span></div>';
-  chatMessages.appendChild(div);
-  scrollBot();
-  return div;
+var div = document.createElement("div");
+div.className = "msg bot";
+div.innerHTML = '<div class="typing-dot"><span></span><span></span><span></span></div>';
+chatMessages.appendChild(div);
+scrollBot();
+return div;
 }
 
 function cardHtml(r, i) {
-  var item = r.item;
-  var labels = ["\u6700\u76F8\u95DC","\u6B21\u76F8\u95DC","\u53C3\u8003"];
-  var descHtml = esc(item.desc).replace('（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）', '<span style="color:#1e293b;font-weight:600;">（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）</span>');
-  var rankHtml = '<div class="rank">' + (labels[i]||("#"+(i+1))) + '</div>';
-  var titleHtml = '<div class="title">' + esc(item.title) + '</div>';
-  var descBlock = '<div class="desc">' + descHtml + '</div>';
-  var svgIcon = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
-  if (item.url2) {
-    return '<div class="result-card result-card-dual">' +
-      rankHtml + titleHtml + descBlock +
-      '<div class="dual-links">' +
-        '<a class="dual-link" href="' + esc(item.url) + '" target="_blank" rel="noopener">' + svgIcon + ' \u98DB\u9CE5\u8CC7\u6599\u5EAB</a>' +
-        '<a class="dual-link dual-link2" href="' + esc(item.url2) + '" target="_blank" rel="noopener">' + svgIcon + ' \u7426\u68EE\u5C0D\u8A71\u8A18\u9304</a>' +
-      '</div>' +
-      '</div>';
-  }
-  return '<a class="result-card" href="' + esc(item.url) + '" target="_blank" rel="noopener">' +
-    rankHtml + titleHtml + descBlock +
-    '<div class="link-hint">' + svgIcon + '\u9EDE\u64CA\u958B\u555F\u9801\u9762</div>' +
-    '</a>';
+var item = r.item;
+var labels = ["\u6700\u76F8\u95DC","\u6B21\u76F8\u95DC","\u53C3\u8003"];
+var descHtml = esc(item.desc).replace('（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）', '<span style="color:#1e293b;font-weight:600;">（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）</span>');
+var rankHtml = '<div class="rank">' + (labels[i]||("#"+(i+1))) + '</div>';
+var titleHtml = '<div class="title">' + esc(item.title) + '</div>';
+var descBlock = '<div class="desc">' + descHtml + '</div>';
+var svgIcon = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
+if (item.url2) {
+return '<div class="result-card result-card-dual">' +
+rankHtml + titleHtml + descBlock +
+'<div class="dual-links">' +
+'<a class="dual-link" href="' + esc(item.url) + '" target="_blank" rel="noopener">' + svgIcon + ' \u98DB\u9CE5\u8CC7\u6599\u5EAB</a>' +
+'<a class="dual-link dual-link2" href="' + esc(item.url2) + '" target="_blank" rel="noopener">' + svgIcon + ' \u7426\u68EE\u5C0D\u8A71\u8A18\u9304</a>' +
+'</div>' +
+'</div>';
 }
-
+return '<a class="result-card" href="' + esc(item.url) + '" target="_blank" rel="noopener">' +
+rankHtml + titleHtml + descBlock +
+'<div class="link-hint">' + svgIcon + '\u9EDE\u64CA\u958B\u555F\u9801\u9762</div>' +
+'</a>';
+}
 
 function linkify(text) {
-  return text.replace(/(https?:\/\/[^\s<"]+)/g, function(url) {
-    var label = url.replace('https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/', '');
-    return '<a href="' + url + '" target="_blank" style="color:#1a56db;text-decoration:underline;word-break:break-all;">' + label + '</a>';
-  });
+return text.replace(/(https?:\/\/[^\s<"]+)/g, function(url) {
+var label = url.replace('https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/', '');
+return '<a href="' + url + '" target="_blank" style="color:#1a56db;text-decoration:underline;word-break:break-all;">' + label + '</a>';
+});
 }
 function renderAI(aiAnswer, results) {
-  var div = document.createElement("div");
-  div.className = "msg bot";
-  var html = '<div class="bubble">' + linkify(esc(aiAnswer)).replace(/\n/g,"<br>") + '</div>';
-  if (results.length > 0) {
-    html += '<div style="font-size:11px;color:#94a3b8;margin-top:10px;margin-bottom:4px;">&#x1F4DA; \u76F8\u95DC\u8AAA\u660E\u9801\u9762\uFF1A</div>' +
-      '<div class="results-list">' + results.map(cardHtml).join("") + '</div>';
-  }
-  div.innerHTML = html;
-  chatMessages.appendChild(div);
+var div = document.createElement("div");
+div.className = "msg bot";
+var html = '<div class="bubble">' + linkify(esc(aiAnswer)).replace(/\n/g,"<br>") + '</div>';
+if (results.length > 0) {
+html += '<div style="font-size:11px;color:#94a3b8;margin-top:10px;margin-bottom:4px;">&#x1F4DA; \u76F8\u95DC\u8AAA\u660E\u9801\u9762\uFF1A</div>' +
+'<div class="results-list">' + results.map(cardHtml).join("") + '</div>';
+}
+div.innerHTML = html;
+chatMessages.appendChild(div);
 }
 
 function renderKB(results, query) {
-  var div = document.createElement("div");
-  div.className = "msg bot";
-  if (!results.length) {
-    div.innerHTML = '<div class="bubble">\u627E\u4E0D\u5230\u300C' + esc(query) + '\u300D\u7684\u76F8\u95DC\u8AAA\u660E \uD83D\uDE14<br><br>\u5EFA\u8B70\u63DB\u500B\u95DC\u9375\u5B57\u518D\u8A66\u8A66\uFF0C\u6216\u76F4\u63A5\u806F\u7D61 FAE \u5DE5\u7A0B\u5E2B\u5354\u52A9\u3002</div>' +
-      '<div class="no-result">\uD83D\uDCA1 \u53EF\u4EE5\u8A66\u8A66\uFF1A<br>\u2022 \u63CF\u8FF0\u5177\u9AD4\u75C7\u72C0\uFF08\u4F8B\u5982\u300C\u9ED1\u756B\u9762\u300D\u300C\u7121\u8A0A\u865F\u300D\uFF09<br>\u2022 \u4F7F\u7528\u529F\u80FD\u540D\u7A31\uFF08\u4F8B\u5982\u300C\u8ECA\u901F\u300D\u300C\u5012\u8ECA\u300D\u300C\u65B9\u5411\u76E4\u300D\uFF09<br>\u2022 \u4F7F\u7528\u578B\u865F\u6216\u8ECA\u6B3E\u540D\u7A31</div>';
-  } else {
-    var label = results.length === 1 ? "\u627E\u5230 1 \u500B\u76F8\u95DC\u8AAA\u660E" : ("\u627E\u5230 " + results.length + " \u500B\u76F8\u95DC\u8AAA\u660E");
-    div.innerHTML = '<div class="bubble">' + label + '\uFF0C\u9EDE\u64CA\u9023\u7D50\u67E5\u770B\u8A73\u7D30\u8AAA\u660E\uFF1A</div>' +
-      '<div class="results-list">' + results.map(cardHtml).join("") + '</div>';
-  }
-  chatMessages.appendChild(div);
+var div = document.createElement("div");
+div.className = "msg bot";
+if (!results.length) {
+div.innerHTML = '<div class="bubble">\u627E\u4E0D\u5230\u300C' + esc(query) + '\u300D\u7684\u76F8\u95DC\u8AAA\u660E \uD83D\uDE14<br><br>\u5EFA\u8B70\u63DB\u500B\u95DC\u9375\u5B57\u518D\u8A66\u8A66\uFF0C\u6216\u76F4\u63A5\u806F\u7D61 FAE \u5DE5\u7A0B\u5E2B\u5354\u52A9\u3002</div>' +
+'<div class="no-result">\uD83D\uDCA1 \u53EF\u4EE5\u8A66\u8A66\uFF1A<br>\u2022 \u63CF\u8FF0\u5177\u9AD4\u75C7\u72C0\uFF08\u4F8B\u5982\u300C\u9ED1\u756B\u9762\u300D\u300C\u7121\u8A0A\u865F\u300D\uFF09<br>\u2022 \u4F7F\u7528\u529F\u80FD\u540D\u7A31\uFF08\u4F8B\u5982\u300C\u8ECA\u901F\u300D\u300C\u5012\u8ECA\u300D\u300C\u65B9\u5411\u76E4\u300D\uFF09<br>\u2022 \u4F7F\u7528\u578B\u865F\u6216\u8ECA\u6B3E\u540D\u7A31</div>';
+} else {
+var label = results.length === 1 ? "\u627E\u5230 1 \u500B\u76F8\u95DC\u8AAA\u660E" : ("\u627E\u5230 " + results.length + " \u500B\u76F8\u95DC\u8AAA\u660E");
+div.innerHTML = '<div class="bubble">' + label + '\uFF0C\u9EDE\u64CA\u9023\u7D50\u67E5\u770B\u8A73\u7D30\u8AAA\u660E\uFF1A</div>' +
+'<div class="results-list">' + results.map(cardHtml).join("") + '</div>';
+}
+chatMessages.appendChild(div);
 }
 
 function quickSend(btn) { userInput.value = btn.textContent; sendMessage(); }
@@ -388,44 +369,63 @@ function scrollBot() { chatMessages.scrollTop = chatMessages.scrollHeight; }
 function esc(str) { return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
 function clearChat() {
-  chatMessages.innerHTML = '';
-  userInput.value = '';
-  userInput.style.height = 'auto';
-  chatHistory = [];
-  appendBotMsg('\u5C0D\u8A71\u5DF2\u6E05\u9664 \uD83D\uDDD1\uFE0F\n\n\u8ACB\u7E7C\u7E8C\u8F38\u5165\u4F60\u7684\u554F\u984C\u3002',
-    ['\u5F37\u5236\u6A94\u600E\u9EBC\u8A2D\u5B9A\uFF1F','\u74B0\u666F\u756B\u9762\u6709\u9ED1\u5F71','\u5C0E\u822A\u738BAPK\u4E0B\u8F09','OTA\u600E\u9EBC\u7528\uFF1F']);
+chatMessages.innerHTML = '';
+userInput.value = '';
+userInput.style.height = 'auto';
+chatHistory = [];
+appendBotMsg('\u5C0D\u8A71\u5DF2\u6E05\u9664 \uD83D\uDDD1\uFE0F\n\n\u8ACB\u7E7C\u7E8C\u8F38\u5165\u4F60\u7684\u554F\u984C\u3002',
+['\u5F37\u5236\u6A94\u600E\u9EBC\u8A2D\u5B9A\uFF1F','\u74B0\u666F\u756B\u9762\u6709\u9ED1\u5F71','\u5C0E\u822A\u738BAPK\u4E0B\u8F09','OTA\u600E\u9EBC\u7528\uFF1F']);
 }
 
 var FEEDBACK_API = 'https://script.google.com/macros/s/AKfycby7DtvaCSibzRmPYoGjBeVyVS5lXIJE1btBEX3hui_duuk9A9hPvXFMEgId0mIOK5Vm/exec';
 
 function toggleFeedback() {
-  var body = document.getElementById('feedbackBody');
-  var toggle = document.getElementById('feedbackToggle');
-  var isOpen = body.classList.contains('open');
-  body.classList.toggle('open', !isOpen);
-  toggle.classList.toggle('open', !isOpen);
+var body = document.getElementById('feedbackBody');
+var toggle = document.getElementById('feedbackToggle');
+var isOpen = body.classList.contains('open');
+body.classList.toggle('open', !isOpen);
+toggle.classList.toggle('open', !isOpen);
 }
 
 function submitFeedback() {
-  var q = document.getElementById('fbQuestion').value.trim();
-  var a = document.getElementById('fbAnswer').value.trim();
-  if (!q || !a) { alert('\u8ACB\u586B\u5BEB\u554F\u984C\u8207\u7B54\u6848\u4F4D\u7F6E'); return; }
-  var btn = document.querySelector('.fb-submit-btn');
-  btn.textContent = '\u63D0\u4EA4\u4E2D...'; btn.disabled = true;
-  fetch(FEEDBACK_API, {method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,answer:a})})
-  .then(function(){
-    document.getElementById('fbQuestion').value = '';
-    document.getElementById('fbAnswer').value = '';
-    var suc = document.getElementById('fbSuccess');
-    suc.classList.add('show');
-    setTimeout(function(){ suc.classList.remove('show'); }, 4000);
-    btn.textContent = '\u63D0\u4EA4\u8A13\u7DF4\u8CC7\u6599'; btn.disabled = false;
-  })
-  .catch(function(){
-    alert('\u63D0\u4EA4\u5931\u6557\uFF0C\u8ACB\u78BA\u8A8D\u7DB2\u8DEF\u9023\u7DDA\u5F8C\u518D\u8A66');
-    btn.textContent = '\u63D0\u4EA4\u8A13\u7DF4\u8CC7\u6599'; btn.disabled = false;
-  });
+var q = document.getElementById('fbQuestion').value.trim();
+var a = document.getElementById('fbAnswer').value.trim();
+if (!q || !a) { alert('\u8ACB\u586B\u5BEB\u554F\u984C\u8207\u7B54\u6848\u4F4D\u7F6E'); return; }
+var btn = document.querySelector('.fb-submit-btn');
+btn.textContent = '\u63D0\u4EA4\u4E2D...'; btn.disabled = true;
+fetch(FEEDBACK_API, {method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,answer:a})})
+.then(function(){
+document.getElementById('fbQuestion').value = '';
+document.getElementById('fbAnswer').value = '';
+var suc = document.getElementById('fbSuccess');
+suc.classList.add('show');
+setTimeout(function(){ suc.classList.remove('show'); }, 4000);
+btn.textContent = '\u63D0\u4EA4\u8A13\u7DF4\u8CC7\u6599'; btn.disabled = false;
+})
+.catch(function(){
+alert('\u63D0\u4EA4\u5931\u6557\uFF0C\u8ACB\u78BA\u8A8D\u7DB2\u8DEF\u9023\u7DDA\u5F8C\u518D\u8A66');
+btn.textContent = '\u63D0\u4EA4\u8A13\u7DF4\u8CC7\u6599'; btn.disabled = false;
+});
 }
 </script>
 </body>
 </html>
+function multiSearch(query) {
+var results = fuse.search(query, {limit: 3});
+if (results.length < 1) {
+var tokens = query.split(/[\s\u3000\uff0c\u3002\uff1f\uff01\u3001\uff0c]+/).filter(function(t){ return t.length >= 2 && t.length <= 10; });
+var seen = {};
+results.forEach(function(r){ seen[r.item.title] = true; });
+tokens.forEach(function(token) {
+if (results.length >= 3) return;
+var tr = fuse.search(token, {limit: 3});
+tr.forEach(function(r) {
+if (!seen[r.item.title] && results.length < 3) {
+seen[r.item.title] = true;
+results.push(r);
+}
+});
+});
+}
+return results.slice(0, 3);
+}
