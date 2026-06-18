@@ -258,7 +258,7 @@ async function sendMessage() {
   userInput.style.height = "auto";
   chatHistory.push({role: 'user', content: text});
   var typingEl = appendTyping();
-  var kbResults = fuse.search(text, {limit: 3});
+  var kbResults = multiSearch(text);
   try {
     var aiAnswer = await callAI(text);
     typingEl.remove();
@@ -409,3 +409,23 @@ function submitFeedback() {
 </script>
 </body>
 </html>
+function multiSearch(query) {
+  var results = fuse.search(query, {limit: 3});
+  if (results.length < 1) {
+    var tokens = query.split(/[\s\u3000\uff0c\u3002\uff1f\uff01\u3001\uff0c]+/).filter(function(t){ return t.length >= 2 && t.length <= 10; });
+    var seen = {};
+    results.forEach(function(r){ seen[r.item.title] = true; });
+    tokens.forEach(function(token) {
+      if (results.length >= 3) return;
+      var tr = fuse.search(token, {limit: 3});
+      tr.forEach(function(r) {
+        if (!seen[r.item.title] && results.length < 3) {
+          seen[r.item.title] = true;
+          results.push(r);
+        }
+      });
+    });
+  }
+  return results.slice(0, 3);
+}
+
