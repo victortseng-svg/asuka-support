@@ -203,7 +203,7 @@ var KB = [
 {title:"環景鏡頭參數設定",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E4%B8%BB%E6%A9%9F%E5%88%86%E9%A1%9E/ckack%E4%B8%BB%E6%A9%9F?authuser=0#h.jjmi0kf01ows",desc:"ACK/CK 主機環景鏡頭參數設定說明，包含鏡頭角度、亮度、對比等參數調整。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"環景鏡頭 參數 設定 鏡頭設定 環景設定 ACK CK 鏡頭參數 角度調整 環景參數"},
 {title:"ACK 360環景切換為一般倒車模式",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E4%B8%BB%E6%A9%9F%E5%88%86%E9%A1%9E/ckack%E4%B8%BB%E6%A9%9F?authuser=0#h.rqpim1q1a09i",desc:"ACK主機切換倒車鏡頭模式：工廠設置 => 密碼:0310 => 切換倒車攝像頭 => 默認 => 按返回鍵 => 重啟系統，即可變成一般倒車模式。此功能僅限ACK/APK（22年8月後）主程式。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）",keywords:"360 關掉 一般倒車 切換 倒車鏡頭 倒車模式 ACK 環景一體機 360功能 倒車攝像頭 360改成倒車 關閉360"},
 
-{title:"CK/ACK 常用功能設定路徑",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.rqpim1q1a09i",desc:"CK/ACK 主機常用功能設定路徑，包含工廠密碼 0310、觸控按鍵學習、方控設定、原車協議選項等各路徑入口",keywords:"ck常用設定 ack常用 常用設定路徑 工廠設定 0310 常用功能 設定路徑 工廠模式 設定入口"},,
+{title:"CK/ACK 常用功能設定路徑",url:"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/主機分類/ckack主機#h.rqpim1q1a09i",desc:"CK/ACK 主機常用功能設定路徑，包含工廠密碼 0310、觸控按鍵學習、方控設定、原車協議選項等各路徑入口",keywords:"ck常用設定 ack常用 常用設定路徑 工廠設定 0310 常用功能 設定路徑 工廠模式 設定入口"},
 {"title":"導航王混音後仍無法混音","url":"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.uo2hecsuy4dc","desc":"確認車機導航混音設定是否正確開啟。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）","keywords":"導航王 混音 無法混音 導航聲音 聲音設定"},
 {"title":"導航王手寫功能無法使用","url":"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.89qrokgw6ebk","desc":"導航王手寫輸入失效的處理方式。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）","keywords":"導航王 手寫 無法使用 輸入 不能手寫"},
 {"title":"導航王混音時播報音量不夠大","url":"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/其他分類/常見問題#h.dj2rijblpesh","desc":"導航王混音播報聲音太小的調整方法。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）","keywords":"導航王 音量 太小 播報 不夠大聲 混音"},
@@ -249,6 +249,7 @@ var KB = [
 {"title":"HONDA CRV 6代中階款安裝資訊","url":"https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車廠品牌分類/honda/crv#h.s7ekuw7z48v9","desc":"Honda CR-V 6代中階款安裝飛鳥主機的相關資訊。（若頁面未自動定位，請按 Ctrl+F 搜尋相關標題）","keywords":"CRV 6代 六代 中階 Honda 安裝 可以裝"}
 ];
 
+  KB = KB.filter(Boolean); // 防止 },  造成的 sparse array 問題
 var fuse = new Fuse(KB, {isCaseSensitive: false,
 keys: [{name:"title",weight:0.4},{name:"keywords",weight:0.4},{name:"desc",weight:0.2}],
 threshold: 0.55, minMatchCharLength: 2, includeScore: true,
