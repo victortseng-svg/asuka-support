@@ -519,7 +519,7 @@ const BRAND_DATA = {
   PEUGEOT:   { aliases:['peugeot','標緻','3008','5008','308'],
                anchor_a:null, anchor_q:'h.2h70lkfyhsrs_l', page:null, name:'PEUGEOT 標緻' }
 };
-const CAR_KEYWORDS = /可以裝|能不能裝|裝得上|可以換|能裝|可裝|裝嗎|支不支援|相容嗎|可以安裝|能安裝|安裝嗎|有框嗎|可以改|能改|有沒有框|能裝嗎/;
+const CAR_KEYWORDS = /可以裝|能不能裝|裝得上|可以換|能裝|可裝|裝嗎|支不支援|相容嗎|可以安裝|能安裝|安裝嗎|有框嗎|可以改|能改|有沒有框|能裝嗎|可升級|升級嗎|可以升級/;
 function detectCarBrand(text) {
   if (!CAR_KEYWORDS.test(text)) return null;
   const lower = text.toLowerCase();
@@ -536,8 +536,14 @@ function renderCarQueryResult(brand) {
   const btnA = brand.anchor_a ? '<a class="car-btn car-btn-asuka" href="' + urlA + '" target="_blank" rel="noopener">📋 飛鳥升級查詢庫<small>' + escHtml(brand.name) + '</small></a>' : '';
   const btnQ = urlQ ? '<a class="car-btn car-btn-qisen" href="' + urlQ + '" target="_blank" rel="noopener">💬 琦森對話記錄<small>' + escHtml(brand.name) + '</small></a>'
     : (brand.page ? '<a class="car-btn car-btn-install" href="' + brand.page + '" target="_blank" rel="noopener">🔧 安裝說明頁<small>' + escHtml(brand.name) + '</small></a>' : '');
-  div.innerHTML = '<div class="bubble">找到 <strong>' + escHtml(brand.name) + '</strong> 安裝資料 🚗<br>點下方按鈕，可用 Ctrl+F 搜尋車款：</div><div class="car-query-btns">' + btnA + btnQ + '</div>';
+  div.innerHTML = '<div class="bubble">找到 <strong>' + escHtml(brand.name) + '</strong> 安裝資料 🚗<br>點下方按鈕，可用 Ctrl+F 搜尋車款：</div><div class="car-query-btns">' + btnA + btnQ + '</div><div style="margin-top:6px;text-align:center;"><a href="' + CAR_QUERY_BASE + '" target="_blank" rel="noopener" style="font-size:12px;color:#6b7280;text-decoration:underline;">🔍 車款升級查詢資料庫（自行搜尋）</a></div>';
   chatMessages.appendChild(div);
+}
+function renderCarQueryFallback() {
+  const div2 = document.createElement('div');
+  div2.className = 'msg bot';
+  div2.innerHTML = '<div class="bubble">找不到對應車廠資料 🔍<br>請點下方連結，在資料庫中以 Ctrl+F 搜尋您的車款：</div><div class="car-query-btns"><a class="car-btn car-btn-asuka" href="' + CAR_QUERY_BASE + '" target="_blank" rel="noopener">🔍 車款升級查詢資料庫<small>自行搜尋 Ctrl+F</small></a></div>';
+  chatMessages.appendChild(div2);
 }
 const chatMessages = document.getElementById("chatMessages");
 const userInput    = document.getElementById("userInput");
@@ -565,6 +571,8 @@ function sendMessage() {
     const carBrand = detectCarBrand(text);
     if (carBrand) {
       renderCarQueryResult(carBrand);
+    } else if (CAR_KEYWORDS.test(text)) {
+      renderCarQueryFallback();
     } else {
       renderResults(fuse.search(text, {limit: 3}), text);
     }
