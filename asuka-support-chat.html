@@ -247,9 +247,13 @@
         <textarea class="fb-input" id="fbQuestion" rows="2" placeholder="例如：Ford Kuga 2016年可以安裝嗎？"></textarea>
       </div>
       <div class="fb-row">
-        <div class="fb-label">🔗 答案在哪裡？（請填入實際頁面連結）</div>
-        <textarea class="fb-input" id="fbAnswer" rows="2" placeholder="例如：https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/ford（請貼上實際頁面網址）"></textarea>
-      </div>
+      <div class="fb-label">🔗 客服平台網址（選填，純貼網址）</div>
+      <textarea class="fb-input" id="fbUrl" rows="2" placeholder="例如：https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/ford"></textarea>
+    </div>
+    <div class="fb-row">
+      <div class="fb-label">📝 文字說明（選填，純文字）</div>
+      <textarea class="fb-input" id="fbDesc" rows="2" placeholder="例如：可安裝，適用 2016~2020 年款，注意高低配差異"></textarea>
+    </div>
       <button class="fb-submit-btn" onclick="submitFeedback()">提交訓練資料</button>
       <div class="fb-success" id="fbSuccess">✅ 已記錄！感謝你的貢獻，管理員會定期更新知識庫。</div>
       <div style="font-size:11px;color:#94a3b8;margin-top:10px;text-align:center;">
@@ -528,7 +532,7 @@ function escHtml(str) {
   return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 
-const FEEDBACK_API = 'https://script.google.com/macros/s/AKfycby7DtvaCSibzRmPYoGjBeVyVS5lXIJE1btBEX3hui_duuk9A9hPvXFMEgId0mIOK5Vm/exec';
+const FEEDBACK_API = 'https://script.google.com/macros/s/AKfycbwnj7ltivmTIFXafZ5d5jwHuONHpoG-p3nlvC6kFk6fI7VZfYyVWhhbAk3OE8jVt9la/exec';
 function toggleFeedback() {
   const body = document.getElementById('feedbackBody');
   const toggle = document.getElementById('feedbackToggle');
@@ -536,9 +540,10 @@ function toggleFeedback() {
   body.classList.toggle('open', !isOpen); toggle.classList.toggle('open', !isOpen);
 }
 function submitFeedback() {
-  const q = document.getElementById('fbQuestion').value.trim();
-  const a = document.getElementById('fbAnswer').value.trim();
-  if (!q || !a) { alert('請填寫問題與答案位置'); return; }
+  const q    = document.getElementById('fbQuestion').value.trim();
+  const url  = document.getElementById('fbUrl').value.trim();
+  const desc = document.getElementById('fbDesc').value.trim();
+  if (!q || (!url && !desc)) { alert('請填寫問題，並填入網址或文字說明至少一項'); return; }
   const submitBtn = document.querySelector('.fb-submit-btn');
   submitBtn.textContent = '提交中...'; submitBtn.disabled = true;
   fetch(FEEDBACK_API, {
