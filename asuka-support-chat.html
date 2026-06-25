@@ -476,27 +476,15 @@ function renderResults(results, query) {
   } else {
     const label = results.length === 1 ? "找到 1 個相關說明" : "找到 " + results.length + " 個相關說明";
     const rankLabels = ["最相關","次相關","參考"];
-    const cards = results.map(function(r, i) {
-      const item = r.item;
-      const rank = rankLabels[i] || ("#" + (i+1));
-      if (item.chatUrl) {
-        return '<div class="result-card two-btn">' +
-          '<div class="rank">' + rank + '</div>' +
-          '<div class="title">' + escHtml(item.title) + '</div>' +
-          '<div class="desc">' + escHtml(item.desc) + '</div>' +
-          '<div class="card-buttons">' +
-            '<a class="card-btn btn-asuka" href="' + escHtml(item.url) + '" target="_blank" rel="noopener">📋 飛鳥資料庫</a>' +
-            '<a class="card-btn btn-chat" href="' + escHtml(item.chatUrl) + '" target="_blank" rel="noopener">💬 琦森對話記錄</a>' +
-          '</div></div>';
-      } else {
-        return '<a class="result-card" href="' + escHtml(item.url) + '" target="_blank" rel="noopener">' +
-          '<div class="rank">' + rank + '</div>' +
-          '<div class="title">' + escHtml(item.title) + '</div>' +
-          '<div class="desc">' + escHtml(item.desc) + '</div>' +
-          '<div class="link-hint"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>點擊開啟頁面</div>' +
-          '</a>';
-      }
-    }).join("");
+    const cards = results.map((item, i) => {
+  var isUrl = item.url && item.url.indexOf("http") === 0;
+  var title = item.question || item.title || "";
+  var desc = item.description || item.desc || item.answer || "";
+  var dq = String.fromCharCode(34);
+  var inner = "<div class=" + dq + "result-card" + dq + "><div class=" + dq + "title" + dq + ">" + title + "</div><div class=" + dq + "desc" + dq + ">" + desc + "</div></div>";
+  if (isUrl) return "<a href=" + dq + item.url + dq + " target=" + dq + "_blank" + dq + " rel=" + dq + "noopener" + dq + ">" + inner + "</a>";
+  return "<div>" + inner + "</div>";
+}).join("");
     div.innerHTML = '<div class="bubble">' + label + '，點擊連結查看詳細說明：</div><div class="results-list">' + cards + '</div>';
   }
   chatMessages.appendChild(div);
