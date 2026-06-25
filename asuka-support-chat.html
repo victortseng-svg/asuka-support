@@ -507,7 +507,7 @@ function renderResults(results, query) {
   } else {
     const label = results.length === 1 ? "找到 1 個相關說明" : "找到 " + results.length + " 個相關說明";
     const rankLabels = ["最相關","次相關","參考"];
-    const cards = results.map((item, i) => {
+    const cards = results.map(function(r, i) { const item = r.item;
   var isUrl = item.url && item.url.indexOf("http") === 0;
   var title = item.question || item.title || "";
   var desc = item.description || item.desc || item.answer || "";
