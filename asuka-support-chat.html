@@ -549,7 +549,7 @@ function submitFeedback() {
   fetch(FEEDBACK_API, {
     method:'POST', mode:'no-cors',
     headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({question:q, answer:a})
+    body: JSON.stringify({question:q, url:url, desc:desc})
   }).then(() => {
     document.getElementById('fbQuestion').value = '';
     document.getElementById('fbUrl').value = '';
