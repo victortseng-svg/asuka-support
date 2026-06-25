@@ -552,7 +552,8 @@ function submitFeedback() {
     body: JSON.stringify({question:q, answer:a})
   }).then(() => {
     document.getElementById('fbQuestion').value = '';
-    document.getElementById('fbAnswer').value = '';
+    document.getElementById('fbUrl').value = '';
+    document.getElementById('fbDesc').value = '';
     const suc = document.getElementById('fbSuccess');
     suc.classList.add('show'); setTimeout(() => suc.classList.remove('show'), 4000);
     submitBtn.textContent = '提交訓練資料'; submitBtn.disabled = false;
