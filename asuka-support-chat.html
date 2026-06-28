@@ -637,6 +637,23 @@ function clearChat() {
   appendBotMessage("對話已清除 🗑️\n\n請繼續輸入你的問題。",
     ["環景黑影","強制檔","導航王APK","OTA怎麼用"]);
 }
+/* dynamic top suggestions */
+(function(){
+  var _o=window.onload;
+  window.onload=function(){
+    if(_o)_o.call(this);
+    window._loadTopSugg=function(t){
+      if(!t||!t.length)return;
+      var el=Array.from(document.querySelectorAll('.msg.bot .suggestions')).pop();
+      if(el)el.innerHTML=t.map(function(s){return '<button class="suggestion-btn" onclick="quickSend(this)">'+escHtml(s)+'</button>';}).join('');
+    };
+    var sc=document.createElement('script');
+    sc.src=FEEDBACK_API+'?callback=_loadTopSugg&t='+Date.now();
+    sc.onerror=function(){};
+    document.head.appendChild(sc);
+  };
+})();
+
 function escHtml(str) {
   if (!str) return '';
   return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
