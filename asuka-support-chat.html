@@ -564,6 +564,7 @@ function autoResize(el) {
 function sendMessage() {
   const text = userInput.value.trim();
   if (!text) return;
+  fetch(FEEDBACK_API,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'log',query:text})}).catch(()=>{});
   appendUserMessage(text);
   userInput.value = ""; userInput.style.height = "auto";
   const typingEl = appendTyping();
