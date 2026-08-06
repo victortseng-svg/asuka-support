@@ -216,6 +216,15 @@
     }
     .fb-success.show { display: block; }
     .fb-empty { font-size: 12px; color: #94a3b8; text-align: center; padding: 12px 0; }
+
+    /* ── fit-to-container overrides (2026-08-06) ── */
+    html, body { height: 100%; }
+    body { align-items: stretch; min-height: 0; height: 100%; overflow: hidden; }
+    .chat-container { height: 100%; min-height: 0; margin-bottom: 0; }
+    .chat-messages { flex: 1 1 auto; min-height: 0; max-height: none; }
+    @media (max-width: 600px) {
+      .chat-messages { min-height: 0; max-height: none; }
+    }
   </style>
 </head>
 <body>
