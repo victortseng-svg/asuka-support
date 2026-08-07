@@ -891,6 +891,13 @@ function submitFeedback() {
   };
   for (var k2 in ADD) { if (!BRAND_DATA[k2]) BRAND_DATA[k2] = ADD[k2]; }
 })();
+
+/* ── MG/AMG alias fix ── */
+(function(){
+  if (typeof BRAND_DATA === 'undefined') return;
+  if (BRAND_DATA.BENZ && BRAND_DATA.BENZ.aliases.indexOf('amg') < 0) BRAND_DATA.BENZ.aliases.push('amg');
+  if (BRAND_DATA.MG && BRAND_DATA.MG.aliases.indexOf('mg') < 0) BRAND_DATA.MG.aliases.push('mg');
+})();
 </script>
 </body>
 </html>
