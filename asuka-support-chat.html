@@ -866,6 +866,31 @@ function submitFeedback() {
     submitBtn.textContent = '提交訓練資料'; submitBtn.disabled = false;
   });
 }
+
+/* ── BRAND_DATA 補充：修正失效錨點 + 新增品牌（純追加，不改原定義） ── */
+(function(){
+  if (typeof BRAND_DATA === "undefined") return;
+  var FIX = {
+    MITSUBISHI: null,
+    BENZ: "h.hvxmvs6fiy2j_l",
+    AUDI: "h.egycahfejt5f_l",
+    PEUGEOT: "h.ebzaatudd43z_l",
+    MG: "h.3op82ffls4iw_l",
+    LUXGEN: "h.ltzsj3f171n8_l"
+  };
+  for (var k in FIX) { if (BRAND_DATA[k]) BRAND_DATA[k].anchor_q = FIX[k]; }
+  var ADD = {
+    JEEP:     {aliases:["jeep","吉普","wrangler","牧馬人"], anchor_a:null, anchor_q:"h.6mw657jkrm8_l", page:null, name:"JEEP 吉普"},
+    HUMMER:   {aliases:["hummer","悍馬"], anchor_a:null, anchor_q:"h.ajz9iq863o3g_l", page:null, name:"HUMMER 悍馬"},
+    SAAB:     {aliases:["saab","紳寶"], anchor_a:null, anchor_q:"h.9jn9s0k929gx_l", page:null, name:"SAAB 紳寶"},
+    PORSCHE:  {aliases:["porsche","保時捷","997"], anchor_a:null, anchor_q:"h.fvgt59lauckt_l", page:null, name:"PORSCHE 保時捷"},
+    SMART:    {aliases:["smart","fortwo"], anchor_a:null, anchor_q:"h.ihlmy79jo2k6_l", page:null, name:"SMART"},
+    MINI:     {aliases:["mini","r53","r56","f55","f56","f60"], anchor_a:null, anchor_q:"h.gd513vwtzuhl_l", page:null, name:"MINI"},
+    INFINITI: {aliases:["infiniti","極致","q50"], anchor_a:null, anchor_q:"h.uxpqhfvjn8a4_l", page:null, name:"INFINITI 極致"},
+    DAIHATSU: {aliases:["daihatsu","大發","terios"], anchor_a:"h.l64tbtq4mbfu_l", anchor_q:null, page:null, name:"DAIHATSU 大發"}
+  };
+  for (var k2 in ADD) { if (!BRAND_DATA[k2]) BRAND_DATA[k2] = ADD[k2]; }
+})();
 </script>
 </body>
 </html>
