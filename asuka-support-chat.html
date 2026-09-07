@@ -727,63 +727,65 @@ const fuse = new Fuse(KB, {
    ============================================================ */
 const CAR_QUERY_BASE = 'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/%E8%BB%8A%E6%AC%BE%E5%8D%87%E7%B4%9A%E8%B3%87%E8%A8%8A%E6%9F%A5%E8%A9%A2%E5%BA%AB';
 const BRAND_DATA = {
-  FORD:      { aliases:['ford','福特','focus','kuga','mondeo','ecosport','explorer','ranger','puma','escape','fiesta'],
+  FORD:      { aliases:['ford','福特','focus','kuga','mondeo','ecosport','explorer','ranger','puma','escape','fiesta','tourneo','旅行家','活動家','mustang','野馬'],
                anchor_a:'h.thiecunpv68_l', anchor_q:'h.re2ocr6uq9w9_l',
                page:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/ford', name:'FORD 福特' },
-  HONDA:     { aliases:['honda','本田','hr-v','hrv','cr-v','crv','odyssey','accord','civic','fit','city','br-v','brv','zr-v','zrv'],
+  HONDA:     { aliases:['honda','本田','hr-v','hrv','cr-v','crv','odyssey','accord','civic','fit','city','br-v','brv','zr-v','zrv','奧德賽','雅哥','喜美','e:ny1'],
                anchor_a:'h.9xc8r3s6o81e_l', anchor_q:'h.6rn0xv8o5mpx_l',
                page:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車廠品牌分類/honda', name:'HONDA 本田' },
-  TOYOTA:    { aliases:['toyota','豐田','rav4','rav-4','altis','camry','yaris','sienta','wish','noah','vios','corolla','alphard','prius','granvia','hiace'],
+  TOYOTA:    { aliases:['toyota','豐田','rav4','rav-4','altis','camry','yaris','sienta','wish','noah','vios','corolla','alphard','prius','granvia','hiace','corolla cross','yaris cross','town ace','townace','crown','sienna','凱美瑞'],
                anchor_a:'h.f802u3jlwxlf_l', anchor_q:'h.47o2gft3jku0_l',
                page:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車廠品牌分類/toyota', name:'TOYOTA 豐田' },
-  NISSAN:    { aliases:['nissan','日產','x-trail','xtrail','kicks','tiida','sentra','march','terra','livina','teana','350z'],
+  NISSAN:    { aliases:['nissan','日產','x-trail','xtrail','kicks','tiida','sentra','march','terra','livina','teana','350z','juke','leaf','ariya'],
                anchor_a:'h.jdwalgy5u609_l', anchor_q:'h.bmwbs03dvjgv_l',
                page:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車廠品牌分類/nissan', name:'NISSAN 日產' },
-  MAZDA:     { aliases:['mazda','馬自達','cx-5','cx5','cx-3','cx3','cx-30','cx30','mazda3','mazda6','mx-30','cx-9','馬2','馬3','馬5','馬6'],
+  MAZDA:     { aliases:['mazda','馬自達','cx-5','cx5','cx-3','cx3','cx-30','cx30','mazda3','mazda6','mx-30','cx-9','馬2','馬3','馬5','馬6','cx-60','cx60','cx-8','cx8','mx-5'],
                anchor_a:'h.bk5ubu8clwvm_l', anchor_q:'h.ak5k31ln9rdg_l',
                page:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/mazda', name:'MAZDA 馬自達' },
-  SUBARU:    { aliases:['subaru','速霸陸','forester','outback','levorg','legacy','crosstrek','impreza'],
+  SUBARU:    { aliases:['subaru','速霸陸','forester','outback','levorg','legacy','crosstrek','impreza','brz','wrx','xv'],
                anchor_a:'h.vuiea7etpnr7_l', anchor_q:'h.6kz3iprqquf0_l',
                page:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/車廠品牌分類/subaru', name:'SUBARU 速霸陸' },
-  VW:        { aliases:['vw','volkswagen','福斯','golf','tiguan','polo','t-roc','troc','touareg','passat'],
+  VW:        { aliases:['vw','volkswagen','福斯','golf','tiguan','polo','t-roc','troc','touareg','passat','caddy','sharan','arteon','id.4','id4','multivan','amarok','california'],
                anchor_a:'h.cjeixwcyn7dt_l', anchor_q:'h.o3yg2mk0gw70_l',
                page:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/vw', name:'VW 福斯' },
-  HYUNDAI:   { aliases:['hyundai','現代','tucson','elantra','santa fe','ioniq','kona','ix35','venue'],
+  HYUNDAI:   { aliases:['hyundai','現代','tucson','elantra','santa fe','ioniq','kona','ix35','venue','santafe','santa-fe','聖塔菲','staria','custin','avante','i30','veloster'],
                anchor_a:'h.fb5ykcdgeson_l', anchor_q:'h.5mwuxmov4kqc_l',
                page:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/hyundai', name:'HYUNDAI 現代' },
-  KIA:       { aliases:['kia','起亞','stonic','sportage','niro','sorento','carnival','picanto'],
+  KIA:       { aliases:['kia','起亞','stonic','sportage','niro','sorento','carnival','picanto','ev6','seltos','soul','cerato','morning','k5','k8'],
                anchor_a:'h.bifcm48noxlf_l', anchor_q:'h.vgoqb0hl13t8_l',
                page:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/kia', name:'KIA 起亞' },
-  LEXUS:     { aliases:['lexus','凌志','rx330','is250','lexus rx','lexus nx','lexus es','lexus ux','lexus ct','lexus is'],
+  LEXUS:     { aliases:['lexus','凌志','rx330','is250','lexus rx','lexus nx','lexus es','lexus ux','lexus ct','lexus is','lexus rz','lexus lm','lexus gs','lexus ls','lexus lx','lexus gx','nx200','nx250','rx350','ux250h'],
                anchor_a:'h.mjhq8g8yqpes_l', anchor_q:'h.4bgwzx67kj68_l',
                page:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/lexus', name:'LEXUS 凌志' },
-  SKODA:     { aliases:['skoda','斯柯達','kodiaq','octavia','karoq','kamiq','superb'],
+  SKODA:     { aliases:['skoda','斯柯達','kodiaq','octavia','karoq','kamiq','superb','fabia','scala','enyaq','yeti'],
                anchor_a:'h.bjjje8n886j5_l', anchor_q:'h.uzib0wx88sk0_l',
                page:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/skoda', name:'SKODA 斯柯達' },
-  VOLVO:     { aliases:['volvo','富豪','xc40','xc60','xc90','v60','s60','s90'],
+  VOLVO:     { aliases:['volvo','富豪','xc40','xc60','xc90','v60','s60','s90','xc-40','xc-60','xc-90','v90','ec40','s80'],
                anchor_a:'h.izkq5do4j2ql_l', anchor_q:'h.dkref09vpwre_l',
                page:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/volvo', name:'VOLVO 富豪' },
-  SUZUKI:    { aliases:['suzuki','鈴木','swift','vitara','jimny'],
+  SUZUKI:    { aliases:['suzuki','鈴木','swift','vitara','jimny','ignis','baleno','sx4','solio'],
                anchor_a:'h.jkm1gc6q9r2i_l', anchor_q:'h.w8qke81pg7ge_l',
                page:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/suzuki', name:'SUZUKI 鈴木' },
-  MITSUBISHI:{ aliases:['mitsubishi','三菱','cmc','中華','中華汽車','zinger','fortis','colt plus','delica','outlander','lancer','eclipse cross'],
+  MITSUBISHI:{ aliases:['mitsubishi','三菱','cmc','中華','中華汽車','zinger','fortis','colt plus','delica','outlander','lancer','eclipse cross','veryca','菱利','得利卡','歐藍德','zinger pickup'],
                anchor_a:'h.cmdii32t910m_l', anchor_q:'h.odogicuvbnc2_l', page:null, name:'MITSUBISHI 三菱' },
-  BENZ:      { aliases:['benz','mercedes','賓士','w204','w211','w164','w166','e220'],
+  BENZ:      { aliases:['benz','mercedes','賓士','w204','w211','w164','w166','e220','w205','w206','w213','w212','w167','w176','w177','glc','gla','glb','gle','cla','c300','c200','e300','vito','v250','sprinter','x253'],
                anchor_a:'h.to2g51nqg732_l', anchor_q:'h.ir9fseb9cued_l', page:null, name:'Mercedes-Benz 賓士' },
-  BMW:       { aliases:['bmw','寶馬','e53'],
+  BMW:       { aliases:['bmw','寶馬','e53','f10','f30','f31','g20','g30','e90','e92','e60','e70','f25','g01','x1','x3','x5','320i','520i','118i'],
                anchor_a:'h.go1y8j9v8uiv_l', anchor_q:'h.e8t502gqs9gy_l', page:null, name:'BMW 寶馬' },
-  AUDI:      { aliases:['audi','奧迪'],
+  AUDI:      { aliases:['audi','奧迪','a3','a4','a5','a6','q2','q3','q5','q7','q8','e-tron','etron'],
                anchor_a:'h.pij5xxj0jt5l_l', anchor_q:'h.4wxxxl4987pm_l', page:null, name:'AUDI 奧迪' },
-  MG:        { aliases:['mg5','mg hs','mg zs'],
+  MG:        { aliases:['mg5','mg hs','mg zs','mg4','mg7','mghs','mgzs','mg-hs','mg-zs'],
                anchor_a:'h.vj2ao4bzj2v7_l', anchor_q:null,
                page:'https://sites.google.com/asuka-mobile-tv.com/asuka-can-setting/mg專頁', name:'MG' },
-  LUXGEN:    { aliases:['luxgen','納智捷'],
+  LUXGEN:    { aliases:['luxgen','納智捷','u5','u6','u7','urx','n7','m7','s5'],
                anchor_a:'h.gl6xjf6100zu_l', anchor_q:null, page:null, name:'LUXGEN 納智捷' },
-  PEUGEOT:   { aliases:['peugeot','標緻','3008','5008','308'],
+  PEUGEOT:   { aliases:['peugeot','標緻','3008','5008','308','2008','408','508','partner','rifter'],
                anchor_a:null, anchor_q:'h.2h70lkfyhsrs_l', page:null, name:'PEUGEOT 標緻' }
 };
 const CAR_KEYWORDS = /可以裝|能不能裝|裝得上|可以換|能裝|可裝|裝嗎|支不支援|相容嗎|可以安裝|能安裝|安裝嗎|有框嗎|可以改|能改|有沒有框|能裝嗎|可升級|升級嗎|可以升級/;
-function detectCarBrand(text) {
+        // 故障排除／技術用詞：出現這些字代表是技術問題，不該當成「可否安裝」查詢
+        const PROBLEM_KEYWORDS = /黑屏|黑影|無畫面|沒畫面|沒有畫面|倒車|環景|校正|觸控|藍牙|藍芽|方控|音量|喇叭|雜音|沒聲音|無聲|收不到|廣播|導航|carplay|car ?play|android ?auto|apk|下載|安裝檔|\bota\b|更新|升級檔|\beq\b|音效|等化|調音|強制檔|斷電|熄火|桌面|介面|launcher|桌布|空間不足|釋放|參數|盲區|腳位|線組|接線|規格|當機|重開|重啟|閃屏|延遲|相反|顛倒|跑掉|存不起來|無法|不能|不會|沒切|失敗|怎麼|如何|為什麼|原因|設定|排除|故障|問題|lvds|can ?盒|can ?bus|主機|鏡頭|螢幕|wifi|熱點|聯網|序號|圖資|保固|維修|報價|價格|多少錢/i;
+function detectCarBrandStrict(text) {
   if (!CAR_KEYWORDS.test(text)) return null;
   const lower = text.toLowerCase();
   for (const data of Object.values(BRAND_DATA)) {
@@ -791,6 +793,25 @@ function detectCarBrand(text) {
   }
   return null;
 }
+        // 彈性車款判斷：1) 明確問「可以裝嗎」沿用原判斷 2) 只講車款名也能觸發
+        function detectCarBrand(text) {
+          const strict = detectCarBrandStrict(text);
+          if (strict) return strict;
+          const raw = String(text || '');
+          if (PROBLEM_KEYWORDS.test(raw)) return null;
+          const stripped = raw.replace(/[\s?？!！。，,、~～.]/g, '');
+          if (!stripped.length || stripped.length > 30) return null;
+          const lower = raw.toLowerCase();
+          let matched = null, mLen = 0;
+          for (const data of Object.values(BRAND_DATA)) {
+            for (const alias of data.aliases) {
+              const a = alias.toLowerCase();
+              if (a && lower.includes(a) && a.length > mLen) { matched = data; mLen = a.length; }
+            }
+          }
+          return matched;
+        }
+
 function renderCarQueryResult(brand) {
   const div = document.createElement('div');
   div.className = 'msg bot';
@@ -965,13 +986,13 @@ function submitFeedback() {
   };
   for (var k in FIX) { if (BRAND_DATA[k]) BRAND_DATA[k].anchor_q = FIX[k]; }
   var ADD = {
-    JEEP:     {aliases:["jeep","吉普","wrangler","牧馬人"], anchor_a:null, anchor_q:"h.6mw657jkrm8_l", page:null, name:"JEEP 吉普"},
+    JEEP:     {aliases:["jeep","吉普","wrangler","牧馬人","compass","renegade","cherokee","grand cherokee","gladiator","自由光","指南者"], anchor_a:null, anchor_q:"h.6mw657jkrm8_l", page:null, name:"JEEP 吉普"},
     HUMMER:   {aliases:["hummer","悍馬"], anchor_a:null, anchor_q:"h.ajz9iq863o3g_l", page:null, name:"HUMMER 悍馬"},
     SAAB:     {aliases:["saab","紳寶"], anchor_a:null, anchor_q:"h.9jn9s0k929gx_l", page:null, name:"SAAB 紳寶"},
-    PORSCHE:  {aliases:["porsche","保時捷","997"], anchor_a:null, anchor_q:"h.fvgt59lauckt_l", page:null, name:"PORSCHE 保時捷"},
-    SMART:    {aliases:["smart","fortwo"], anchor_a:null, anchor_q:"h.ihlmy79jo2k6_l", page:null, name:"SMART"},
-    MINI:     {aliases:["mini","r53","r56","f55","f56","f60"], anchor_a:null, anchor_q:"h.gd513vwtzuhl_l", page:null, name:"MINI"},
-    INFINITI: {aliases:["infiniti","極致","q50"], anchor_a:null, anchor_q:"h.uxpqhfvjn8a4_l", page:null, name:"INFINITI 極致"},
+    PORSCHE:  {aliases:["porsche","保時捷","997","cayenne","macan","panamera","911","taycan","卡宴"], anchor_a:null, anchor_q:"h.fvgt59lauckt_l", page:null, name:"PORSCHE 保時捷"},
+    SMART:    {aliases:["smart","fortwo","forfour"], anchor_a:null, anchor_q:"h.ihlmy79jo2k6_l", page:null, name:"SMART"},
+    MINI:     {aliases:["mini","r53","r56","f55","f56","f60","countryman","clubman","cooper"], anchor_a:null, anchor_q:"h.gd513vwtzuhl_l", page:null, name:"MINI"},
+    INFINITI: {aliases:["infiniti","極致","q50","qx50","qx60","q30"], anchor_a:null, anchor_q:"h.uxpqhfvjn8a4_l", page:null, name:"INFINITI 極致"},
     DAIHATSU: {aliases:["daihatsu","大發","terios"], anchor_a:"h.l64tbtq4mbfu_l", anchor_q:null, page:null, name:"DAIHATSU 大發"}
   };
   for (var k2 in ADD) { if (!BRAND_DATA[k2]) BRAND_DATA[k2] = ADD[k2]; }
